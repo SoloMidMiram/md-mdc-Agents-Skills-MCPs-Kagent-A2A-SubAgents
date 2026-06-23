@@ -1,0 +1,21 @@
+Exercise 2: Accessibility Structure Inspection
+==============================================
+Date: 2026-06-23
+Tool: VS Code Copilot Chat (browser tools)
+Server: playwright-local (STDIO, npx @playwright/mcp@0.0.76)
+
+Page: https://example.com
+
+Accessibility Snapshot (full structure):
+- generic container
+  - heading "Example Domain" [level=1]
+  - paragraph: "This domain is for use in documentation examples without needing permission. Avoid use in operations."
+  - paragraph:
+    - link "Learn more" → https://iana.org/domains/example
+
+Element Roles Identified:
+- heading (level 1): "Example Domain" - page title
+- paragraph: descriptive text about the domain
+- link: "Learn more" - navigates to iana.org
+
+Status: PASS

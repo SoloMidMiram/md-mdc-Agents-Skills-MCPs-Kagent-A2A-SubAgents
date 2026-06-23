@@ -1,0 +1,15 @@
+Exercise 10: Browser IP Comparison
+===================================
+Date: 2026-06-23
+
+Browser Public IP (from https://api.ipify.org): 46.151.26.41
+
+Interpretation: This is the laptop's outbound public IP address.
+Since Playwright MCP runs locally via STDIO transport (npx), the browser runs
+on the same machine as the MCP host (VS Code). The IP matches the laptop's
+internet-facing IP.
+
+Contrast: When testing with a remote MCP server (Phase 7), the browser IP
+would show the server's public IP instead.
+
+Status: PASS

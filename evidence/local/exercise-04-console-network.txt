@@ -1,0 +1,30 @@
+Exercise 4: Console Error Inspection
+====================================
+Date: 2026-06-23
+Page: https://example.com
+
+Console Messages:
+- Errors: 0
+- Warnings: 0
+- Info: 0
+
+Result: Page has no console output — clean HTML document.
+The example.com domain serves a static HTML page with no JavaScript, so zero console messages are expected.
+
+Status: PASS
+
+Exercise 5: Network Request Inspection
+======================================
+Date: 2026-06-23
+Page: https://example.com
+
+Network Requests:
+1. GET https://example.com/ → Status 200
+   - Content-Type: text/html
+   - Server: cloudflare
+   - Encoding: br (brotli)
+   - Cache: HIT (cf-cache-status: HIT)
+
+All requests successful (0 failed).
+
+Status: PASS

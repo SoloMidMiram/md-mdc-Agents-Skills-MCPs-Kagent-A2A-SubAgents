@@ -1,0 +1,46 @@
+Exercise 7: Element-Not-Found Failure
+======================================
+Date: 2026-06-23
+Page: https://example.com
+
+Action: Attempted click on non-existent element with selector "#does-not-exist"
+
+Error Message:
+locator.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator('#does-not-exist')
+
+Interpretation: Playwright waits 10 seconds for the element to appear, then throws a timeout.
+This is expected behavior — Playwright does not fail immediately, it waits for the element to become visible.
+
+Status: PASS (expected failure)
+
+Exercise 8: Navigation Timeout (Closed Port)
+============================================
+Date: 2026-06-23
+
+Action: Navigated to http://localhost:9999 (no service listening)
+
+Error Message:
+page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:9999/
+
+Interpretation: Connection refused when no service is listening on the target port.
+This is a fast failure (not a timeout) — the OS immediately rejects the connection.
+
+Status: PASS (expected failure)
+
+Exercise 9: DNS Failure
+========================
+Date: 2026-06-23
+
+Action: Navigated to https://this-domain-does-not-exist-12345.com
+
+Error Message:
+page.goto: Timeout 10000ms exceeded.
+navigating to "https://this-domain-does-not-exist-12345.com/", waiting until "domcontentloaded"
+
+Interpretation: DNS resolution timed out after 10 seconds. Unlike a connection refused error,
+DNS failures take longer because the system waits for DNS servers to respond.
+This is a DNS layer failure, not a network connectivity or timeout layer issue.
+
+Status: PASS (expected failure)

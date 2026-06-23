@@ -1,0 +1,27 @@
+Exercise 6: Persistent Profile vs --isolated
+=============================================
+Date: 2026-06-23
+
+Mode Tested: Persistent Profile (--user-data-dir)
+
+Configuration: VS Code .vscode/mcp.json uses:
+  "--user-data-dir", "${userHome}\\AppData\\Local\\ms-playwright\\vscode-mcp-profile"
+
+Behavior:
+- Browser profile is stored on disk at the specified path
+- State (cookies, localStorage) persists between sessions
+- Profile is locked while browser is running — cannot be shared
+
+Comparison:
+
+| Feature | Persistent Profile | --isolated |
+|---------|-------------------|------------|
+| State persistence | ✅ Survives restarts | ❌ Resets every session |
+| Disk writes | ✅ Yes (profile folder) | ❌ No (memory only) |
+| Multi-client safe | ❌ Lock conflict risk | ✅ Safe for concurrent use |
+| Use case | Login workflows, stateful testing | CI/CD, disposable tests, multi-client |
+
+Conclusion: The VS Code configuration uses persistent profile for stateful testing.
+For exercises where state is not needed, --isolated would be more appropriate.
+
+Status: PASS

@@ -1,0 +1,20 @@
+# Playwright MCP Server Configuration
+# Rename this file to .env and fill in values as needed.
+
+# Port for the MCP server to listen on
+# MCP_PORT=8931
+
+# Host to bind to (0.0.0.0 inside container; 127.0.0.1 on host)
+# MCP_HOST=0.0.0.0
+
+# Browser to use (chromium, firefox, webkit)
+# MCP_BROWSER=chromium
+
+# Additional Playwright MCP CLI flags
+# MCP_FLAGS=--headless --no-sandbox --isolated
+
+# Allowed origins (semicolon-separated) — guardrail only, not a security boundary
+# MCP_ALLOWED_ORIGINS=https://example.com
+
+# Docker image tag
+# PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp

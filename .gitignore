@@ -1,0 +1,32 @@
+# Environment files
+.env
+*.env
+!*.env.example
+!*env-example.txt
+
+# Browser state
+storage-state*.json
+auth*.json
+cookies*.json
+
+# Evidence files (screenshots, etc.)
+evidence/**/*.png
+evidence/**/*.jpg
+evidence/**/*.webp
+evidence/**/*.json
+
+# Playwright report and test results
+playwright-report/
+test-results/
+
+# Node.js
+node_modules/
+
+# IDE and OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

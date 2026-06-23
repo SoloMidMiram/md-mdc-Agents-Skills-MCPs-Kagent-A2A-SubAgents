@@ -1,0 +1,13 @@
+{
+    "mcpServers": {
+        "playwright-local": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@playwright/mcp@0.0.76",
+                "--user-data-dir",
+                "C:\\Users\\YOUR_USER\\AppData\\Local\\ms-playwright\\cursor-mcp-profile"
+            ]
+        }
+    }
+}

@@ -1,0 +1,14 @@
+Exercise 3: Safe Clicking and Navigation
+=========================================
+Date: 2026-06-23
+
+Steps:
+1. Navigated to https://example.com
+2. Identified safe link: "Learn more" → iana.org/domains/example (safe - documentation domain)
+3. Clicked the link → navigated to https://www.iana.org/help/example-domains
+4. New page: IANA Example Domains documentation page with full structure
+5. Navigated back → returned to https://example.com
+
+Result: SUCCESS - Round-trip navigation completed with state description after each step
+
+Status: PASS

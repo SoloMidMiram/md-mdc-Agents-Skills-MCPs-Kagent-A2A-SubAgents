@@ -1,0 +1,43 @@
+Cursor MCP Validation
+=====================
+Date: 2026-06-23
+Tool: Cursor IDE (Chat with Agent)
+Server: playwright-local (STDIO, npx @playwright/mcp@0.0.76)
+Config: %USERPROFILE%\.cursor\mcp.json
+Workspace: F:\Git\MCPtest
+
+Test: Composite Validation (Exercise 1-4 combined)
+---------------------------------------------------
+- Prompt: Use only playwright-local MCP browser tools
+  1. Open https://example.com
+  2. Explain which browser tool used at every step
+  3. Describe page using accessibility information
+  4. Inspect console messages
+  5. List network requests
+  6. Do not fill forms, submit data, download files, or navigate elsewhere
+  7. Close the browser when finished
+
+MCP Tools Used (in order):
+1. browser_navigate          → SUCCESS — navigated to https://example.com
+2. browser_run_code_unsafe   → REJECTED by Cursor safety policy
+3. browser_console_messages  → SUCCESS — 0 messages, 0 errors, 0 warnings
+4. browser_close             → SUCCESS — browser closed
+
+Results:
+- Page Title: "Example Domain"
+- Console Messages: 0 errors, 0 warnings
+- Accessibility Info and Network Requests: Not retrievable via safe tools alone
+  (Cursor's safety policy blocked browser_run_code_unsafe; standard safe tools
+   available in Cursor's Playwright MCP do not include getAccessibilitySnapshot
+   or getNetworkRequests — these required the blocked unsafe code execution)
+
+MCP Server Connection: ✅ Connected (green dot in Cursor MCP panel)
+browser_close Called: ✅ Yes — final tool in sequence
+
+Status: PASS (core validation) / PARTIAL (accessibility + network limited by safety policy)
+
+Notes:
+- browser_close was invoked as the final tool — cleanup confirmed
+- No Docker, HTTP MCP, Kubernetes, or kagent involved
+- Cursor's tool names differ from VS Code's Playwright MCP (e.g., browser_console_messages vs browser_getConsoleMessages)
+- Cursor safety policy restricts browser_run_code_unsafe, which limits deep page inspection
