@@ -1,0 +1,15 @@
+Backup Manifest (Redacted)
+==========================
+Backup directory: C:\Users\cebit.ir\.mcp-config-backups\20260624-085526
+Date: 2026-06-24 08:55:26
+
+File                    | Original Path                                            | Existed | SHA-256 (first 16 chars)
+------------------------|----------------------------------------------------------|---------|--------------------------
+cursor-mcp.json         | C:\Users\cebit.ir\.cursor\mcp.json                      | Yes     | E25A7F70A187E5C8
+codex-config.toml       | C:\Users\cebit.ir\.codex\config.toml                    | Yes     | A7BAF78571F2E138
+continue-config.yaml    | C:\Users\cebit.ir\.continue\config.yaml                  | Yes     | 99047C2E47F50DB3
+vscode-user-mcp.json    | %APPDATA%\Code\User\mcp.json                            | Yes     | D76F35FB6C039EA9
+
+Total files: 4
+All original files existed and were backed up before any modification.
+Backups are NOT committed to Git.

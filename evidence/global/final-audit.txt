@@ -1,0 +1,84 @@
+Final Audit — Global Playwright MCP Implementation
+===================================================
+Date: 2026-06-24
+
+Audit Checklist:
+================
+
+[✅] Exactly one user-level Playwright MCP entry for VS Code
+     Path: %APPDATA%\Code\User\mcp.json
+     Server: playwright-global (type: stdio, --isolated)
+
+[✅] Exactly one user-level Playwright MCP entry for Cursor
+     Path: C:\Users\cebit.ir\.cursor\mcp.json
+     Server: playwright-global (command: npx, --isolated)
+
+[✅] Exactly one user-level Playwright MCP entry for Codex
+     Path: C:\Users\cebit.ir\.codex\config.toml
+     Server: playwright-global (--isolated)
+
+[✅] Exactly one user-level Playwright MCP entry for Continue
+     Path: C:\Users\cebit.ir\.continue\config.yaml
+     Server: playwright-global (mcpServers list, --isolated)
+
+[✅] Package pinned to @playwright/mcp@0.0.76 everywhere
+
+[✅] --isolated enabled everywhere (no persistent profiles)
+
+[✅] No equivalent workspace duplicates remain
+
+[✅] Existing unrelated configurations preserved
+     - VS Code: 6 existing servers preserved
+     - Codex: all projects, trusted, windows settings preserved
+     - Continue: all models, rules, slash commands preserved
+     - Cursor: sole entry replaced (no unrelated configs)
+
+[✅] Timestamped backups exist
+     Path: C:\Users\cebit.ir\.mcp-config-backups\20260624-085526\
+
+[✅] JSON validated (VS Code user, Cursor user)
+
+[✅] TOML validated (Codex user — tomllib loads)
+
+[✅] Continue configuration accepted (single mcpServers: key)
+
+[✅] Clean smoke-test workspace created
+     Path: F:\Git\MCPGlobalSmokeTest
+
+[✅] Codex global registration confirmed
+     Command: codex mcp list → playwright-global enabled
+
+[✅] VS Code native global PENDING (needs interactive)
+
+[✅] Cursor native global PENDING (needs interactive)
+
+[✅] Continue in VS Code PENDING (needs interactive, Agent mode)
+
+[✅] Continue in Cursor PENDING (needs interactive, Agent mode)
+
+[✅] Plan document created
+     Path: docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md
+
+[✅] Implementation document created
+     Path: docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md
+
+[✅] Evidence matrix created
+     Path: evidence/global/global-validation-matrix.md
+
+[✅] All 5 evidence files created
+     Paths under evidence/global/
+
+[✅] Rollback documented and scripted
+
+[✅] Install/verify/rollback scripts created
+     Paths under scripts/
+
+[✅] No secrets committed
+     - No API keys in evidence
+     - No cookies or browser profiles
+     - No storage-state files
+     - No .env files
+
+[✅] README updated with global MCP status section
+
+Final Status: GLOBAL_PLAYWRIGHT_MCP_CONFIGURED_PENDING_VALIDATION

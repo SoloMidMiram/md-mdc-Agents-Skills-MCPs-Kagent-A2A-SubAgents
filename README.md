@@ -77,22 +77,45 @@ This project is provided under MIT license.
 
 | Component               | Version          | Validation Status |
 |-------------------------|------------------|-------------------|
-| Operating System        | Windows 10.0.26200 | CHECKED          |
-| PowerShell Version      | 5.1.26100.8655   | CHECKED           |
-| Node.js                 | v23.0.0          | CHECKED           |
-| npm                     | 10.9.0           | CHECKED           |
-| npx                     | 10.9.0           | CHECKED           |
-| Playwright MCP          | 0.0.76           | CHECKED           |
-| Git                     | 2.45.2.windows.1 | CHECKED           |
-| Codex CLI               | 0.141.0          | CHECKED           |
-| Cursor MCP config       | —                | PASS              |
-| VS Code MCP config      | —                | PASS              |
-| Local browser test      | —                | PASS              |
-| Local exercises (1-10)  | —                | PASS              |
-| Server deployment       | —                | NOT RUN           |
-| kagent integration      | —                | FUTURE (design)   |
+| Operating System           | Windows 10.0.26200 | CHECKED          |
+| PowerShell Version         | 5.1.26100.8655   | CHECKED           |
+| Node.js                    | v23.0.0          | CHECKED           |
+| npm                        | 10.9.0           | CHECKED           |
+| npx                        | 10.9.0           | CHECKED           |
+| Playwright MCP             | 0.0.76           | CHECKED           |
+| Git                        | 2.45.2.windows.1 | CHECKED           |
+| Codex CLI                  | 0.141.0          | CHECKED           |
+| Cursor native MCP          | —                | PASS              |
+| VS Code native MCP         | —                | PASS              |
+| Local browser test         | —                | PASS              |
+| Local exercises (1-10)     | —                | PASS              |
+| Global MCP (all 5 hosts)   | —                | CONFIGURED        |
+| Server deployment          | —                | NOT RUN           |
+| kagent integration         | —                | FUTURE (design)   |
 
-*Last tested: 2026-06-23 (Phase 1 re-verification)*
+*Last tested: 2026-06-24 (Global MCP implementation)*
+
+---
+
+### 🌍 Global MCP Architecture
+
+Playwright MCP is now registered as a user-level tool across all local MCP hosts.
+See the full plan and implementation documentation:
+
+- [`docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md`](docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md) — Architecture, inventory, change strategy
+- [`docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md`](docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md) — Commands, before/after, rollback, validation matrix
+
+| Host | Scope | Server Name | Status |
+|------|-------|-------------|--------|
+| Codex CLI | User (`config.toml`) | `playwright-global` | ✅ STRUCTURALLY VERIFIED |
+| VS Code native | User (`mcp.json`) | `playwright-global` | ✅ STRUCTURALLY VERIFIED |
+| Cursor native | User (`mcp.json`) | `playwright-global` | ✅ STRUCTURALLY VERIFIED |
+| Continue in VS Code | User (`config.yaml`) | `playwright-global` | ✅ STRUCTURALLY VERIFIED |
+| Continue in Cursor | User (`config.yaml`) | `playwright-global` | ✅ STRUCTURALLY VERIFIED |
+
+**Status:** `GLOBAL_PLAYWRIGHT_MCP_CONFIGURED_PENDING_VALIDATION` — all user-level
+configurations complete; functional browser validation from `F:\Git\MCPGlobalSmokeTest`
+requires interactive editor sessions (see validation matrix in evidence).
 
 ---
 

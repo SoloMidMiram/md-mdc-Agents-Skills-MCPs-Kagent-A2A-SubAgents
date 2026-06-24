@@ -1,0 +1,39 @@
+VS Code Native Global Playwright MCP Validation
+=================================================
+Date: 2026-06-24
+Host: VS Code native Copilot agent
+Editor: VS Code 1.125.1
+Mode: Agent mode
+Workspace: F:\Git\MCPGlobalSmokeTest (intended — no local MCP configs)
+Configuration Scope: User
+Config Path: %APPDATA%\Code\User\mcp.json
+
+Server Name: playwright-global
+Package: @playwright/mcp@0.0.76
+Flags: --isolated
+Transport: STDIO
+Type Key: "servers" (VS Code convention)
+
+Structural Verification:
+- JSON syntax: VALID (ConvertFrom-Json)
+- playwright-global entry present alongside 6 existing servers
+- --isolated present in args
+- Server schema uses "type": "stdio"
+
+Existing user-level servers preserved:
+- microsoft/markitdown
+- io.github.netdata/mcp-server
+- io.github.upstash/context7
+- io.github.ChromeDevTools/chrome-devtools-mcp
+- io.github.github/github-mcp-server
+- firecrawl/firecrawl-mcp-server
+
+Workspace Cleanliness:
+- F:\Git\MCPGlobalSmokeTest has no .vscode/mcp.json
+- F:\Git\MCPtest\.vscode\mcp.json has empty "servers": {}
+
+Functional Verification: PENDING_INTERACTIVE_VALIDATION
+To validate, open F:\Git\MCPGlobalSmokeTest in VS Code, open Copilot Chat
+in Agent mode, and run the restricted example.com test.
+
+Verdict: VSCODE_NATIVE_GLOBAL_PLAYWRIGHT_CONFIGURED

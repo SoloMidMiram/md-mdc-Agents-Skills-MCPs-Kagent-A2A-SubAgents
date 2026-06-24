@@ -1,0 +1,28 @@
+Codex Global Playwright MCP Validation
+======================================
+Date: 2026-06-24
+Host: Codex CLI
+Editor: Codex (v0.141.0)
+Mode: CLI (codex mcp list)
+Workspace: F:\Git\MCPtest (also tested from F:\Git\MCPGlobalSmokeTest)
+Configuration Scope: User
+Config Path: C:\Users\cebit.ir\.codex\config.toml
+
+Server Name: playwright-global
+Package: @playwright/mcp@0.0.76
+Flags: --isolated
+Transport: STDIO
+
+Structural Verification:
+- TOML syntax: VALID (tomllib.loads)
+- codex mcp list: playwright-global shown as enabled
+- --isolated present in args
+- Server name: playwright-global
+
+Functional Verification: PENDING_INTERACTIVE_VALIDATION
+The structural and registration verification is complete.
+Full functional validation (browser_navigate, browser_snapshot, etc.)
+requires a Codex session from the clean smoke-test workspace
+(F:\Git\MCPGlobalSmokeTest) using agent mode.
+
+Verdict: CODEX_GLOBAL_PLAYWRIGHT_CONFIGURED

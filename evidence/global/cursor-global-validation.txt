@@ -1,0 +1,30 @@
+Cursor Native Global Playwright MCP Validation
+===============================================
+Date: 2026-06-24
+Host: Cursor native agent
+Editor: Cursor
+Mode: Agent mode
+Workspace: F:\Git\MCPGlobalSmokeTest (intended — no local MCP configs)
+Configuration Scope: User
+Config Path: C:\Users\cebit.ir\.cursor\mcp.json
+
+Server Name: playwright-global
+Package: @playwright/mcp@0.0.76
+Flags: --isolated
+Transport: STDIO
+Type Key: "mcpServers" (Cursor convention)
+
+Structural Verification:
+- JSON syntax: VALID (ConvertFrom-Json)
+- playwright-global entry present, renamed from playwright-local
+- --isolated present in args (replaced --user-data-dir)
+
+Workspace Cleanliness:
+- No workspace-level .cursor/mcp.json exists
+- F:\Git\MCPGlobalSmokeTest has no .cursor directory
+
+Functional Verification: PENDING_INTERACTIVE_VALIDATION
+To validate, open F:\Git\MCPGlobalSmokeTest in Cursor, open Cursor
+Agent mode, and run the restricted example.com test.
+
+Verdict: CURSOR_NATIVE_GLOBAL_PLAYWRIGHT_CONFIGURED

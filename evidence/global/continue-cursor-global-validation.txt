@@ -1,0 +1,28 @@
+Continue in Cursor Global Playwright MCP Validation
+====================================================
+Date: 2026-06-24
+Host: Continue extension (inside Cursor)
+Editor: Cursor
+Mode: Agent mode (required for MCP tool access)
+Workspace: F:\Git\MCPGlobalSmokeTest (intended — no local MCP configs)
+Configuration Scope: User
+Config Path: C:\Users\cebit.ir\.continue\config.yaml
+
+Server Name: playwright-global
+Package: @playwright/mcp@0.0.76
+Flags: --isolated
+Transport: STDIO
+
+Structural Verification:
+- Same config.yaml as Continue in VS Code (shared user-level config)
+- mcpServers key present exactly once
+- playwright-global entry under mcpServers list
+- No workspace-level .continue/mcpServers/ directory exists
+
+Note: Continue inside Cursor is NOT the same as Cursor's native agent.
+      They are separate agent hosts sharing the same VS Code window.
+      Continue exposes MCP tools ONLY in Agent mode.
+
+Functional Verification: PENDING_INTERACTIVE_VALIDATION
+
+Verdict: CONTINUE_CURSOR_GLOBAL_PLAYWRIGHT_CONFIGURED

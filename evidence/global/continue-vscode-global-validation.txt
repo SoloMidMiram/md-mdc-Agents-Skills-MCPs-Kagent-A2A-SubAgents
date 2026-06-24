@@ -1,0 +1,36 @@
+Continue in VS Code Global Playwright MCP Validation
+=====================================================
+Date: 2026-06-24
+Host: Continue extension (inside VS Code)
+Editor: VS Code 1.125.1
+Mode: Agent mode (required for MCP tool access)
+Workspace: F:\Git\MCPGlobalSmokeTest (intended — no local MCP configs)
+Configuration Scope: User
+Config Path: C:\Users\cebit.ir\.continue\config.yaml
+
+Server Name: playwright-global
+Package: @playwright/mcp@0.0.76
+Flags: --isolated
+Transport: STDIO
+
+Structural Verification:
+- mcpServers key present exactly once in config.yaml
+- playwright-global entry under mcpServers list
+- All existing models, rules, slash commands preserved
+- No workspace-level .continue/mcpServers/ directory exists
+
+Existing Continue configuration preserved:
+- 10+ model definitions (DeepSeek Chat, Reasoner, GPT-4.1, etc.)
+- All slashCommands (personas, orchestrator, runner, etc.)
+- Global rules
+
+Note: Continue exposes MCP tools ONLY in Agent mode.
+      Chat, Edit, and Autocomplete modes cannot use MCP tools.
+      A tool-capable model must be selected.
+
+Functional Verification: PENDING_INTERACTIVE_VALIDATION
+To validate, open F:\Git\MCPGlobalSmokeTest in VS Code, open Continue
+panel, select Agent mode and a tool-capable model, then run the
+restricted example.com test.
+
+Verdict: CONTINUE_VSCODE_GLOBAL_PLAYWRIGHT_CONFIGURED

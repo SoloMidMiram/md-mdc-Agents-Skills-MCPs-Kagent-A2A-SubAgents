@@ -1,0 +1,27 @@
+Pre-Change Inventory — Global Playwright MCP
+==============================================
+Date: 2026-06-24
+Inspector: Copilot automation
+
+Host                    | Config Path                                              | Scope     | Server Name        | Args                           | Active?
+------------------------|----------------------------------------------------------|-----------|--------------------|--------------------------------|--------
+VS Code workspace       | F:\Git\MCPtest\.vscode\mcp.json                         | workspace | playwright-local   | --user-data-dir ...vscode-mcp  | Yes
+VS Code user            | %APPDATA%\Code\User\mcp.json                            | user      | (no Playwright)    | —                              | N/A
+Cursor user             | C:\Users\cebit.ir\.cursor\mcp.json                      | user      | playwright-local   | --user-data-dir ...cursor-mcp  | Yes
+Codex user              | C:\Users\cebit.ir\.codex\config.toml                    | user      | playwright-local   | --user-data-dir ...codex-mcp   | Yes
+Continue user           | C:\Users\cebit.ir\.continue\config.yaml                  | user      | (no Playwright)    | —                              | N/A
+Continue workspace      | F:\Git\MCPtest\.continue\mcpServers\                     | workspace | (directory absent) | —                              | N/A
+
+Environment:
+- PowerShell: 5.1.26100.8655
+- Node.js: v23.0.0
+- npm: 10.9.0
+- npx: 10.9.0
+- VS Code: 1.125.1 (commit fcf60477)
+- Cursor: (version not exposed via CLI)
+- Codex: 0.141.0
+
+Package for all entries: @playwright/mcp@0.0.76
+
+Pre-existing VS Code user servers: markitdown, netdata, context7,
+chrome-devtools, github-mcp, firecrawl
