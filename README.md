@@ -105,38 +105,58 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 
 ---
 
-## Repository Map
+---
 
-```
-.
-├── .vscode/                    → Workspace settings, extensions, MCP (empty)
-├── config/
-│   ├── integrations/           → Tooling registries, placeholders
-│   └── templates/              → 📤 Portable config templates
-├── docs/
-│   ├── GETTING-STARTED.md      → ⭐ Introduction & manual
-│   ├── PORTABLE-SETTINGS-BUNDLE.md  → ⭐ Portable settings for new laptops
-│   ├── 01-MCP-MENTAL-MODEL.md  → MCP architecture concepts
-│   ├── 02-LOCAL-PLAYWRIGHT-LAB.md  → 10 browser automation exercises
-│   ├── 03-REMOTE-PLAYWRIGHT-LAB.md → Docker + SSH tunnel
-│   ├── 04-KAGENT-INTEGRATION.md → Kubernetes/kagent design
-│   ├── 05-SSH-CONCURRENCY-FIX.md  → SSH MaxStartups repair
-│   ├── GLOBAL-PLAYWRIGHT-MCP-PLAN.md → Architecture & strategy
-│   ├── GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md → Implementation details
-│   ├── integrations/           → AI tooling scaffold docs
-│   ├── templates/              → MCP config templates (VS Code / Cursor)
-│   └── TROUBLESHOOTING.md      → Common issues & fixes
-├── evidence/
-│   ├── global/                 → Global MCP validation records
-│   ├── integrations/           → Tooling scaffold evidence
-│   └── local/                  → Playwright exercise evidence
-├── scripts/
-│   ├── install-global-playwright-mcp.ps1
-│   ├── verify-global-playwright-mcp.ps1
-│   ├── rollback-global-playwright-mcp.ps1
-│   └── integrations/           → Scaffold verification scripts
-└── server/                     → Docker deployment for remote browser
-```
+## Implementation Roadmap
+
+### Forward Order (Plan → Implementation)
+
+| # | Phase | Plan Document | Implementation | Evidence | Status |
+|---|-------|--------------|----------------|----------|--------|
+| 1 | **MCP mental model** — architecture foundation | `docs/01-MCP-MENTAL-MODEL.md` | *(conceptual)* | — | ✅ Complete |
+| 2 | **Local Playwright exercises** — 10 safe browser automation labs | `docs/02-LOCAL-PLAYWRIGHT-LAB.md` | *(exercise prompts)* | `evidence/local/exercise-*` | ✅ Complete |
+| 3 | **Remote Docker deployment** — headless Chromium via SSH tunnel | `docs/03-REMOTE-PLAYWRIGHT-LAB.md` | `server/compose.yaml`, `server/README.md` | — | ⏳ Needs Linux server |
+| 4 | **SSH concurrency fix** — multi-window VS Code Remote-SSH repair | `docs/05-SSH-CONCURRENCY-FIX.md` | *(procedure doc)* | `memories/repo/ssh-concurrency-fix.md` | ✅ Complete |
+| 5 | **Global Playwright MCP** — register `playwright-global` across all 5 hosts | `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md` | `evidence/global/` | ✅ STRUCTURALLY VERIFIED |
+| 6 | **AI tooling integration scaffold** — Azure MCP, Foundry, Chat Eval | `docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md` | `.vscode/settings.json`, `config/integrations/` | `evidence/integrations/` | ✅ AUDIT HARDENED |
+| 7 | **Portable settings bundle** — capture user-level configs for new laptops | `docs/PORTABLE-SETTINGS-BUNDLE.md` | `config/templates/` | — | ✅ Complete |
+| 8 | **Native VS Code agent customization** — `.instructions.md`, agents, prompts | *(recommended scaffold)* | `.github/instructions/`, `.github/agents/`, `.github/prompts/` | — | ✅ Implemented |
+| 9 | **Python + K8s tool stack** — pyproject.toml, pre-commit, scripts, tasks | *(recommended scaffold)* | `pyproject.toml`, `.pre-commit-config.yaml`, `.vscode/tasks.json`, `scripts/quality/` | — | ✅ Implemented |
+| 10 | **Project memory layer** — `.project-ai/memory/` with 7 knowledge domains | *(recommended scaffold)* | `.project-ai/memory/*.md`, `.project-ai/templates/*.md` | — | ✅ Implemented |
+| 11 | **Dev container** — reproducible Linux dev environment | *(recommended scaffold)* | `.devcontainer/devcontainer.json` | — | ✅ Implemented |
+| 12 | **kagent / Kubernetes integration** — future cluster deployment | `docs/04-KAGENT-INTEGRATION.md` | *(design only)* | — | 📋 Design only |
+
+### Reverse Order (Rollback)
+
+To undo the entire setup in reverse:
+
+| Step | Action | Relevant Files |
+|------|--------|----------------|
+| 12 | Stop any remote Docker browser | `server/`, `docker compose down` |
+| 11 | Remove dev container | `.devcontainer/devcontainer.json` |
+| 10 | Clear project memory (no Git side effects) | `.project-ai/memory/*` |
+| 9 | Uninstall Python tools, remove pre-commit | `pyproject.toml`, `.pre-commit-config.yaml` |
+| 8 | Remove VS Code agent customizations | `.github/instructions/`, `.github/agents/`, `.github/prompts/` |
+| 7 | Delete portable config templates | `config/templates/` |
+| 6 | Remove AI tooling scaffold (settings, placeholders) | `.vscode/settings.json`, `config/integrations/` |
+| 5 | **Unregister `playwright-global`** from all hosts | `codex mcp remove playwright-global`; edit `%APPDATA%\Code\User\mcp.json`; edit `%USERPROFILE%\.cursor\mcp.json`; edit `%USERPROFILE%\.continue\config.yaml` |
+| 4 | Restore default SSH MaxStartups | `/etc/ssh/sshd_config` (server-side) |
+| 3 | Remove server deployment files | `server/` |
+| 2 | Delete exercise evidence | `evidence/local/` |
+| 1 | Archive docs (or keep as reference) | `docs/` |
+
+### Plan → Implementation Index
+
+| Plan Document | Implementation | Evidence | Status |
+|---------------|---------------|----------|--------|
+| `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md` + `scripts/install-global-playwright-mcp.ps1` | `evidence/global/` — 9 files | ✅ Verified |
+| `docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md` | `.vscode/settings.json` (Azure MCP policy) + `config/integrations/tooling-registry.yaml` | `evidence/integrations/` — 3 files | ✅ Audited |
+| `docs/03-REMOTE-PLAYWRIGHT-LAB.md` | `server/compose.yaml` + `server/README.md` | `evidence/remote/.gitkeep` | ⏳ Pending server |
+| `docs/04-KAGENT-INTEGRATION.md` | *(design only — no implementation started)* | — | 📋 Future |
+| `docs/PORTABLE-SETTINGS-BUNDLE.md` | `config/templates/` (4 templates) | — | ✅ Complete |
+| `docs/01-MCP-MENTAL-MODEL.md` | *(conceptual — no code artifact)* | — | ✅ Complete |
+| `docs/02-LOCAL-PLAYWRIGHT-LAB.md` | *(exercise prompts — run in agent)* | `evidence/local/` — 8 files | ✅ Complete |
+| `docs/05-SSH-CONCURRENCY-FIX.md` | *(procedure doc)* | `memories/repo/ssh-concurrency-fix.md` | ✅ Complete |
 
 ---
 
@@ -154,17 +174,69 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 
 ---
 
+## Repository Map
+
+```
+.
+├── .devcontainer/              → Reproducible Linux dev environment
+├── .github/
+│   ├── copilot-instructions.md → Repository-wide rules
+│   ├── instructions/           → File-pattern rules (Python, K8s, tests, security, docs)
+│   ├── prompts/                → Reusable agent prompts (quality, diagnosis, review, memory)
+│   └── agents/                 → Custom agents (Python reviewer, K8s reviewer, release auditor)
+├── .project-ai/
+│   ├── memory/                 → Durable project memory (7 knowledge domains)
+│   └── templates/              → Incident and decision templates
+├── .vscode/
+│   ├── extensions.json         → 14 extension recommendations
+│   ├── settings.json           → Python, K8s, Azure MCP config
+│   └── tasks.json              → 6 quality gate tasks
+├── config/
+│   ├── integrations/           → Tooling registries, placeholders
+│   └── templates/              → 📤 Portable config templates (4 hosts)
+├── docs/
+│   ├── GETTING-STARTED.md      → ⭐ Introduction & manual
+│   ├── PORTABLE-SETTINGS-BUNDLE.md → ⭐ Portable settings for new laptops
+│   ├── 01-MCP-MENTAL-MODEL.md  → MCP architecture concepts
+│   ├── 02-LOCAL-PLAYWRIGHT-LAB.md → 10 browser automation exercises
+│   ├── 03-REMOTE-PLAYWRIGHT-LAB.md → Docker + SSH tunnel
+│   ├── 04-KAGENT-INTEGRATION.md → Kubernetes/kagent design
+│   ├── 05-SSH-CONCURRENCY-FIX.md → SSH MaxStartups repair
+│   ├── GLOBAL-PLAYWRIGHT-MCP-PLAN.md → Architecture & strategy
+│   ├── GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md → Implementation details
+│   ├── integrations/           → AI tooling scaffold docs
+│   ├── templates/              → MCP config templates
+│   └── TROUBLESHOOTING.md      → Common issues & fixes
+├── evidence/
+│   ├── global/                 → Global MCP validation (9 files)
+│   ├── integrations/           → Tooling scaffold evidence (3 files)
+│   └── local/                  → Playwright exercise evidence (8 files)
+├── scripts/
+│   ├── install-global-playwright-mcp.ps1
+│   ├── verify-global-playwright-mcp.ps1
+│   ├── rollback-global-playwright-mcp.ps1
+│   ├── quality/python-fast.ps1 & python-full.ps1
+│   ├── kubernetes/validate.ps1
+│   ├── security/scan.ps1
+│   └── integrations/           → Inventory & verify scripts
+└── server/                     → Docker deployment for remote browser
+```
+
+---
+
 ## Reading Order
 
 ```
  1. docs/GETTING-STARTED.md                       → Start here
- 2. docs/01-MCP-MENTAL-MODEL.md                   → Understand MCP
+ 2. docs/01-MCP-MENTAL-MODEL.md                   → Understand MCP architecture
  3. docs/PORTABLE-SETTINGS-BUNDLE.md               → Set up another laptop
  4. docs/02-LOCAL-PLAYWRIGHT-LAB.md                → Practice locally
- 5. docs/03-REMOTE-PLAYWRIGHT-LAB.md               → Deploy remote
- 6. docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md             → Architecture
- 7. docs/integrations/                              → Tooling scaffold
- 8. docs/TROUBLESHOOTING.md                        → Reference
+ 5. docs/03-REMOTE-PLAYWRIGHT-LAB.md               → Deploy remote browser
+ 6. docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md             → Global MCP architecture
+ 7. docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md   → Implementation details
+ 8. docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md → Tooling scaffold
+ 9. docs/04-KAGENT-INTEGRATION.md                  → Future Kubernetes plans
+10. docs/TROUBLESHOOTING.md                        → Reference when stuck
 ```
 
 ---
@@ -185,11 +257,15 @@ separate MCP server process. The server controls the browser, not the editor.
 
 **Global = per-host.** "Global" means registered at user level in every host.
 
+**Every plan has an implementation.** Each `docs/*PLAN*.md` maps to a
+corresponding `docs/*IMPLEMENTATION*.md` or `scripts/` artifact, with
+evidence recorded under `evidence/`.
+
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE) (not yet created; default MIT applies).
+MIT — see [LICENSE](LICENSE).
 
 ---
 
