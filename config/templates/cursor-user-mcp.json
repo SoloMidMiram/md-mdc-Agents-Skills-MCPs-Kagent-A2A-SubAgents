@@ -1,0 +1,11 @@
+# Sanitized Cursor User MCP Server Template
+# Copy to: %USERPROFILE%\.cursor\mcp.json
+
+{
+    "mcpServers": {
+        "playwright-global": {
+            "command": "npx",
+            "args": ["-y", "@playwright/mcp@0.0.76", "--isolated"]
+        }
+    }
+}

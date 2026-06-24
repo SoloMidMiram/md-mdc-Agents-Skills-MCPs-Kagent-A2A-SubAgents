@@ -1,0 +1,15 @@
+# Sanitized Codex Configuration Template
+# Copy to: %USERPROFILE%\.codex\config.toml
+# Adjust model, personality, and sandbox level for the target machine.
+
+model = "gpt-5.4-mini"
+model_reasoning_effort = "medium"
+personality = "pragmatic"
+service_tier = "default"
+
+[windows]
+sandbox = "elevated"
+
+[mcp_servers.playwright-global]
+command = "npx"
+args = ["-y", "@playwright/mcp@0.0.76", "--isolated"]

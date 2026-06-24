@@ -1,0 +1,35 @@
+# Sanitized Continue Configuration Template
+# Copy to: %USERPROFILE%\.continue\config.yaml
+# NOTE: API keys must be supplied manually in secrets.json on the target machine.
+# Model definitions are truncated for brevity — copy the full models section
+# from your source machine's config.yaml.
+
+name: Local Assistant
+version: 1.0.8
+schema: v1
+
+defaultModel: DeepSeek Chat
+
+rules:
+  - Always respond in English unless the user explicitly asks for another language.
+  - Minimal scope — smallest correct change; read surrounding code before editing.
+  - Match existing project conventions; prefer additive changes over rewrites.
+
+# Models section omitted for brevity — copy from your source config.yaml.
+# Includes: DeepSeek Chat, DeepSeek Reasoner, GPT-4.1, GPT-4.1 Mini,
+# GPT-4o, GPT-4o Mini, gpt-oss:20b (Ollama), qwen3:14b (Ollama),
+# qwen3-coder:30b (Ollama), deepseek-r1:14b (Ollama),
+# Gemma3:27b (Ollama), gemma3:12b (Ollama)
+
+mcpServers:
+  - name: playwright-global
+    type: stdio
+    command: npx
+    args:
+      - "-y"
+      - "@playwright/mcp@0.0.76"
+      - "--isolated"
+
+# SlashCommands section omitted for brevity — copy from your source config.yaml.
+# Includes: personas, orchestrator, runner, documenter, learner, planner,
+# iterator, fullfeature
