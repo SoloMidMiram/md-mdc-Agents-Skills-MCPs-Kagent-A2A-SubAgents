@@ -1,0 +1,48 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Quality: Python fast",
+            "type": "shell",
+            "command": "uv run ruff check . && uv run ruff format --check . && uv run pytest -q",
+            "group": "test",
+            "problemMatcher": []
+        },
+        {
+            "label": "Quality: Python full",
+            "type": "shell",
+            "command": "uv run ruff check . && uv run ruff format --check . && uv run mypy src && uv run pytest --cov=src && uv run bandit -r src && uv run pip-audit",
+            "group": "test",
+            "problemMatcher": []
+        },
+        {
+            "label": "Kubernetes: Validate",
+            "type": "shell",
+            "command": "powershell -File scripts/kubernetes/validate.ps1",
+            "problemMatcher": []
+        },
+        {
+            "label": "Kubernetes: Lint",
+            "type": "shell",
+            "command": "kube-linter lint deploy",
+            "problemMatcher": []
+        },
+        {
+            "label": "Security: Trivy repository",
+            "type": "shell",
+            "command": "trivy fs --scanners vuln,secret,misconfig .",
+            "problemMatcher": []
+        },
+        {
+            "label": "Quality: Full repository",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Quality: Python full",
+                "Kubernetes: Validate",
+                "Kubernetes: Lint",
+                "Security: Trivy repository"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

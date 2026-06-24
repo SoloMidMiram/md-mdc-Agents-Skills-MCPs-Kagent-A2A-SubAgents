@@ -3,5 +3,22 @@
     "azureMcp.enabledServices": [
         "foundry"
     ],
-    "azureMcp.readOnly": true
+    "azureMcp.readOnly": true,
+    "python.defaultInterpreterPath": ".venv\\Scripts\\python.exe",
+    "python.terminal.activateEnvironment": true,
+    "ruff.enable": true,
+    "ruff.format": true,
+    "ruff.lint.run": "onType",
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.32.0-standalone-strict/all.json": [
+            "deploy/**/*.yaml"
+        ]
+    },
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+        }
+    }
 }
