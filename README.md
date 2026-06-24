@@ -115,15 +115,15 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 |---|-------|--------------|----------------|----------|--------|
 | 1 | **MCP mental model** — architecture foundation | `docs/01-MCP-MENTAL-MODEL.md` | *(conceptual)* | — | ✅ Complete |
 | 2 | **Local Playwright exercises** — 10 safe browser automation labs | `docs/02-LOCAL-PLAYWRIGHT-LAB.md` | *(exercise prompts)* | `evidence/local/exercise-*` | ✅ Complete |
-| 3 | **Remote Docker deployment** — headless Chromium via SSH tunnel | `docs/03-REMOTE-PLAYWRIGHT-LAB.md` | `server/compose.yaml`, `server/README.md` | — | ⏳ Needs Linux server |
+| 3 | **Remote Docker deployment** — headless Chromium via SSH tunnel | `docs/03-REMOTE-PLAYWRIGHT-LAB.md` | `server/compose.yaml` (pinned `v0.0.76`, healthcheck, resource limits, security controls), `server/README.md` | — | ⏳ Needs Linux server |
 | 4 | **SSH concurrency fix** — multi-window VS Code Remote-SSH repair | `docs/05-SSH-CONCURRENCY-FIX.md` | *(procedure doc)* | `memories/repo/ssh-concurrency-fix.md` | ✅ Complete |
-| 5 | **Global Playwright MCP** — register `playwright-global` across all 5 hosts | `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md` | `evidence/global/` | ✅ STRUCTURALLY VERIFIED |
+| 5 | **Global Playwright MCP** — register `playwright-global` across all 5 hosts | `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md`, `scripts/McpConfigTargets.ps1` (shared manifest), `scripts/install-global-playwright-mcp.ps1` (convergent), `scripts/rollback-global-playwright-mcp.ps1` (round-trip), `scripts/verify-global-playwright-mcp.ps1` (exit-1 on failure) | `evidence/global/` | ✅ STRUCTURALLY VERIFIED |
 | 6 | **AI tooling integration scaffold** — Azure MCP, Foundry, Chat Eval | `docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md` | `.vscode/settings.json`, `config/integrations/` | `evidence/integrations/` | ✅ AUDIT HARDENED |
 | 7 | **Portable settings bundle** — capture user-level configs for new laptops | `docs/PORTABLE-SETTINGS-BUNDLE.md` | `config/templates/` | — | ✅ Complete |
 | 8 | **Native VS Code agent customization** — `.instructions.md`, agents, prompts | *(recommended scaffold)* | `.github/instructions/`, `.github/agents/`, `.github/prompts/` | — | ✅ Implemented |
 | 9 | **Python + K8s tool stack** — pyproject.toml, pre-commit, scripts, tasks | *(recommended scaffold)* | `pyproject.toml`, `.pre-commit-config.yaml`, `.vscode/tasks.json`, `scripts/quality/` | — | ✅ Implemented |
 | 10 | **Project memory layer** — `.project-ai/memory/` with 7 knowledge domains | *(recommended scaffold)* | `.project-ai/memory/*.md`, `.project-ai/templates/*.md` | — | ✅ Implemented |
-| 11 | **Dev container** — reproducible Linux dev environment | *(recommended scaffold)* | `.devcontainer/devcontainer.json` | — | ✅ Implemented |
+| 11 | **Dev container** — reproducible Linux dev environment (Node 23, PowerShell, Python, Docker, K8s) | *(recommended scaffold)* | `.devcontainer/devcontainer.json` | — | ✅ Implemented |
 | 12 | **kagent / Kubernetes integration** — future cluster deployment | `docs/04-KAGENT-INTEGRATION.md` | *(design only)* | — | 📋 Design only |
 
 ### Reverse Order (Rollback)
@@ -139,7 +139,7 @@ To undo the entire setup in reverse:
 | 8 | Remove VS Code agent customizations | `.github/instructions/`, `.github/agents/`, `.github/prompts/` |
 | 7 | Delete portable config templates | `config/templates/` |
 | 6 | Remove AI tooling scaffold (settings, placeholders) | `.vscode/settings.json`, `config/integrations/` |
-| 5 | **Unregister `playwright-global`** from all hosts | `codex mcp remove playwright-global`; edit `%APPDATA%\Code\User\mcp.json`; edit `%USERPROFILE%\.cursor\mcp.json`; edit `%USERPROFILE%\.continue\config.yaml` |
+| 5 | **Unregister `playwright-global`** from all hosts | `.\scripts\rollback-global-playwright-mcp.ps1 -BackupDir <dir>` (preferred) or `codex mcp remove playwright-global` + edit `%APPDATA%\Code\User\mcp.json` + edit `%USERPROFILE%\.cursor\mcp.json` + edit `%USERPROFILE%\.continue\config.yaml` |
 | 4 | Restore default SSH MaxStartups | `/etc/ssh/sshd_config` (server-side) |
 | 3 | Remove server deployment files | `server/` |
 | 2 | Delete exercise evidence | `evidence/local/` |
@@ -149,7 +149,7 @@ To undo the entire setup in reverse:
 
 | Plan Document | Implementation | Evidence | Status |
 |---------------|---------------|----------|--------|
-| `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md` + `scripts/install-global-playwright-mcp.ps1` | `evidence/global/` — 9 files | ✅ Verified |
+| `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md` + `scripts/McpConfigTargets.ps1` (shared manifest) + `scripts/install-global-playwright-mcp.ps1` (convergent) + `scripts/rollback-global-playwright-mcp.ps1` (round-trip) + `scripts/verify-global-playwright-mcp.ps1` (exit-1) | `evidence/global/` — 9 files | ✅ Verified |
 | `docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md` | `.vscode/settings.json` (Azure MCP policy) + `config/integrations/tooling-registry.yaml` | `evidence/integrations/` — 3 files | ✅ Audited |
 | `docs/03-REMOTE-PLAYWRIGHT-LAB.md` | `server/compose.yaml` + `server/README.md` | `evidence/remote/.gitkeep` | ⏳ Pending server |
 | `docs/04-KAGENT-INTEGRATION.md` | *(design only — no implementation started)* | — | 📋 Future |
