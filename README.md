@@ -1,205 +1,199 @@
-# Playwright MCP Laboratory
+# MCP Agent Tooling Laboratory
 
-This laboratory contains documentation and configuration to learn and deploy Microsoft's Playwright MCP browser automation system in staged environments.
+[![MCP](https://img.shields.io/badge/MCP-Model_Context_Protocol-2563EB)](#)
+[![Playwright](https://img.shields.io/badge/Playwright-MCP_Server-45BA4B)](https://github.com/microsoft/playwright-mcp)
+[![VS Code](https://img.shields.io/badge/VS_Code-Agent_MCP-007ACC)](#)
+[![Cursor](https://img.shields.io/badge/Cursor-Agent_MCP-6C47FF)](#)
+[![Codex CLI](https://img.shields.io/badge/Codex_CLI-Agent_MCP-000000)](#)
+[![Continue](https://img.shields.io/badge/Continue-Agent_MCP-FF6B35)](#)
 
-## Overview
-This project guides you through:
-- Local visible browser automation using Playwright MCP
-- Installation and validation in the Codex IDE
-- Configuring Cursor and VS Code to use the Playwright MCP server
-- Docker-based Linux server deployment for headless Chromium
-- Secure remote access via SSH tunnels
-- Future integration with Kubernetes using kagent
-- **Infrastructure:** SSH concurrency diagnostics and repair for the remote lab server
-
-## Roadmap
-The laboratory consists of progressive phases with clear prerequisites:
-
-1. **Environment inspection:** Verify local environment meets requirements including Node.js >= 18.
-2. **Local lab repository setup:** Create a clean folder with docs, server configs, and evidence subfolders.
-3. **Playwright MCP setup in Codex:** Add an MCP server configuration using exact tested Playwright MCP version.
-4. **Local tool validation in Codex:** Run safe browser automation tasks and validate tool responses.
-5. **Cursor configuration:** Add MCP server details to Cursor configs while preserving existing settings.
-6. **VS Code integration:** Add MCP server config to VS Code workspace with appropriate profiles.
-7. **Local learning exercise documentation:** Write exercises for safe navigation, diagnostics, failures, and troubleshooting.
-8. **Version pinning and matrix creation:** Record tested versions for reproducibility.
-9. **Linux server Docker deployment prep:** Prepare Docker Compose deployment with security best practices.
-10. **SSH tunnel documentation:** Document secure remote access to server MCP endpoint.
-11. **SSH concurrency fix:** Diagnose and repair multi-window VS Code Remote-SSH limitation (`docs/05-SSH-CONCURRENCY-FIX.md`).
-12. **Future kagent integration:** Outline Kubernetes-based deployment options and MCP usage.
-13. **Troubleshooting matrix:** Document common issues, symptoms, diagnostics, and safe repairs.
-
-## Safety and Operating Rules
-- No Kubernetes setup until local and Docker stages are validated.
-- Use npx with pinned Playwright MCP version for consistent results.
-- Do not globally install MCP or Playwright packages unnecessarily.
-- Keep local, remote, and Kubernetes stages clearly separated.
-- Do not expose MCP ports publicly without appropriate protection.
-- Never submit forms or modify live data during tests.
-
-## Implementation Status
-
-| Phase | Description | Status |
-|-------|-------------|--------|
-| 0 | Repository cleanup & organization | ✅ Complete |
-| 1 | Environment re-verification | ✅ Complete |
-| 2 | Codex MCP registration | ✅ Complete |
-| 3 | Cursor MCP configuration | ✅ Complete |
-| 4 | VS Code MCP configuration | ✅ Complete |
-| 5 | Local learning exercises (1-10) | ✅ Complete |
-| 6 | Server deployment docs finalized | ✅ Complete |
-| 7 | Server deployment & SSH tunnel | ⏳ Needs Linux server |
-| 8 | kagent integration | 📋 Design only |
-
-## Final Verification
-Successful lab completion requires:
-- Successful local visible browser test with Codex.
-- Independent validation of Cursor and VS Code configurations.
-- Fully documented lab exercises and troubleshooting.
-- Prepared but not executed server and Kubernetes deployment files.
-
-# Reverse Roadmap
-For rollback or audit, the reverse flow is:
-- Stop and remove any running server or container.
-- Remove MCP server entries from Codex, Cursor, and VS Code configurations.
-- Delete the local lab folders and evidence.
-- Unpin Playwright MCP versions if testing newer releases.
-
-# Contributions
-Contributions are welcome as issues or pull requests, especially for documentation improvements and extended troubleshooting cases.
-
-# License
-This project is provided under MIT license.
+A complete **MCP (Model Context Protocol) developer tooling environment** —
+browser automation, agent configurations, AI tools, and infrastructure templates
+for VS Code, Cursor, Codex CLI, and Continue.
 
 ---
 
-## 📋 Version Matrix
+## Quick Start
 
-| Component               | Version          | Validation Status |
-|-------------------------|------------------|-------------------|
-| Operating System           | Windows 10.0.26200 | CHECKED          |
-| PowerShell Version         | 5.1.26100.8655   | CHECKED           |
-| Node.js                    | v23.0.0          | CHECKED           |
-| npm                        | 10.9.0           | CHECKED           |
-| npx                        | 10.9.0           | CHECKED           |
-| Playwright MCP             | 0.0.76           | CHECKED           |
-| Git                        | 2.45.2.windows.1 | CHECKED           |
-| Codex CLI                  | 0.141.0          | CHECKED           |
-| Cursor native MCP          | —                | PASS              |
-| VS Code native MCP         | —                | PASS              |
-| Local browser test         | —                | PASS              |
-| Local exercises (1-10)     | —                | PASS              |
-| Global MCP (all 5 hosts)   | —                | CONFIGURED        |
-| Server deployment          | —                | NOT RUN           |
-| kagent integration         | —                | FUTURE (design)   |
-
-*Last tested: 2026-06-24 (Global MCP implementation)*
-
----
-
-### 🌍 Global MCP Architecture
-
-Playwright MCP is now registered as a user-level tool across all local MCP hosts.
-See the full plan and implementation documentation:
-
-- [`docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md`](docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md) — Architecture, inventory, change strategy
-- [`docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md`](docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md) — Commands, before/after, rollback, validation matrix
-
-| Host | Scope | Server Name | Status |
-|------|-------|-------------|--------|
-| Codex CLI | User (`config.toml`) | `playwright-global` | ✅ STRUCTURALLY VERIFIED |
-| VS Code native | User (`mcp.json`) | `playwright-global` | ✅ STRUCTURALLY VERIFIED |
-| Cursor native | User (`mcp.json`) | `playwright-global` | ✅ STRUCTURALLY VERIFIED |
-| Continue in VS Code | User (`config.yaml`) | `playwright-global` | ✅ STRUCTURALLY VERIFIED |
-| Continue in Cursor | User (`config.yaml`) | `playwright-global` | ✅ STRUCTURALLY VERIFIED |
-
-**Status:** `GLOBAL_PLAYWRIGHT_MCP_CONFIGURED_PENDING_VALIDATION` — all user-level
-configurations complete; functional browser validation from `F:\Git\MCPGlobalSmokeTest`
-requires interactive editor sessions (see validation matrix in evidence).
-
----
-
-## 🔄 Reverse Roadmap (Rollback Procedure)
-
-If you need to undo the entire laboratory setup:
-
-1. **Stop servers:**
-   ```powershell
-   cd /opt/playwright-mcp && docker compose down
-   ```
-2. **Remove MCP server entries:**
-   ```powershell
-   codex mcp remove playwright-local
-   codex mcp remove playwright-remote
-   ```
-3. **Delete Cursor MCP config entry** (edit `%USERPROFILE%\.cursor\mcp.json`)
-4. **Delete VS Code MCP config entry** (edit `.vscode/mcp.json`)
-5. **Remove lab directory:**
-   ```powershell
-   Remove-Item -Recurse -Force $HOME\playwright-mcp-lab
-   ```
-6. **Optionally remove cached profiles:**
-   ```powershell
-   Remove-Item -Recurse -Force "$env:LOCALAPPDATA\ms-playwright\codex-mcp-profile"
-   Remove-Item -Recurse -Force "$env:LOCALAPPDATA\ms-playwright\cursor-mcp-profile"
-   Remove-Item -Recurse -Force "$env:LOCALAPPDATA\ms-playwright\vscode-mcp-profile"
-   ```
-7. **Restore backed-up configs** if needed.
-8. **Unpin version:** Future tests can use `@playwright/mcp@latest` again.
-
----
-
-## ✅ Final Verification Report
-
-### 📁 Files Created or Changed (Repository)
-- `README.md` — Roadmap, implementation status, version matrix, verification report
-- `docs/01-MCP-MENTAL-MODEL.md` — Conceptual foundation
-- `docs/02-LOCAL-PLAYWRIGHT-LAB.md` — Local learning exercises
-- `docs/03-REMOTE-PLAYWRIGHT-LAB.md` — Remote/SSH tunnel documentation
-- `docs/04-KAGENT-INTEGRATION.md` — Future kagent design
-- `docs/05-SSH-CONCURRENCY-FIX.md` — SSH multi-window concurrency repair
-- `docs/TROUBLESHOOTING.md` — Troubleshooting matrix
-- `docs/archive/playwrightraw.md` — Raw execution plan (archived from root)
-- `docs/templates/mcp-vscode.json` — VS Code MCP config template
-- `docs/templates/mcp-cursor.json` — Cursor MCP config template
-- `docs/templates/compose.yaml` — Standalone Docker Compose template
-- `server/compose.yaml` — Docker Compose configuration
-- `server/env-example.txt` — Environment variable template
-- `server/README.md` — Server deployment commands (updated with SCP transfer)
-- `.gitignore` — Sensitive file exclusions
-
----
-
-## 📚 Documentation Map
-
-```
-docs/
-├── 01-MCP-MENTAL-MODEL.md          # Core concepts: MCP architecture
-├── 02-LOCAL-PLAYWRIGHT-LAB.md      # Local browser automation exercises
-├── 03-REMOTE-PLAYWRIGHT-LAB.md     # Remote server deployment via SSH
-├── 04-KAGENT-INTEGRATION.md        # Future Kubernetes/kagent plans
-├── 05-SSH-CONCURRENCY-FIX.md       # 🆕 SSH MaxStartups concurrency repair
-├── TROUBLESHOOTING.md              # Common issues and solutions
-├── archive/                        # Historical/archived documents
-│   └── playwrightraw.md
-└── templates/                      # Configuration templates
-    ├── compose.yaml
-    ├── mcp-cursor.json
-    └── mcp-vscode.json
-
-evidence/                           # Test evidence (local/remote)
-server/                             # Docker deployment configs
+```powershell
+git clone https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents.git
+cd md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents
+.\scripts\install-global-playwright-mcp.ps1
+.\scripts\verify-global-playwright-mcp.ps1
+codex mcp list   # → playwright-global (enabled)
 ```
 
-### Reading Order
+**[→ Full setup guide](docs/PORTABLE-SETTINGS-BUNDLE.md)**
+**[→ Introduction & manual](docs/GETTING-STARTED.md)**
+
+---
+
+## What's Inside
+
+### 🤖 AI Agent Configurations
+
+Portable agent configurations for every major MCP host:
+
+| Host | What It Gets | Config Location |
+|------|-------------|----------------|
+| **VS Code Copilot** | 7 MCP servers (Playwright, GitHub, DevTools, markitdown, firecrawl, netdata, context7) | `%APPDATA%\Code\User\mcp.json` |
+| **Cursor Agent** | Playwright MCP (`playwright-global`, `--isolated`) | `%USERPROFILE%\.cursor\mcp.json` |
+| **Codex CLI** | Playwright MCP + sandbox rules | `%USERPROFILE%\.codex\config.toml` |
+| **Continue** | 12 models, 8 agent personas, Playwright MCP, 4 global rules | `%USERPROFILE%\.continue\config.yaml` |
+
+**[→ Portable settings bundle](docs/PORTABLE-SETTINGS-BUNDLE.md)** — Copy all configs to another laptop in 4 phases.
+
+### 🧠 Agent Personas (Continue)
+
+8 slash-command personas for structured AI collaboration:
+
+| Command | Role | Purpose |
+|---------|------|---------|
+| `/orchestrator` | Planner | Goal decomposition, delegation, tracking |
+| `/runner` | Executor | Code writing, tests, commands |
+| `/documenter` | Writer | Documentation, ADRs, evidence |
+| `/learner` | Analyst | Retrospectives, lesson extraction |
+| `/planner` | Architect | Milestones, acceptance criteria |
+| `/iterator` | Reviewer | Outcome review, regression detection |
+| `/fullfeature` | Full-stack | 3-phase feature delivery |
+
+### 🌐 Browser Automation (Playwright MCP)
+
+The `playwright-global` MCP server (`@playwright/mcp@0.0.76`, `--isolated`) is
+registered at the **user level** in all 4 hosts — no per-project setup needed.
+
+- **Safe tools:** `browser_navigate`, `browser_snapshot`, `browser_console_messages`, `browser_network_requests`, `browser_close`
+- **Exercises:** 10 progressive labs in [`docs/02-LOCAL-PLAYWRIGHT-LAB.md`](docs/02-LOCAL-PLAYWRIGHT-LAB.md)
+- **Remote browser:** Docker deployment with SSH tunnel ([`docs/03-REMOTE-PLAYWRIGHT-LAB.md`](docs/03-REMOTE-PLAYWRIGHT-LAB.md))
+
+### ☁️ Azure & Cloud Tooling
+
+| Tool | State | Documentation |
+|------|-------|---------------|
+| Azure Resources for VS Code | ✅ Installed, dormant | `config/integrations/tooling-registry.yaml` |
+| Azure MCP Server | ✅ Installed, dormant, read-only policy | `.vscode/settings.json` |
+| Foundry Toolkit | ✅ Installed, local only | `config/integrations/foundry-cloud.placeholder.yaml` |
+| 28 Azure Copilot Skills | ✅ Installed | `%USERPROFILE%\.agents\skills\` |
+
+### 🔧 Infrastructure Templates
+
+| Resource | Path | Purpose |
+|----------|------|---------|
+| Docker Compose | `server/compose.yaml` | Headless Chromium on Linux |
+| SSH tunnel | `docs/03-REMOTE-PLAYWRIGHT-LAB.md` | Secure remote browser access |
+| SSH concurrency fix | `docs/05-SSH-CONCURRENCY-FIX.md` | Multi-window VS Code Remote-SSH |
+| Kubernetes / kagent | `docs/04-KAGENT-INTEGRATION.md` | Future cluster deployment |
+
+### 📦 Config Templates (Portable)
+
+| Template | For | Format |
+|----------|-----|--------|
+| `config/templates/vscode-user-mcp.json` | VS Code MCP | JSON |
+| `config/templates/cursor-user-mcp.json` | Cursor MCP | JSON |
+| `config/templates/codex-config.toml` | Codex CLI | TOML |
+| `config/templates/continue-config.yaml` | Continue | YAML |
+
+### 🔁 Reusable Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/install-global-playwright-mcp.ps1` | Register Playwright across all hosts (idempotent) |
+| `scripts/verify-global-playwright-mcp.ps1` | Validate all registrations |
+| `scripts/rollback-global-playwright-mcp.ps1` | Restore from timestamped backup |
+| `scripts/integrations/inventory-tooling.ps1` | Report all tooling state |
+| `scripts/integrations/verify-integration-scaffold.ps1` | Validate scaffold integrity |
+
+---
+
+## Repository Map
 
 ```
-1. 01-MCP-MENTAL-MODEL.md          ──→ Understand the architecture
-2. 02-LOCAL-PLAYWRIGHT-LAB.md      ──→ Practice locally first
-3. 05-SSH-CONCURRENCY-FIX.md       ──→ Ensure reliable remote access
-4. 03-REMOTE-PLAYWRIGHT-LAB.md     ──→ Deploy and test remotely
-5. 04-KAGENT-INTEGRATION.md        ──→ Plan Kubernetes deployment
-6. TROUBLESHOOTING.md              ──→ Reference when stuck
+.
+├── .vscode/                    → Workspace settings, extensions, MCP (empty)
+├── config/
+│   ├── integrations/           → Tooling registries, placeholders
+│   └── templates/              → 📤 Portable config templates
+├── docs/
+│   ├── GETTING-STARTED.md      → ⭐ Introduction & manual
+│   ├── PORTABLE-SETTINGS-BUNDLE.md  → ⭐ Portable settings for new laptops
+│   ├── 01-MCP-MENTAL-MODEL.md  → MCP architecture concepts
+│   ├── 02-LOCAL-PLAYWRIGHT-LAB.md  → 10 browser automation exercises
+│   ├── 03-REMOTE-PLAYWRIGHT-LAB.md → Docker + SSH tunnel
+│   ├── 04-KAGENT-INTEGRATION.md → Kubernetes/kagent design
+│   ├── 05-SSH-CONCURRENCY-FIX.md  → SSH MaxStartups repair
+│   ├── GLOBAL-PLAYWRIGHT-MCP-PLAN.md → Architecture & strategy
+│   ├── GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md → Implementation details
+│   ├── integrations/           → AI tooling scaffold docs
+│   ├── templates/              → MCP config templates (VS Code / Cursor)
+│   └── TROUBLESHOOTING.md      → Common issues & fixes
+├── evidence/
+│   ├── global/                 → Global MCP validation records
+│   ├── integrations/           → Tooling scaffold evidence
+│   └── local/                  → Playwright exercise evidence
+├── scripts/
+│   ├── install-global-playwright-mcp.ps1
+│   ├── verify-global-playwright-mcp.ps1
+│   ├── rollback-global-playwright-mcp.ps1
+│   └── integrations/           → Scaffold verification scripts
+└── server/                     → Docker deployment for remote browser
+```
+
+---
+
+## Version Matrix
+
+| Component | Version | Status |
+|-----------|---------|--------|
+| Node.js | v23.0.0 | ✅ CHECKED |
+| Playwright MCP | **0.0.76** (pinned) | ✅ CHECKED |
+| VS Code | 1.125.1 | ✅ CHECKED |
+| Cursor | 3.8.23 | ✅ CHECKED |
+| Codex CLI | 0.141.0 | ✅ CHECKED |
+| Continue | 2.0.0 | ✅ CHECKED |
+| Windows | 10.0.26200 | ✅ CHECKED |
+
+---
+
+## Reading Order
+
+```
+ 1. docs/GETTING-STARTED.md                       → Start here
+ 2. docs/01-MCP-MENTAL-MODEL.md                   → Understand MCP
+ 3. docs/PORTABLE-SETTINGS-BUNDLE.md               → Set up another laptop
+ 4. docs/02-LOCAL-PLAYWRIGHT-LAB.md                → Practice locally
+ 5. docs/03-REMOTE-PLAYWRIGHT-LAB.md               → Deploy remote
+ 6. docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md             → Architecture
+ 7. docs/integrations/                              → Tooling scaffold
+ 8. docs/TROUBLESHOOTING.md                        → Reference
+```
+
+---
+
+## Key Concepts
+
+**MCP is not built into your editor.** Your editor starts or connects to a
+separate MCP server process. The server controls the browser, not the editor.
+
+**No cross-IDE MCP registry.** Each host has its own config in its own format:
+
+| Host | Key Structure | Format |
+|------|---------------|--------|
+| VS Code | `"servers"."*"` | JSON |
+| Cursor | `"mcpServers"."*"` | JSON |
+| Codex | `[mcp_servers.*]` | TOML |
+| Continue | `mcpServers[].name` | YAML |
+
+**Global = per-host.** "Global" means registered at user level in every host.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE) (not yet created; default MIT applies).
+
+---
+
+*Last updated: 2026-06-24*
 ```
 - `docs/04-KAGENT-INTEGRATION.md` — Future kagent design
 - `docs/TROUBLESHOOTING.md` — Troubleshooting matrix
