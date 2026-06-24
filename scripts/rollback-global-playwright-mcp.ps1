@@ -3,6 +3,7 @@
     Roll back playwright-global MCP configuration changes from a specific backup.
 .DESCRIPTION
     Restores all user-level MCP configs from a named backup directory.
+    Uses the same backup filenames as the installer for round-trip compatibility.
     Requires an explicit backup path. Shows files to restore before proceeding.
     Use -Force to skip confirmation prompt.
 .PARAMETER BackupDir
@@ -23,16 +24,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Load shared config target manifest
+. "$PSScriptRoot\McpConfigTargets.ps1"
+
 if (-not (Test-Path $BackupDir)) {
     Write-Error "Backup directory not found: $BackupDir"
     exit 1
-}
-
-$restoreMap = @{
-    "cursor-mcp.json"       = "C:\Users\cebit.ir\.cursor\mcp.json"
-    "codex-config.toml"     = "C:\Users\cebit.ir\.codex\config.toml"
-    "continue-config.yaml"  = "C:\Users\cebit.ir\.continue\config.yaml"
-    "vscode-user-mcp.json"  = "$env:APPDATA\Code\User\mcp.json"
 }
 
 Write-Output "=== Rollback: playwright-global MCP ==="
@@ -41,14 +38,14 @@ Write-Output ""
 
 Write-Output "Files to restore:"
 $availableFiles = @()
-foreach ($entry in $restoreMap.Keys) {
-    $src = Join-Path $BackupDir $entry
-    $dest = $restoreMap[$entry]
+foreach ($t in $Script:ConfigTargets) {
+    $src = Join-Path $BackupDir $t.BackupName
+    $dest = $t.Source
     if (Test-Path $src) {
-        Write-Output "  $entry → $dest"
-        $availableFiles += $entry
+        Write-Output "  $($t.BackupName) -> $dest"
+        $availableFiles += $t
     } else {
-        Write-Output "  $entry — NOT IN BACKUP (skipping)"
+        Write-Output "  $($t.BackupName) - NOT IN BACKUP (skipping)"
     }
 }
 
@@ -59,11 +56,12 @@ if ($availableFiles.Count -eq 0) {
 
 Write-Output ""
 if (-not $Force) {
-    Write-Output "Backup manifest:"
-    $manifest = Join-Path $BackupDir "backup-manifest.txt"
-    if (Test-Path $manifest) { Get-Content $manifest }
-    else { Write-Output "(no manifest file)" }
-    Write-Output ""
+    $manifest = Join-Path $BackupDir "manifest-sha256.txt"
+    if (Test-Path $manifest) {
+        Write-Output "Backup manifest:"
+        Get-Content $manifest
+        Write-Output ""
+    }
     $confirm = Read-Host "Restore these $($availableFiles.Count) file(s)? (y/N)"
     if ($confirm -ne "y" -and $confirm -ne "Y") {
         Write-Output "Rollback cancelled."
@@ -71,11 +69,11 @@ if (-not $Force) {
     }
 }
 
-foreach ($entry in $availableFiles) {
-    $src = Join-Path $BackupDir $entry
-    $dest = $restoreMap[$entry]
+foreach ($t in $availableFiles) {
+    $src = Join-Path $BackupDir $t.BackupName
+    $dest = $t.Source
     Copy-Item $src $dest -Force
-    Write-Output "[RESTORED] $entry → $dest"
+    Write-Output "[RESTORED] $($t.BackupName) -> $dest"
 }
 
 Write-Output ""

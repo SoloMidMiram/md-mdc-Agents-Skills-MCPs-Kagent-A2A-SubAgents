@@ -2,13 +2,28 @@
 
 Date: 2026-06-24
 
-| # | Host | Editor | Config Scope | Server Name | Structural | Functional | Notes |
-|---|------|--------|-------------|-------------|------------|------------|-------|
-| 1 | Codex | CLI | User (`config.toml`) | `playwright-global` | PASS | CONFIGURED | `codex mcp list` confirms |
-| 2 | VS Code native | VS Code | User (`mcp.json`) | `playwright-global` | PASS | CONFIGURED | 6 existing servers preserved |
-| 3 | Cursor native | Cursor | User (`mcp.json`) | `playwright-global` | PASS | CONFIGURED | Renamed from playwright-local |
-| 4 | Continue in VS Code | VS Code | User (`config.yaml`) | `playwright-global` | PASS | CONFIGURED | Agent mode required |
-| 5 | Continue in Cursor | Cursor | User (`config.yaml`) | `playwright-global` | PASS | CONFIGURED | Agent mode required |
+## Configuration Targets: 4 / Runtime Surfaces: 5
+
+| # | Runtime Surface | Editor | Config Target | Server Name | Structural | Discovery | Functional |
+|---|----------------|--------|--------------|-------------|------------|-----------|------------|
+| 1 | Codex CLI | Codex CLI | Codex (`config.toml`) | `playwright-global` | STRUCTURAL_PASS | DISCOVERY_PASS | PENDING |
+| 2 | VS Code native Copilot | VS Code | VS Code (`mcp.json`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING |
+| 3 | Cursor native agent | Cursor | Cursor (`mcp.json`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING |
+| 4 | Continue in VS Code | VS Code | Continue (`config.yaml`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING |
+| 5 | Continue in Cursor | Cursor | Continue (`config.yaml`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING |
+
+### Status Level Definitions
+
+| Level | Meaning |
+|-------|---------|
+| NOT_CONFIGURED | No usable registration |
+| STRUCTURAL_PASS | Config parses and expected fields exist |
+| DISCOVERY_PASS | Host lists or discovers the MCP server |
+| FUNCTIONAL_PASS | A real MCP tool invocation succeeded |
+
+**Note:** Codex achieves DISCOVERY_PASS because `codex mcp list` confirms the
+server is registered and enabled. The other 4 surfaces require interactive
+editor sessions to confirm discovery and functional operation.
 
 ## Structural Verification — All PASS
 

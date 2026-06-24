@@ -7,7 +7,7 @@
 #>
 
 $ErrorActionPreference = "Continue"
-$root = "F:\Git\MCPtest"
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 Write-Output "=== Integration Scaffold Verification ==="
 Write-Output ""

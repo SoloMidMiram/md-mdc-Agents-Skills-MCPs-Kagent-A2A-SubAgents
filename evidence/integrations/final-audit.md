@@ -79,14 +79,27 @@ these flags unless:
 Once a file is tracked by Git, `.gitignore` no longer applies to it.
 The `git add -f` was needed only for the initial staging.
 
-## Playwright Registration Verification
+## Playwright MCP Registration Verification
 
-| Host | Config Path | Result |
-|------|-------------|--------|
-| VS Code user | `%APPDATA%\Code\User\mcp.json` | PRESERVED (playwright-global, @playwright/mcp@0.0.76, --isolated) |
-| Cursor user | `%USERPROFILE%\.cursor\mcp.json` | PRESERVED (playwright-global, @playwright/mcp@0.0.76, --isolated) |
-| Continue user | `%USERPROFILE%\.continue\config.yaml` | PRESERVED (playwright-global, @playwright/mcp@0.0.76, --isolated) |
-| Codex user | `%USERPROFILE%\.codex\config.toml` | PRESERVED (playwright-global, @playwright/mcp@0.0.76, --isolated) |
+### 4 Configuration Targets / 5 Runtime Surfaces
+
+| Target | Config Path | Status Level | Detail |
+|--------|-------------|-------------|--------|
+| VS Code (user config) | `%APPDATA%\Code\User\mcp.json` | STRUCTURAL_PASS | playwright-global, --isolated, @playwright/mcp@0.0.76 |
+| Cursor (user config) | `%USERPROFILE%\.cursor\mcp.json` | STRUCTURAL_PASS | playwright-global, --isolated, @playwright/mcp@0.0.76 |
+| Codex (user config) | `%USERPROFILE%\.codex\config.toml` | STRUCTURAL_PASS | playwright-global section, --isolated |
+| Continue (user config) | `%USERPROFILE%\.continue\config.yaml` | STRUCTURAL_PASS | mcpServers with playwright-global |
+
+**Status Level Definitions:**
+
+| Level | Meaning |
+|-------|---------|
+| NOT_CONFIGURED | No usable registration |
+| STRUCTURAL_PASS | Config parses and expected fields exist |
+| DISCOVERY_PASS | Host lists or discovers the MCP server |
+| FUNCTIONAL_PASS | A real MCP tool invocation succeeded |
+
+**Functional validation remains PENDING for all 5 runtime surfaces.**
 
 ## Final Status
 
