@@ -1,0 +1,7 @@
+{
+    "azureMcp.serverMode": "namespace",
+    "azureMcp.enabledServices": [
+        "foundry"
+    ],
+    "azureMcp.readOnly": true
+}
