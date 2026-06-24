@@ -1,0 +1,30 @@
+# Cursor Azure MCP — Placeholder
+# 
+# This file documents the FUTURE integration of Azure MCP into Cursor.
+# It is NOT an active configuration.
+#
+# NO ACTIVE AZURE RESOURCE
+# NO SECRET
+# NO TENANT ID
+# NO SUBSCRIPTION ID
+# NO DEPLOYMENT
+# NO CLOUD COST CREATED BY THIS FILE
+#
+# Activation requires:
+# 1. Verify Cursor supports the Azure MCP VS Code extension (COMPATIBILITY_PENDING)
+# 2. Cursor version >= 3.8.23 confirmed compatible
+# 3. Cursor MCP configuration schema confirmed compatible
+# 4. Read-only policy applied
+# 5. User approves live config change
+#
+# DO NOT copy this into %USERPROFILE%\.cursor\mcp.json until all gates pass.
+
+cursor_azure_mcp:
+  status: DOCUMENTATION_PLACEHOLDER_ONLY
+  target_host: cursor
+  deferred_config_path: "%USERPROFILE%\\.cursor\\mcp.json"
+  package: "@playwright/mcp@0.0.76"  # existing, preserved
+  azure_mcp_status: VSCODE_ONLY_UNTIL_VERIFIED
+  foundry_status: VSCODE_ONLY_UNTIL_VERIFIED
+  chat_evaluations_status: COMPATIBILITY_PENDING
+  last_updated: 2026-06-24

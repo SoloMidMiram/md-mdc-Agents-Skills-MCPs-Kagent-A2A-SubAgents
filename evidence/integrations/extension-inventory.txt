@@ -1,0 +1,31 @@
+Extension Inventory — AI Tooling Integration
+==============================================
+Date: 2026-06-24
+
+## VS Code Extensions
+
+| Extension | ID | Version | Pre-Task | Post-Task | Status |
+|-----------|-----|---------|----------|-----------|--------|
+| Azure Resources | ms-azuretools.vscode-azureresourcegroups | 0.12.7 | Installed | Unchanged | INSTALLED_DORMANT |
+| Azure MCP Server | ms-azuretools.vscode-azure-mcp-server | 2.0.45 | Installed | Unchanged | INSTALLED_DORMANT |
+| Foundry Toolkit | ms-windows-ai-studio.windows-ai-studio | 1.6.1 | Installed | Unchanged | INSTALLED_LOCAL_ONLY |
+| Chat Customizations | ms-vscode.vscode-chat-customizations-evaluations | 1.0.7 | Installed | Unchanged | PLACEHOLDER_UNVERIFIED |
+| Continue | continue.continue | 2.0.0 | Installed | Unchanged | PRESERVED_ACTIVE |
+
+## Cursor Extensions
+
+| Extension | ID | Version | Status |
+|-----------|-----|---------|--------|
+| Continue | continue.continue | 2.0.0 | PRESERVED_ACTIVE |
+
+## Extensions Installed by This Task
+
+NONE — all target extensions were already installed before the task began.
+
+## Chat Customizations Evaluations Verification
+
+- Extension ID: ms-vscode.vscode-chat-customizations-evaluations
+- Version: 1.0.7
+- Publisher: ms-vscode (Microsoft official)
+- Source: Installed via VS Code Marketplace
+- Verdict: OFFICIALLY_VERIFIED (Microsoft-published, installed)

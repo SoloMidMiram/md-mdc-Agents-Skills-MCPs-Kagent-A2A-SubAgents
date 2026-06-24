@@ -19,6 +19,9 @@ evidence/**/*.json
 playwright-report/
 test-results/
 
+# Playwright MCP snapshot output (generated artifacts, not source)
+.playwright-mcp/
+
 # Node.js
 node_modules/
 

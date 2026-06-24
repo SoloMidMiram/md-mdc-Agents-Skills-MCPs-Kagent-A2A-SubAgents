@@ -1,0 +1,106 @@
+# Tooling Registry
+# Architecture: Azure and local AI tooling integration for MCPtest laboratory
+
+registry:
+  version: 1.0
+  updated: 2026-06-24
+
+components:
+
+  - name: Playwright MCP
+    layer: local_browser_automation
+    hosts: [vscode, cursor, codex, continue]
+    extension_id: null
+    mcp_server_name: playwright-global
+    package: "@playwright/mcp@0.0.76"
+    pre_state: ACTIVE
+    post_state: PRESERVED_ACTIVE
+    auth_required: false
+    cloud_required: false
+    potential_cost: false
+    mutation_risk: low
+    config_paths:
+      - "%APPDATA%\\Code\\User\\mcp.json"
+      - "%USERPROFILE%\\.cursor\\mcp.json"
+      - "%USERPROFILE%\\.codex\\config.toml"
+      - "%USERPROFILE%\\.continue\\config.yaml"
+    evidence_path: evidence/global/
+    activation_gate: functional_validation_pending
+    rollback: restore_configs_from_backup
+
+  - name: Azure Resources for VS Code
+    layer: azure_resource_browsing
+    hosts: [vscode]
+    extension_id: ms-azuretools.vscode-azureresourcegroups
+    pre_state: INSTALLED_DORMANT
+    post_state: INSTALLED_DORMANT
+    auth_required: true
+    cloud_required: true
+    potential_cost: false
+    mutation_risk: read_only
+    config_paths: []
+    evidence_path: evidence/integrations/
+    activation_gate: azure_sign_in
+    rollback: code --uninstall-extension ms-azuretools.vscode-azureresourcegroups
+
+  - name: Azure MCP Server
+    layer: azure_mcp
+    hosts: [vscode]
+    extension_id: ms-azuretools.vscode-azure-mcp-server
+    pre_state: INSTALLED_DORMANT
+    post_state: INSTALLED_DORMANT
+    auth_required: true
+    cloud_required: true
+    potential_cost: false
+    mutation_risk: read_only_with_policy
+    config_paths:
+      - "F:\\Git\\MCPtest\\.vscode\\settings.json"
+    evidence_path: evidence/integrations/
+    activation_gate: azure_sign_in + policy_validation
+    rollback: code --uninstall-extension ms-azuretools.vscode-azure-mcp-server
+
+  - name: Foundry Toolkit
+    layer: local_ai_tooling
+    hosts: [vscode]
+    extension_id: ms-windows-ai-studio.windows-ai-studio
+    pre_state: INSTALLED_LOCAL_ONLY
+    post_state: INSTALLED_LOCAL_ONLY
+    auth_required: false
+    cloud_required: false
+    potential_cost: false
+    mutation_risk: low
+    config_paths: []
+    evidence_path: evidence/integrations/
+    activation_gate: local_model_selection
+    rollback: code --uninstall-extension ms-windows-ai-studio.windows-ai-studio
+
+  - name: Chat Customizations Evaluations
+    layer: local_ai_tooling
+    hosts: [vscode]
+    extension_id: ms-vscode.vscode-chat-customizations-evaluations
+    pre_state: INSTALLED_DORMANT
+    post_state: INSTALLED_DORMANT
+    auth_required: false
+    cloud_required: false
+    potential_cost: false
+    mutation_risk: low
+    config_paths: []
+    evidence_path: evidence/integrations/
+    activation_gate: verification_pending
+    rollback: code --uninstall-extension ms-vscode.vscode-chat-customizations-evaluations
+
+  - name: Cursor Azure MCP (Future)
+    layer: cursor_bridge
+    hosts: [cursor]
+    extension_id: null
+    pre_state: NOT_EXECUTED
+    post_state: DOCUMENTATION_PLACEHOLDER_ONLY
+    auth_required: true
+    cloud_required: true
+    potential_cost: false
+    mutation_risk: deferred
+    config_paths:
+      - "F:\\Git\\MCPtest\\config\\integrations\\azure-mcp.placeholder.yaml"
+    evidence_path: evidence/integrations/
+    activation_gate: compatibility_verification
+    rollback: not_applied
