@@ -108,30 +108,28 @@ print('OK')
         } catch { return $Script:StateFileMalformed }
     }
 
-    # YAML: verify Python/yaml is available for structural validation if possible
+    # YAML: verify structural validity via PyYAML (required dependency)
     if ($Target.Format -eq "YAML") {
         $pyAvailable = [bool](Get-Command "python" -ErrorAction SilentlyContinue)
-        if ($pyAvailable) {
-            $posixPath = $Target.Source -replace '\\', '/'
-            $pyYamlScript = @"
+        if (-not $pyAvailable) { return $Script:StateDependencyMissing }
+        $posixPath = $Target.Source -replace '\\', '/'
+        $pyYamlScript = @"
 import pathlib
 data = open(r'PATH', encoding='utf-8').read()
 import yaml
 yaml.safe_load(data)
 print('OK')
 "@
-            $pyYamlScript = $pyYamlScript.Replace('PATH', $posixPath)
-            try {
-                $result = $pyYamlScript | python 2>&1
-                # ModuleNotFoundError (pyyaml not installed) -> skip structural validation
+        $pyYamlScript = $pyYamlScript.Replace('PATH', $posixPath)
+        try {
+            $result = $pyYamlScript | python 2>&1
+            if ($LASTEXITCODE -ne 0 -or $result -notmatch 'OK') {
                 if ($result -match 'ModuleNotFoundError|No module named') {
-                    Write-Output "[INFO] PyYAML not available, skipping YAML structural validation for $($Target.Name)"
-                } elseif ($LASTEXITCODE -ne 0 -or $result -notmatch 'OK') {
-                    return $Script:StateFileMalformed
+                    return $Script:StateDependencyMissing
                 }
-            } catch { return $Script:StateFileMalformed }
-        }
-        # Without pyyaml, we skip structural validation - Get-ActualEntry will handle entry detection
+                return $Script:StateFileMalformed
+            }
+        } catch { return $Script:StateFileMalformed }
     }
 
     $actual = Get-ActualEntry $Target

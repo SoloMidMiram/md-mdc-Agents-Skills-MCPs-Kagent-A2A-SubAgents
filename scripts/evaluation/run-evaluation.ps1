@@ -87,8 +87,8 @@ New-Item -ItemType Directory -Path $Script:OutputDir -Force | Out-Null
 # --- Build test configuration ---
 $config = New-PesterConfiguration
 $config.Run.Path = $Script:TestFiles
-$config.Run.Exit = $true
-$config.Run.PassThru = $true
+$config.Run.Exit = $false  # PassThru is suppressed when Exit=$true on failure
+$config.Run.PassThru = $true   # Use manual exit based on FailedCount instead
 $config.Output.Verbosity = if ($CI) { "None" } else { "Detailed" }
 $config.TestResult.Enabled = $true
 $config.TestResult.OutputFormat = "NUnitXml"
@@ -179,5 +179,5 @@ if ($CI) {
     Write-Output "Detailed results: $($config.TestResult.OutputPath)"
 }
 
-if ($failed -gt 0 -and $CI) { exit 1 }
+if ($failed -gt 0) { exit 1 }
 exit 0

@@ -87,14 +87,59 @@ if (-not $Force) {
     }
 }
 
+# --- Validate backup hashes before restoring ---
+$manifest = Join-Path $BackupDir "manifest-sha256.txt"
+$hashMismatch = $false
+$absentBefore = @{}  # key: BackupName, tracks files created by installer
+if (Test-Path $manifest) {
+    Write-Output "--- Validating backup hashes ---"
+    $manifestLines = Get-Content $manifest
+    foreach ($line in $manifestLines) {
+        if ($line -match '^ABSENT_BEFORE_INSTALL:(.+?) \| (.+)$') {
+            $backupName = $matches[1]
+            $absentBefore[$backupName] = $true
+            Write-Output "[TOMBSTONE] ${backupName} was created by installer -- will be deleted"
+        } elseif ($line -match '^(.+?) \| ([A-F0-9]{64})') {
+            $backupName = $matches[1]
+            $expectedHash = $matches[2]
+            $backupFile = Join-Path $BackupDir $backupName
+            if (Test-Path $backupFile) {
+                $actualHash = (Get-FileHash $backupFile -Algorithm SHA256).Hash
+                if ($actualHash -ne $expectedHash) {
+                    Write-Output "[FAIL] Hash mismatch for ${backupName}: expected ${expectedHash}, got ${actualHash}"
+                    $hashMismatch = $true
+                } else {
+                    Write-Output "[PASS] $backupName hash matches manifest"
+                }
+            }
+        }
+    }
+    if ($hashMismatch) {
+        Write-Error "Backup hash validation failed. Use -Force or restore manually."
+        exit 1
+    }
+} else {
+    Write-Output "[WARN] No manifest-sha256.txt found -- skipping hash validation."
+}
+
 foreach ($t in $availableFiles) {
     $src = Join-Path $BackupDir $t.BackupName
     $dest = $t.Source
-    Copy-Item $src $dest -Force
-    Write-Output "[RESTORED] $($t.BackupName) -> $dest"
+    if ($absentBefore.ContainsKey($t.BackupName)) {
+        # File was created by installer -- delete it (no original to restore)
+        if (Test-Path $dest) {
+            Remove-Item $dest -Force -ErrorAction SilentlyContinue
+            Write-Output "[DELETED] $($t.BackupName) (created by installer, no original to restore)"
+        }
+    } else {
+        # Restore pre-existing file from backup
+        Copy-Item $src $dest -Force
+        Write-Output "[RESTORED] $($t.BackupName) -> $dest"
+    }
 }
 
 Write-Output ""
 Write-Output "=== Rollback Complete ==="
 Write-Output "Reload your editors to apply restored configurations."
 Write-Output "Run .\verify-global-playwright-mcp.ps1 to validate."
+

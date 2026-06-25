@@ -76,6 +76,25 @@ Describe "Production Path: Install Create" -Tag "ProductionPath", "Install" {
         } finally { Remove-TestWorkspace }
     }
 
+    It "Creates entry in TOML from scratch" {
+        $workspace = New-TestWorkspace
+        try {
+            $codexDir = Join-Path $workspace ".codex"
+            New-Item -ItemType Directory -Path $codexDir -Force | Out-Null
+            '# empty config with no mcp_servers' | Set-Content (Join-Path $codexDir "config.toml") -Encoding UTF8
+
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
+
+            $pgEntry = Get-NormalizedEntry -Path (Join-Path $codexDir "config.toml") -Format "TOML"
+            $pgEntry | Should -Not -BeNullOrEmpty
+            $pgEntry.command | Should -Be "npx"
+            ($pgEntry.args -join " ") | Should -Be ('-y @playwright/mcp@0.0.76 --isolated')
+        } finally { Remove-TestWorkspace }
+    }
+
     It "Creates entry in YAML with trailing sections preserved" {
         $workspace = New-TestWorkspace
         try {

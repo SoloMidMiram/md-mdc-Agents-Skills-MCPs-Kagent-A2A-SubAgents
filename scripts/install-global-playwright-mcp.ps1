@@ -125,6 +125,20 @@ $bkDir = New-BackupDir
 Write-Output "`n--- Backups (backup dir: $bkDir) ---"
 Backup-ConfigTargets -BackupDir $bkDir -AffectedTargets $affectedNames
 
+# Record ABSENT_BEFORE_INSTALL tombstones so rollback can delete created files
+$manifestPath = Join-Path $bkDir "manifest-sha256.txt"
+foreach ($p in $changesNeeded) {
+    if ($p.Action -eq "create") {
+        # The backup was taken from the file if it existed; if no backup was written,
+        # the file didn't exist before install - record a tombstone
+        $backupFile = Join-Path $bkDir $p.Target.BackupName
+        if (-not (Test-Path $backupFile)) {
+            "ABSENT_BEFORE_INSTALL:$($p.Target.BackupName) | $($p.Target.Source)" | Out-File $manifestPath -Append -Encoding UTF8
+            Write-Output "[TOMBSTONE] $($p.Target.BackupName) was absent before install"
+        }
+    }
+}
+
 Write-Output "`n--- Applying $($changesNeeded.Count) change(s) ---"
 $changed = 0
 
