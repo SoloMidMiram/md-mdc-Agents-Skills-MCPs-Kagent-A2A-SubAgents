@@ -254,6 +254,88 @@ slashCommands:
             $pgEntry.type | Should -Be "stdio"
         } finally { Remove-TestWorkspace }
     }
+
+    It "Preserves unrecognized trailing YAML sections after update" {
+        $workspace = New-TestWorkspace
+        try {
+            $continueDir = Join-Path $workspace ".continue"
+            New-Item -ItemType Directory -Path $continueDir -Force | Out-Null
+            $yaml = @"
+models:
+  - title: Test Model
+    provider: openai
+
+mcpServers:
+  - name: playwright-global
+    type: http
+    command: old-cmd
+    args:
+      - "-y"
+      - "@playwright/mcp@0.0.69"
+
+context:
+  - key: value
+
+analytics:
+  enabled: false
+"@
+            Set-Content (Join-Path $continueDir "config.yaml") -Value $yaml -Encoding UTF8
+
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
+
+            $updated = Get-Content (Join-Path $continueDir "config.yaml") -Raw
+            $updated | Should -Match "context:"
+            $updated | Should -Match "analytics:"
+            $updated | Should -Match "enabled: false"
+
+            $pgEntry = Get-NormalizedEntry -Path (Join-Path $continueDir "config.yaml") -Format "YAML"
+            $pgEntry | Should -Not -BeNullOrEmpty
+            $pgEntry.command | Should -Be "npx"
+        } finally { Remove-TestWorkspace }
+    }
+
+    It "Creates entry in YAML with comments around mcpServers section" {
+        $workspace = New-TestWorkspace
+        try {
+            $continueDir = Join-Path $workspace ".continue"
+            New-Item -ItemType Directory -Path $continueDir -Force | Out-Null
+            $yaml = @"
+models:
+  - title: Test Model
+    provider: openai
+
+# Comment before mcpServers
+mcpServers:
+  - name: other-server
+    type: stdio
+    command: custom
+    args:
+      - "-x"
+# Comment inside mcpServers (after last entry)
+
+slashCommands:
+  - name: test
+"@
+            Set-Content (Join-Path $continueDir "config.yaml") -Value $yaml -Encoding UTF8
+
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
+
+            $updated = Get-Content (Join-Path $continueDir "config.yaml") -Raw
+            $updated | Should -Match "name: playwright-global"
+            $updated | Should -Match "name: other-server"
+            $updated | Should -Match "slashCommands:"
+
+            $pgEntry = Get-NormalizedEntry -Path (Join-Path $continueDir "config.yaml") -Format "YAML"
+            $pgEntry | Should -Not -BeNullOrEmpty
+            $pgEntry.command | Should -Be "npx"
+        } finally { Remove-TestWorkspace }
+    }
 }
 
 Describe "Production Path: Install Idempotence" -Tag "ProductionPath", "Idempotent" {

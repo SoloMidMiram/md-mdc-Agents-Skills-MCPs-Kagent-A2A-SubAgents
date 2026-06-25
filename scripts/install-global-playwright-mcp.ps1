@@ -1,8 +1,9 @@
 <#
 .SYNOPSIS
-    Install/update playwright-global MCP server across all registered local hosts.
+    Install/update playwright-global MCP server across all 4 configuration targets.
 .DESCRIPTION
     Convergent installer — creates, repairs, or skips depending on current state.
+    Targets: VS Code (mcp.json), Cursor (mcp.json), Codex (config.toml), Continue (config.yaml).
     
     Convergent behavior:
     - Absent         -> create
@@ -182,7 +183,7 @@ foreach ($p in $changesNeeded) {
             # Matches any `^word:` at start of a line after mcpServers:
             $afterMcp = $mcpPos + 12  # past "mcpServers:"
             $sectionEnd = $content.Length
-            $nextKeyMatch = [regex]::Match($content, "(?m)^[a-zA-Z_][a-zA-Z0-9_/-]*:", $afterMcp)
+            $nextKeyMatch = [regex]::new("(?m)^[a-zA-Z_][a-zA-Z0-9_/-]*:").Match($content, $afterMcp)
             if ($nextKeyMatch.Success -and $nextKeyMatch.Index -gt $afterMcp) {
                 $sectionEnd = $nextKeyMatch.Index
             }

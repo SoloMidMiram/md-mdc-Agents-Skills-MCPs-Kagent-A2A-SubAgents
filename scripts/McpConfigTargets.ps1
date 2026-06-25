@@ -123,7 +123,12 @@ print('OK')
             $pyYamlScript = $pyYamlScript.Replace('PATH', $posixPath)
             try {
                 $result = $pyYamlScript | python 2>&1
-                if ($LASTEXITCODE -ne 0 -or $result -notmatch 'OK') { return $Script:StateFileMalformed }
+                # ModuleNotFoundError (pyyaml not installed) -> skip structural validation
+                if ($result -match 'ModuleNotFoundError|No module named') {
+                    Write-Output "[INFO] PyYAML not available, skipping YAML structural validation for $($Target.Name)"
+                } elseif ($LASTEXITCODE -ne 0 -or $result -notmatch 'OK') {
+                    return $Script:StateFileMalformed
+                }
             } catch { return $Script:StateFileMalformed }
         }
         # Without pyyaml, we skip structural validation - Get-ActualEntry will handle entry detection
