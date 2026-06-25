@@ -95,6 +95,7 @@ Describe "Dataset-Driven Evaluation" -Tag "Functional", "Dataset" {
     # Structural checks from dataset: verify each structural entry against real files
     # Uses Get-NormalizedEntry from test-helper to read and parse each config file,
     # then validates the playwright-global entry matches expected metadata.
+    # Fails if the file is missing or the entry is absent.
 
     foreach ($entry in $structuralEntries) {
         It "Dataset structural: $($entry.id) - $($entry.description)" -Tag "DatasetStructural" {
@@ -105,16 +106,16 @@ Describe "Dataset-Driven Evaluation" -Tag "Functional", "Dataset" {
                 "continue" { @{ Path = Join-Path $env:USERPROFILE ".continue\config.yaml";   Format = "YAML";   Key = $null;        ExpectedType = "stdio" } }
             }
             $entry.expected | Should -Not -BeNullOrEmpty
-            if ((Test-Path $hostConfig.Path) -and $entry.expected.command) {
+            if ($entry.expected.command) {
+                Test-Path $hostConfig.Path | Should -Be $true -Because "config file for $($entry.host) should exist when playwright-global is expected"
                 $actualEntry = Get-NormalizedEntry -Path $hostConfig.Path -Format $hostConfig.Format -ServerKey $hostConfig.Key
-                if ($actualEntry) {
-                    $actualEntry.command | Should -Be $entry.expected.command
-                    if ($entry.expected.args) {
-                        ($actualEntry.args -join " ") | Should -Be ($entry.expected.args -join " ")
-                    }
-                    if ($hostConfig.ExpectedType -and $actualEntry.type) {
-                        $actualEntry.type | Should -Be $hostConfig.ExpectedType
-                    }
+                $actualEntry | Should -Not -BeNullOrEmpty -Because "$($entry.host) should have a playwright-global entry"
+                $actualEntry.command | Should -Be $entry.expected.command
+                if ($entry.expected.args) {
+                    ($actualEntry.args -join " ") | Should -Be ($entry.expected.args -join " ")
+                }
+                if ($hostConfig.ExpectedType) {
+                    $actualEntry.type | Should -Be $hostConfig.ExpectedType
                 }
             }
         }

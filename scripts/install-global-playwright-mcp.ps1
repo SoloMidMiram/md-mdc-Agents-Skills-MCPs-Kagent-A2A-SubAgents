@@ -65,6 +65,10 @@ foreach ($t in $Script:ConfigTargets) {
             $plan += @{ Target = $t; Action = "malformed"; Reason = "file is corrupted or unparseable" }
             $hasMalformed = $true
         }
+        $Script:StateDependencyMissing {
+            $plan += @{ Target = $t; Action = "malformed"; Reason = "Python is required for TOML/YAML validation but not found on PATH" }
+            $hasMalformed = $true
+        }
         $Script:StateEntryMissing {
             $plan += @{ Target = $t; Action = "create"; Reason = "$($Script:ServerName) not present" }
         }
@@ -174,19 +178,22 @@ foreach ($p in $changesNeeded) {
         # === Find mcpServers section boundaries ===
         $mcpPos = $content.IndexOf("mcpServers:")
         if ($mcpPos -ge 0) {
-            # Find the next top-level key after mcpServers: to bound the section
-            $afterMcp = $mcpPos + 12  # length of "mcpServers:"
+            # Find the next top-level YAML key generically to bound the section
+            # Matches any `^word:` at start of a line after mcpServers:
+            $afterMcp = $mcpPos + 12  # past "mcpServers:"
             $sectionEnd = $content.Length
-            foreach ($bound in @("`nmodels:", "`nslashCommands:", "`nrules:", "`nexperimental:", "`ndocs:", "`n# ")) {
-                $bp = $content.IndexOf($bound, $afterMcp)
-                if ($bp -gt 0 -and $bp -lt $sectionEnd) { $sectionEnd = $bp }
+            $nextKeyMatch = [regex]::Match($content, "(?m)^[a-zA-Z_][a-zA-Z0-9_/-]*:", $afterMcp)
+            if ($nextKeyMatch.Success -and $nextKeyMatch.Index -gt $afterMcp) {
+                $sectionEnd = $nextKeyMatch.Index
             }
             # Work only inside the mcpServers section
             $section = $content.Substring($mcpPos, $sectionEnd - $mcpPos)
             $sectionNamePos = $section.IndexOf("name: $ServerName")
             if ($sectionNamePos -ge 0) {
                 # Replace existing stale entry — find item boundaries within the section
-                $before = $section.Substring(0, $sectionNamePos)
+                # Include enough context so LastIndexOf finds the complete \n  - name:
+                $beforeEnd = $sectionNamePos + 5  # include up to the ':' in 'name:'
+                $before = $section.Substring(0, [Math]::Min($beforeEnd, $section.Length))
                 $itemStartRel = $before.LastIndexOf("`n  - name:")
                 if ($itemStartRel -lt 0) { $itemStartRel = 0 }
                 $afterName = $section.Substring($sectionNamePos)
@@ -196,23 +203,17 @@ foreach ($p in $changesNeeded) {
                 $newSection = $section.Substring(0, $itemStartRel) + "`n" + $newEntry + "`n" + $section.Substring($itemEndRel)
                 $content = $content.Substring(0, $mcpPos) + $newSection + $content.Substring($sectionEnd)
             } else {
-                # Append to existing mcpServers list — find last entry within the section
-                $lastEntryRel = $section.LastIndexOf("`n  - name:")
-                $insertRel = if ($lastEntryRel -ge 0) {
-                    $section.IndexOf("`n", $lastEntryRel + 1)
-                } else {
-                    $section.IndexOf("`n", 11)  # after "mcpServers:"
-                }
-                if ($insertRel -le 0) { $insertRel = 11 }  # fallback to after header
-                $newSection = $section.Substring(0, $insertRel) + "`n" + $newEntry + $section.Substring($insertRel)
-                $content = $content.Substring(0, $mcpPos) + $newSection + $content.Substring($sectionEnd)
+                # Append to existing mcpServers list at the end of the bounded section
+                $trailing = if ($sectionEnd -lt $content.Length) { $content.Substring($sectionEnd) } else { "" }
+                $newSection = $section.TrimEnd() + "`n" + $newEntry + "`n"
+                $content = $content.Substring(0, $mcpPos) + $newSection + $trailing
             }
         } else {
-            # mcpServers section does not exist — insert before slashCommands: or at end
+            # mcpServers section does not exist — find the first top-level key to insert before
+            $firstKeyMatch = [regex]::Match($content, "(?m)^[a-zA-Z_][a-zA-Z0-9_/-]*:")
             $newBlock = "mcpServers:`n$newEntry`n"
-            $insert = $content.IndexOf("slashCommands:")
-            if ($insert -ge 0) {
-                $content = $content.Substring(0, $insert) + $newBlock + $content.Substring($insert)
+            if ($firstKeyMatch.Success) {
+                $content = $content.Substring(0, $firstKeyMatch.Index) + $newBlock + $content.Substring($firstKeyMatch.Index)
             } else {
                 $content += "`n$newBlock"
             }

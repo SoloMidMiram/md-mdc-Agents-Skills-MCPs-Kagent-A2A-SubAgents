@@ -110,10 +110,21 @@ function Get-NormalizedEntry {
     if ($Format -eq "TOML") {
         if ($content -notmatch '\[mcp_servers\.playwright-global\]') { return $null }
         $posixPath = $Path -replace '\\', '/'
-        $pyScript = "import pathlib, json, importlib, importlib.util; spec = importlib.util.find_spec('tomllib'); tomllib = __import__('tomllib') if spec else __import__('tomli'); p = pathlib.Path(r'PATH'); text = p.read_text(encoding='utf-8'); data = tomllib.loads(text); entry = data.get('mcp_servers', {}).get('playwright-global'); print(json.dumps(entry))"
+        $pyScript = @"
+import pathlib, json, importlib, importlib.util
+spec = importlib.util.find_spec('tomllib')
+tomllib = __import__('tomllib') if spec else __import__('tomli')
+p = pathlib.Path(r'PATH')
+text = p.read_text(encoding='utf-8')
+if text.startswith('\ufeff'):
+    text = text[1:]
+data = tomllib.loads(text)
+entry = data.get('mcp_servers', {}).get('playwright-global')
+print(json.dumps(entry))
+"@
         $pyScript = $pyScript.Replace('PATH', $posixPath)
         try {
-            $jsonOutput = & python -c $pyScript 2>$null
+            $jsonOutput = $pyScript | python 2>$null
             if ($LASTEXITCODE -ne 0 -or -not $jsonOutput) { return $null }
             $parsed = $jsonOutput | ConvertFrom-Json
             return @{ command = $parsed.command; args = @($parsed.args); type = $parsed.type }
@@ -141,9 +152,9 @@ function Get-NormalizedEntry {
         $afterName = $section.Substring($namePos)
         $nextItem = $afterName.IndexOf("`n  - name:", 1)
         $itemEnd = if ($nextItem -ge 0) { $namePos + $nextItem } else { $section.Length }
-        # Block starts at the beginning of the section (mcpServers:) so regexes
-        # like command:, type:, args: can match within the mcpServers scope
-        $block = $section.Substring(0, $itemEnd)
+        # Block starts at the playwright-global entry name, not the section start,
+        # so regexes only match fields within the correct entry
+        $block = $section.Substring($namePos, $itemEnd - $namePos)
         $cmd = if ($block -match 'command:\s*(\S+)') { $matches[1] } else { $null }
         $type = if ($block -match 'type:\s*(\S+)') { $matches[1] } else { $null }
         $argsBlock = [regex]::Match($block, "(?s)args:\n((?:\s+-.*\n?)*)")

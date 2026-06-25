@@ -59,17 +59,18 @@ $Script:ConfigTargets = @(
 $Script:BackupRoot = Join-Path $env:USERPROFILE ".mcp-config-backups"
 
 # --- Typed State Constants ---
-$Script:StateFileMissing   = "FILE_MISSING"
-$Script:StateEntryMissing  = "ENTRY_MISSING"
-$Script:StateEntryCorrect  = "ENTRY_CORRECT"
-$Script:StateEntryStale    = "ENTRY_STALE"
-$Script:StateFileMalformed = "FILE_MALFORMED"
+$Script:StateFileMissing        = "FILE_MISSING"
+$Script:StateEntryMissing       = "ENTRY_MISSING"
+$Script:StateEntryCorrect       = "ENTRY_CORRECT"
+$Script:StateEntryStale         = "ENTRY_STALE"
+$Script:StateFileMalformed      = "FILE_MALFORMED"
+$Script:StateDependencyMissing  = "DEPENDENCY_MISSING"
 
 function Get-ConfigState {
     <#
     .SYNOPSIS
       Returns the typed state of a config target.
-      Returns one of: FILE_MISSING, FILE_MALFORMED, ENTRY_MISSING, ENTRY_CORRECT, ENTRY_STALE
+      Returns one of: FILE_MISSING, FILE_MALFORMED, ENTRY_MISSING, ENTRY_CORRECT, ENTRY_STALE, DEPENDENCY_MISSING
     .PARAMETER Target
       A config target from $Script:ConfigTargets.
     #>
@@ -83,8 +84,50 @@ function Get-ConfigState {
     if ($Target.Format -eq "JSON") {
         try { $null = $content | ConvertFrom-Json } catch { return $Script:StateFileMalformed }
     }
-    # TOML and YAML: rely on Get-ActualEntry internal error handling since
-    # we don't have a native TOML/YAML parser in PowerShell.
+
+    # TOML: validate via Python, detecting both missing dependency and malformed content
+    # NOTE: Pipe through stdin to avoid PowerShell splitting on ';' in the Python command
+    if ($Target.Format -eq "TOML") {
+        $pyAvailable = [bool](Get-Command "python" -ErrorAction SilentlyContinue)
+        if (-not $pyAvailable) { return $Script:StateDependencyMissing }
+        $posixPath = $Target.Source -replace '\\', '/'
+        $pyScript = @"
+import pathlib, importlib, importlib.util
+spec = importlib.util.find_spec('tomllib') or importlib.util.find_spec('tomli')
+p = pathlib.Path(r'PATH')
+text = p.read_text(encoding='utf-8')
+if text.startswith('\ufeff'):
+    text = text[1:]
+(__import__('tomllib') if importlib.util.find_spec('tomllib') else __import__('tomli')).loads(text)
+print('OK')
+"@
+        $pyScript = $pyScript.Replace('PATH', $posixPath)
+        try {
+            $result = $pyScript | python 2>&1
+            if ($LASTEXITCODE -ne 0 -or $result -notmatch 'OK') { return $Script:StateFileMalformed }
+        } catch { return $Script:StateFileMalformed }
+    }
+
+    # YAML: verify Python/yaml is available for structural validation if possible
+    if ($Target.Format -eq "YAML") {
+        $pyAvailable = [bool](Get-Command "python" -ErrorAction SilentlyContinue)
+        if ($pyAvailable) {
+            $posixPath = $Target.Source -replace '\\', '/'
+            $pyYamlScript = @"
+import pathlib
+data = open(r'PATH', encoding='utf-8').read()
+import yaml
+yaml.safe_load(data)
+print('OK')
+"@
+            $pyYamlScript = $pyYamlScript.Replace('PATH', $posixPath)
+            try {
+                $result = $pyYamlScript | python 2>&1
+                if ($LASTEXITCODE -ne 0 -or $result -notmatch 'OK') { return $Script:StateFileMalformed }
+            } catch { return $Script:StateFileMalformed }
+        }
+        # Without pyyaml, we skip structural validation - Get-ActualEntry will handle entry detection
+    }
 
     $actual = Get-ActualEntry $Target
     if (-not $actual) { return $Script:StateEntryMissing }
@@ -146,10 +189,20 @@ function Get-ActualEntry {
     if ($Target.Format -eq "TOML") {
         if ($content -notmatch "\[mcp_servers\.$Script:ServerName\]") { return $null }
         $posixPath = $Target.Source -replace '\\', '/'
-        $pyScript = "import pathlib, json, importlib, importlib.util; tomllib = __import__('tomllib') if importlib.util.find_spec('tomllib') else __import__('tomli'); p = pathlib.Path(r'PATH'); text = p.read_text(encoding='utf-8'); data = tomllib.loads(text); entry = data.get('mcp_servers', {}).get('SERVER'); print(json.dumps(entry))"
+        $pyScript = @"
+import pathlib, json, importlib, importlib.util
+tomllib = __import__('tomllib') if importlib.util.find_spec('tomllib') else __import__('tomli')
+p = pathlib.Path(r'PATH')
+text = p.read_text(encoding='utf-8')
+if text.startswith('\ufeff'):
+    text = text[1:]
+data = tomllib.loads(text)
+entry = data.get('mcp_servers', {}).get('SERVER')
+print(json.dumps(entry))
+"@
         $pyScript = $pyScript.Replace('PATH', $posixPath).Replace('SERVER', $Script:ServerName)
         try {
-            $jsonOutput = & python -c $pyScript 2>$null
+            $jsonOutput = $pyScript | python 2>$null
             if ($LASTEXITCODE -ne 0 -or -not $jsonOutput) { return $null }
             $parsed = $jsonOutput | ConvertFrom-Json
             return @{ command = $parsed.command; args = @($parsed.args); type = $parsed.type }

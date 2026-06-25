@@ -105,11 +105,153 @@ slashCommands:
             & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
 
             $updated = Get-Content (Join-Path $continueDir "config.yaml") -Raw
+            # Verify string presence
             $updated | Should -Match "name: playwright-global"
             $updated | Should -Match "slashCommands:"
             $updated | Should -Match "name: test"
             $updated | Should -Match "models:"
             $updated | Should -Match "Test Model"
+            # Parse and verify semantics: both entries keep correct commands
+            $pgEntry = Get-NormalizedEntry -Path (Join-Path $continueDir "config.yaml") -Format "YAML"
+            $pgEntry | Should -Not -BeNullOrEmpty
+            $pgEntry.command | Should -Be "npx"
+            ($pgEntry.args -join " ") | Should -Be ('-y @playwright/mcp@0.0.76 --isolated')
+            $pgEntry.type | Should -Be "stdio"
+        } finally { Remove-TestWorkspace }
+    }
+}
+
+Describe "Production Path: Stale Update (JSON)" -Tag "ProductionPath", "Install" {
+
+    It "Corrects stale command in JSON entry" {
+        $workspace = New-TestWorkspace
+        try {
+            $cursorDir = Join-Path $workspace ".cursor"
+            New-Item -ItemType Directory -Path $cursorDir -Force | Out-Null
+            # Existing playwright-global with wrong command
+            $stale = @{
+                mcpServers = @{
+                    "playwright-global" = @{
+                        command = "wrong-cmd"
+                        args    = @("-y", "@playwright/mcp@0.0.76")
+                    }
+                }
+            }
+            ($stale | ConvertTo-Json -Depth 5) | Set-Content (Join-Path $cursorDir "mcp.json") -Encoding UTF8
+
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
+
+            $j = Get-Content (Join-Path $cursorDir "mcp.json") -Raw | ConvertFrom-Json
+            $j.mcpServers."playwright-global".command | Should -Be "npx"
+            ($j.mcpServers."playwright-global".args -join " ") | Should -Be ('-y @playwright/mcp@0.0.76 --isolated')
+        } finally { Remove-TestWorkspace }
+    }
+}
+
+Describe "Production Path: Stale Update (TOML)" -Tag "ProductionPath", "Install" {
+
+    It "Replaces stale TOML section, preserves other sections" {
+        $workspace = New-TestWorkspace
+        try {
+            $codexDir = Join-Path $workspace ".codex"
+            New-Item -ItemType Directory -Path $codexDir -Force | Out-Null
+            $stale = @"
+model = "test"
+[mcp_servers.playwright-global]
+command = "old-cmd"
+args = ["-y", "@playwright/mcp@0.0.69"]
+
+[mcp_servers.other-server]
+command = "custom"
+args = ["--flag"]
+"@
+            Set-Content (Join-Path $codexDir "config.toml") -Value $stale -Encoding UTF8
+
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
+
+            # Verify playwright-global was corrected
+            $pgEntry = Get-NormalizedEntry -Path (Join-Path $codexDir "config.toml") -Format "TOML"
+            $pgEntry | Should -Not -BeNullOrEmpty
+            $pgEntry.command | Should -Be "npx"
+            ($pgEntry.args -join " ") | Should -Be ('-y @playwright/mcp@0.0.76 --isolated')
+
+            # Verify other-server is preserved
+            $posixPath = (Join-Path $codexDir "config.toml") -replace '\\', '/'
+            $pyScript = @"
+import pathlib, json, importlib, importlib.util
+spec = importlib.util.find_spec('tomllib')
+tomllib = __import__('tomllib') if spec else __import__('tomli')
+p = pathlib.Path(r'PATH')
+text = p.read_text(encoding='utf-8')
+if text.startswith('\ufeff'):
+    text = text[1:]
+data = tomllib.loads(text)
+print(json.dumps(data.get('mcp_servers', {}).get('other-server')))
+"@
+            $pyScript = $pyScript.Replace('PATH', $posixPath)
+            $otherJson = $pyScript | python 2>$null
+            $otherServer = $otherJson | ConvertFrom-Json
+            $otherServer.command | Should -Be "custom"
+        } finally { Remove-TestWorkspace }
+    }
+}
+
+Describe "Production Path: Stale Update (YAML)" -Tag "ProductionPath", "Install" {
+
+    It "Replaces stale YAML entry, preserves other entries" {
+        $workspace = New-TestWorkspace
+        try {
+            $continueDir = Join-Path $workspace ".continue"
+            New-Item -ItemType Directory -Path $continueDir -Force | Out-Null
+            $stale = @"
+models:
+  - title: Test Model
+    provider: openai
+    model: gpt-4
+
+mcpServers:
+  - name: other-server
+    type: stdio
+    command: custom
+    args:
+      - "-x"
+  - name: playwright-global
+    type: http
+    command: old-cmd
+    args:
+      - "-y"
+      - "@playwright/mcp@0.0.69"
+
+slashCommands:
+  - name: test
+    description: Test command
+"@
+            Set-Content (Join-Path $continueDir "config.yaml") -Value $stale -Encoding UTF8
+
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
+
+            # Verify string presence
+            $updated = Get-Content (Join-Path $continueDir "config.yaml") -Raw
+            $updated | Should -Match "name: playwright-global"
+            $updated | Should -Match "name: other-server"
+            $updated | Should -Match "slashCommands:"
+            $updated | Should -Match "models:"
+
+            # Parse and verify semantics
+            $pgEntry = Get-NormalizedEntry -Path (Join-Path $continueDir "config.yaml") -Format "YAML"
+            $pgEntry | Should -Not -BeNullOrEmpty
+            $pgEntry.command | Should -Be "npx"
+            ($pgEntry.args -join " ") | Should -Be ('-y @playwright/mcp@0.0.76 --isolated')
+            $pgEntry.type | Should -Be "stdio"
         } finally { Remove-TestWorkspace }
     }
 }
@@ -167,6 +309,39 @@ Describe "Production Path: Malformed File Detection" -Tag "ProductionPath", "Mal
             & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
             $codexAfter = Get-Content (Join-Path $codexDir "config.toml") -Raw
             $codexAfter | Should -Be $codexBefore
+        } finally { Remove-TestWorkspace }
+    }
+
+    It "Exits with code 1 on malformed TOML" {
+        $workspace = New-TestWorkspace
+        try {
+            $codexDir = Join-Path $workspace ".codex"
+            New-Item -ItemType Directory -Path $codexDir -Force | Out-Null
+            'not valid toml = {{{{' | Set-Content (Join-Path $codexDir "config.toml") -Encoding UTF8
+
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            $result = & $Script:InstallScript -ConfigRoot $workspace 2>&1
+            $LASTEXITCODE | Should -Be 1
+            $result -join "`n" | Should -Match "MALFORMED"
+        } finally { Remove-TestWorkspace }
+    }
+
+    It "Exits with code 1 on malformed YAML" {
+        $workspace = New-TestWorkspace
+        try {
+            $continueDir = Join-Path $workspace ".continue"
+            New-Item -ItemType Directory -Path $continueDir -Force | Out-Null
+            # YAML with unclosed double-quoted value — triggers yaml.scanner.ScannerError
+            'key: "unclosed string' | Set-Content (Join-Path $continueDir "config.yaml") -Encoding UTF8
+
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            $result = & $Script:InstallScript -ConfigRoot $workspace 2>&1
+            $LASTEXITCODE | Should -Be 1
+            $result -join "`n" | Should -Match "MALFORMED"
         } finally { Remove-TestWorkspace }
     }
 }
