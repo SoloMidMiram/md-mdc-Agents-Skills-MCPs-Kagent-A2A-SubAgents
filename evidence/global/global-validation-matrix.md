@@ -54,7 +54,7 @@ editor sessions to confirm discovery and functional operation.
 
 **Verdict:** GLOBAL_PLAYWRIGHT_MCP_CONFIGURED_PENDING_VALIDATION
 
-All 5 hosts are structurally configured and verified. Full functional
+All 4 config targets are structurally configured and verified. Full functional
 validation (browser_navigate, browser_snapshot, browser_console_messages,
 browser_network_requests, browser_close) requires opening the clean
 smoke-test workspace (F:\Git\MCPGlobalSmokeTest) in each editor and running

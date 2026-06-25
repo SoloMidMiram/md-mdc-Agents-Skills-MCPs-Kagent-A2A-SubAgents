@@ -176,7 +176,7 @@ New-Item -ItemType Directory -Path "F:\Git\MCPGlobalSmokeTest" -Force
 ## 11. Remaining Limitations
 
 - Continue exposes MCP only in Agent mode with a tool-capable model.
-- All 5 hosts run separate browser processes (5x Chromium instances when used simultaneously).
+- All 4 config targets run separate browser processes (5 Chromium instances across 5 runtime surfaces when used simultaneously).
 - Browser state is not shared between hosts (`--isolated`).
 
 ## 12. Agent-Mode Requirements

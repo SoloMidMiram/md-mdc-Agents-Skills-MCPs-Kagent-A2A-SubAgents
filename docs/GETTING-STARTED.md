@@ -48,7 +48,7 @@ all from one Git repository that you can clone onto any machine.
 git clone https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents.git
 cd md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents
 
-# 2. Install Playwright MCP across all hosts
+# 2. Install Playwright MCP across 4 config targets
 .\scripts\install-global-playwright-mcp.ps1
 
 # 3. Verify

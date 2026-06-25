@@ -94,14 +94,14 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 | `config/templates/codex-config.toml` | Codex CLI | TOML |
 | `config/templates/continue-config.yaml` | Continue | YAML |
 
-### �– Reusable Scripts
+### 🔁 Reusable Scripts
 
 | Script | Purpose |
 |--------|---------|
-| `scripts/install-global-playwright-mcp.ps1` | Register Playwright across all hosts (idempotent) |
+| `scripts/install-global-playwright-mcp.ps1` | Register Playwright across 4 config targets (idempotent) |
 | `scripts/verify-global-playwright-mcp.ps1` | Validate all registrations |
 | `scripts/rollback-global-playwright-mcp.ps1` | Restore from timestamped backup |
-| `scripts/evaluation/run-evaluation.ps1` | Run Pester evaluation suite (70 tests: 65 pass, 5 skip) |
+| `scripts/evaluation/run-evaluation.ps1` | Run Pester evaluation suite (72 tests: 67 pass, 5 skip) |
 | `scripts/integrations/inventory-tooling.ps1` | Report all tooling state |
 | `scripts/integrations/verify-integration-scaffold.ps1` | Validate scaffold integrity |
 
@@ -125,7 +125,7 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 | 2 | **Local Playwright exercises** — 10 safe browser automation labs | `docs/02-LOCAL-PLAYWRIGHT-LAB.md` | *(exercise prompts)* | `evidence/local/exercise-*` | ✅ Complete |
 | 3 | **Remote Docker deployment** — headless Chromium via SSH tunnel | `docs/03-REMOTE-PLAYWRIGHT-LAB.md` | `server/compose.yaml` (pinned `v0.0.76`, healthcheck, resource limits, security controls), `server/README.md` | — | ⏳ Needs Linux server |
 | 4 | **SSH concurrency fix** — multi-window VS Code Remote-SSH repair | `docs/05-SSH-CONCURRENCY-FIX.md` | *(procedure doc)* | `memories/repo/ssh-concurrency-fix.md` | ✅ Complete |
-| 5 | **Global Playwright MCP** — register `playwright-global` across 4 config targets / 5 runtime surfaces | `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md`, `scripts/McpConfigTargets.ps1` (shared manifest + typed state model with DEPENDENCY_MISSING + TOML/YAML malformed detection), `scripts/install-global-playwright-mcp.ps1` (convergent + typed state detection + section-scoped YAML with generic key boundaries), `scripts/rollback-global-playwright-mcp.ps1` (round-trip), `scripts/verify-global-playwright-mcp.ps1` (exit-1 on failure), `scripts/evaluation/` (70 Pester tests: 65 pass, 5 skip, 0 fail — infrastructure + functional + production-path) | `evidence/global/` | ✅ PRODUCTION-PATH VERIFIED |
+| 5 | **Global Playwright MCP** — register `playwright-global` across 4 config targets / 5 runtime surfaces | `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md`, `scripts/McpConfigTargets.ps1` (shared manifest + typed state model with DEPENDENCY_MISSING + TOML/YAML malformed detection), `scripts/install-global-playwright-mcp.ps1` (convergent + typed state detection + section-scoped YAML with generic key boundaries), `scripts/rollback-global-playwright-mcp.ps1` (round-trip), `scripts/verify-global-playwright-mcp.ps1` (exit-1 on failure), `scripts/evaluation/` (72 Pester tests: 67 pass, 5 skip, 0 fail — infrastructure + functional + production-path) | `evidence/global/` | ✅ PRODUCTION-PATH VERIFIED |
 | 6 | **AI tooling integration scaffold** — Azure MCP, Foundry, Chat Eval | `docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md` | `.vscode/settings.json`, `config/integrations/` | `evidence/integrations/` | ✅ AUDIT HARDENED |
 | 7 | **Portable settings bundle** — capture user-level configs for new laptops | `docs/PORTABLE-SETTINGS-BUNDLE.md` | `config/templates/` | — | ✅ Complete |
 | 8 | **Native VS Code agent customization** — `.instructions.md`, agents, prompts | *(recommended scaffold)* | `.github/instructions/`, `.github/agents/`, `.github/prompts/` | — | ✅ Implemented |
@@ -225,7 +225,7 @@ To undo the entire setup in reverse:
 │   ├── install-global-playwright-mcp.ps1
 │   ├── verify-global-playwright-mcp.ps1
 │   ├── rollback-global-playwright-mcp.ps1
-│   ├── evaluation/             → Pester-based evaluation framework (70 tests: 65 pass, 5 skip)
+│   ├── evaluation/             → Pester-based evaluation framework (72 tests: 67 pass, 5 skip)
 │   ├── integrations/           → Inventory & verify scripts
 │   ├── kubernetes/validate.ps1
 │   ├── quality/                → Python quality gate scripts
