@@ -6,7 +6,7 @@
 [![Cursor](https://img.shields.io/badge/Cursor-Agent_MCP-6C47FF)](#)
 [![Codex CLI](https://img.shields.io/badge/Codex_CLI-Agent_MCP-000000)](#)
 [![Continue](https://img.shields.io/badge/Continue-Agent_MCP-FF6B35)](#)
-[![CI](https://img.shields.io/badge/CI-Evaluation_Suite-1a73e8)](#)
+[![CI](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/workflows/quality.yml/badge.svg)](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/workflows/quality.yml)
 
 A complete **MCP (Model Context Protocol) developer tooling environment** —
 browser automation, agent configurations, AI tools, and infrastructure templates
@@ -58,7 +58,7 @@ Portable agent configurations for every major MCP host:
 | `/iterator` | Reviewer | Outcome review, regression detection |
 | `/fullfeature` | Full-stack | 3-phase feature delivery |
 
-### 🌐 Browser Automation (Playwright MCP)
+### �— Browser Automation (Playwright MCP)
 
 The `playwright-global` MCP server (`@playwright/mcp@0.0.76`, `--isolated`) is
 registered at the **user level** in all 4 hosts — no per-project setup needed.
@@ -67,7 +67,7 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 - **Exercises:** 10 progressive labs in [`docs/02-LOCAL-PLAYWRIGHT-LAB.md`](docs/02-LOCAL-PLAYWRIGHT-LAB.md)
 - **Remote browser:** Docker deployment with SSH tunnel ([`docs/03-REMOTE-PLAYWRIGHT-LAB.md`](docs/03-REMOTE-PLAYWRIGHT-LAB.md))
 
-### ☁️ Azure & Cloud Tooling
+### �–️ Azure & Cloud Tooling
 
 | Tool | State | Documentation |
 |------|-------|---------------|
@@ -94,14 +94,14 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 | `config/templates/codex-config.toml` | Codex CLI | TOML |
 | `config/templates/continue-config.yaml` | Continue | YAML |
 
-### 🔁 Reusable Scripts
+### �– Reusable Scripts
 
 | Script | Purpose |
 |--------|---------|
 | `scripts/install-global-playwright-mcp.ps1` | Register Playwright across all hosts (idempotent) |
 | `scripts/verify-global-playwright-mcp.ps1` | Validate all registrations |
 | `scripts/rollback-global-playwright-mcp.ps1` | Restore from timestamped backup |
-| `scripts/evaluation/run-evaluation.ps1` | Run Pester evaluation suite (52 tests) |
+| `scripts/evaluation/run-evaluation.ps1` | Run Pester evaluation suite (65 tests: 32 infrastructure + 23 functional + 10 production-path) |
 | `scripts/integrations/inventory-tooling.ps1` | Report all tooling state |
 | `scripts/integrations/verify-integration-scaffold.ps1` | Validate scaffold integrity |
 
@@ -115,6 +115,8 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 
 ## Implementation Roadmap
 
+> Fast-path policy: treat `Design only`, `Pending server`, `Placeholder`, and other explicitly deferred items as non-blocking. Keep them documented, but do not let production-polish work slow down correctness fixes, tests, or the current laptop-stable flow.
+
 ### Forward Order (Plan → Implementation)
 
 | # | Phase | Plan Document | Implementation | Evidence | Status |
@@ -123,7 +125,7 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 | 2 | **Local Playwright exercises** — 10 safe browser automation labs | `docs/02-LOCAL-PLAYWRIGHT-LAB.md` | *(exercise prompts)* | `evidence/local/exercise-*` | ✅ Complete |
 | 3 | **Remote Docker deployment** — headless Chromium via SSH tunnel | `docs/03-REMOTE-PLAYWRIGHT-LAB.md` | `server/compose.yaml` (pinned `v0.0.76`, healthcheck, resource limits, security controls), `server/README.md` | — | ⏳ Needs Linux server |
 | 4 | **SSH concurrency fix** — multi-window VS Code Remote-SSH repair | `docs/05-SSH-CONCURRENCY-FIX.md` | *(procedure doc)* | `memories/repo/ssh-concurrency-fix.md` | ✅ Complete |
-| 5 | **Global Playwright MCP** — register `playwright-global` across 4 config targets / 5 runtime surfaces | `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md`, `scripts/McpConfigTargets.ps1` (shared manifest), `scripts/install-global-playwright-mcp.ps1` (convergent), `scripts/rollback-global-playwright-mcp.ps1` (round-trip), `scripts/verify-global-playwright-mcp.ps1` (exit-1 on failure), `scripts/evaluation/` (52 Pester tests, 47 pass) | `evidence/global/` | ✅ STRUCTURALLY VERIFIED |
+| 5 | **Global Playwright MCP** — register `playwright-global` across 4 config targets / 5 runtime surfaces | `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md`, `scripts/McpConfigTargets.ps1` (shared manifest), `scripts/install-global-playwright-mcp.ps1` (convergent + typed malformed state detection + section-scoped YAML), `scripts/rollback-global-playwright-mcp.ps1` (round-trip), `scripts/verify-global-playwright-mcp.ps1` (exit-1 on failure), `scripts/evaluation/` (65 Pester tests: 32 infrastructure + 23 functional + 10 production-path; 60 pass, 5 skipped, 0 fail) | `evidence/global/` | ✅ PRODUCTION-PATH TESTED |
 | 6 | **AI tooling integration scaffold** — Azure MCP, Foundry, Chat Eval | `docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md` | `.vscode/settings.json`, `config/integrations/` | `evidence/integrations/` | ✅ AUDIT HARDENED |
 | 7 | **Portable settings bundle** — capture user-level configs for new laptops | `docs/PORTABLE-SETTINGS-BUNDLE.md` | `config/templates/` | — | ✅ Complete |
 | 8 | **Native VS Code agent customization** — `.instructions.md`, agents, prompts | *(recommended scaffold)* | `.github/instructions/`, `.github/agents/`, `.github/prompts/` | — | ✅ Implemented |
@@ -203,8 +205,8 @@ To undo the entire setup in reverse:
 │   ├── integrations/           → Tooling registries, placeholders
 │   └── templates/              → 📤 Portable config templates (4 hosts)
 ├── docs/
-│   ├── GETTING-STARTED.md      → ⭐ Introduction & manual
-│   ├── PORTABLE-SETTINGS-BUNDLE.md → ⭐ Portable settings for new laptops
+│   ├── GETTING-STARTED.md      → �— Introduction & manual
+│   ├── PORTABLE-SETTINGS-BUNDLE.md → �— Portable settings for new laptops
 │   ├── 01-MCP-MENTAL-MODEL.md  → MCP architecture concepts
 │   ├── 02-LOCAL-PLAYWRIGHT-LAB.md → 10 browser automation exercises
 │   ├── 03-REMOTE-PLAYWRIGHT-LAB.md → Docker + SSH tunnel
@@ -223,7 +225,7 @@ To undo the entire setup in reverse:
 │   ├── install-global-playwright-mcp.ps1
 │   ├── verify-global-playwright-mcp.ps1
 │   ├── rollback-global-playwright-mcp.ps1
-│   ├── evaluation/             → Pester-based evaluation framework (52 tests)
+│   ├── evaluation/             → Pester-based evaluation framework (65 tests: 32 infra + 23 functional + 10 production-path)
 │   ├── integrations/           → Inventory & verify scripts
 │   ├── kubernetes/validate.ps1
 │   ├── quality/                → Python quality gate scripts
@@ -282,7 +284,7 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-## 📝 Comprehension Quiz
+## �’ Comprehension Quiz
 
 Test whether you understand the foundational MCP concepts before proceeding:
 

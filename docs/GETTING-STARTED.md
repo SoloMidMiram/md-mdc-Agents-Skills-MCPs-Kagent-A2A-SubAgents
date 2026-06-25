@@ -27,10 +27,12 @@ all from one Git repository that you can clone onto any machine.
 | **Azure tooling (dormant)** | Azure MCP installed but stopped; read-only policy pre-configured |
 | **Foundry Toolkit (local)** | Installed; no model run or cloud deployment yet |
 | **Safe browser testing** | 10 exercises for navigation, accessibility, console, network |
-| **Evaluation framework** | 52 Pester tests across config targets, backup/restore, dataset-driven |
+| **Evaluation framework** | Pester tests across config targets, backup/restore, dataset-driven |
 | **CI pipeline** | GitHub Actions: scaffold verification + evaluation suite on push/PR |
 
 ### Planned / Future
+
+> These entries are placeholders by design. Keep them visible so the intended shape stays documented, but do not let them block the fast path.
 
 | Capability | Status |
 |-----------|--------|
@@ -125,7 +127,7 @@ F:\Git\MCPtest\
 │   ├── integrations\       → Tooling scaffold evidence
 │   └── local\              → Playwright exercise evidence
 ├── scripts\                → Reusable PowerShell scripts
-│   ├── evaluation\         → Pester-based evaluation (52 tests)
+│   ├── evaluation\         → Pester-based evaluation (Pester evaluation suite)
 │   └── integrations\       → Scaffold verification scripts
 └── server\                 → Docker deployment for remote browser
 ```
