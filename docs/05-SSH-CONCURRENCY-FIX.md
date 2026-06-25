@@ -1,7 +1,7 @@
 # SSH Concurrency Fix — Remote Lab Infrastructure
 
-> **Date:** 2026-06-23
-> **Context:** The remote Playwright MCP lab (see `03-REMOTE-PLAYWRIGHT-LAB.md`) requires reliable multi-window SSH access to the lab server. This document details a concurrency defect that prevented more than one VS Code Remote-SSH window from connecting, and the fix applied.
+> **Last updated:** 2026-06-25
+> **Context:** The remote Playwright MCP lab (see `03-REMOTE-PLAYWRIGHT-LAB.md`) requires reliable multi-window SSH access to the lab server at `91.107.165.253`. This document chronicles the full history of connection defects — from root cause through multiple rounds of fixes — and their resolutions.
 
 ---
 
@@ -9,12 +9,18 @@
 
 - [1. Problem Statement](#1-problem-statement)
 - [2. Environment](#2-environment)
-- [3. Root Cause Analysis](#3-root-cause-analysis)
-- [4. Fix Applied](#4-fix-applied)
-  - [4.1 Server-Side: MaxStartups](#41-server-side-maxstartups)
-  - [4.2 Local SSH Aliases](#42-local-ssh-aliases)
+- [3. Diagnosis Log (Timeline)](#3-diagnosis-log-timeline)
+  - [3.1 2026-06-23: First MaxStartups Discovery](#31-2026-06-23-first-maxstartups-discovery)
+  - [3.2 2026-06-25: Recurrence — Scanners Overwhelm Limit](#32-2026-06-25-recurrence--scanners-overwhelm-limit)
+  - [3.3 2026-06-25: Local Auto-Healthcheck Discovered](#33-2026-06-25-local-auto-healthcheck-discovered)
+  - [3.4 2026-06-25: ControlMaster Conflict Discovered](#34-2026-06-25-controlmaster-conflict-discovered)
+  - [3.5 2026-06-25: Server Reboot + fail2ban Install](#35-2026-06-25-server-reboot--fail2ban-install)
+- [4. Cumulative Changes](#4-cumulative-changes)
+  - [4.1 Server-Side Changes](#41-server-side-changes)
+  - [4.2 Local SSH Config Changes](#42-local-ssh-config-changes)
   - [4.3 VS Code Configuration](#43-vs-code-configuration)
-- [5. Verification](#5-verification)
+  - [4.4 SSH Key Management](#44-ssh-key-management)
+- [5. Final Server State](#5-final-server-state)
 - [6. How to Use](#6-how-to-use)
 - [7. Rollback Instructions](#7-rollback-instructions)
 - [8. Remaining Risks](#8-remaining-risks)
@@ -29,16 +35,7 @@ Only **one** VS Code Remote-SSH window could connect to the lab server at `91.10
 debug1: Local version string SSH-2.0-OpenSSH_for_Windows_9.5
 ```
 
-No remote protocol banner was received — the connection stalled before SSH authentication began.
-
-### Impact on the Lab
-
-The `03-REMOTE-PLAYWRIGHT-LAB.md` workflow requires:
-- Opening the lab project in VS Code via Remote-SSH
-- Running browser automation commands in the integrated terminal
-- Monitoring server-side processes
-
-A single-window limit made this impractical — especially when needing to inspect server state while running tests.
+No remote protocol banner was received — the connection stalled before SSH authentication began. The root cause evolved across multiple sessions as each fix revealed deeper layers.
 
 ---
 
@@ -52,12 +49,11 @@ A single-window limit made this impractical — especially when needing to inspe
 | SOCKS5 Proxy | xray (PID 3800, local port 10808) |
 | Proxy Connector | Git connect.exe (`C:\Program Files\Git\mingw64\bin\connect.exe`) |
 | Proxy Script | `%USERPROFILE%\.ssh\proxy_fallback.bat` |
-| Local OS | Windows |
+| fail2ban | 1.0.2 (installed 2026-06-25) |
+| Local OS | Windows 10.0.26200 |
 | Remote OS | Ubuntu (VM) |
 
-### SSH Config (Before Fix)
-
-The server was reachable only through a SOCKS5 proxy (`xray` on `127.0.0.1:10808`). The SSH config had two host blocks (`myserver` and the raw IP), both using `proxy_fallback.bat` as `ProxyCommand`:
+### Original SSH Config (pre-fix)
 
 ```ssh-config
 Host myserver
@@ -102,110 +98,180 @@ exit /b %errorlevel%
 
 ---
 
-## 3. Root Cause Analysis
+## 3. Diagnosis Log (Timeline)
 
-### Discovery
+### 3.1 2026-06-23: First MaxStartups Discovery
 
-A raw TCP probe to port 22 revealed the server's rejection message:
+**Symptom:** `ssh -vvv` showed `Local version string SSH-2.0-OpenSSH_for_Windows_9.5` but no remote banner.
+
+**Evidence:** Raw TCP probe returned:
 
 ```
 > $tcp.Connect('91.107.165.253', 22)
-> [Text.Encoding]::ASCII.GetString($buffer, 0, $bytes)
 "Exceeded MaxStartups"
 ```
 
-### Confirmation
-
-Server inspection showed:
-
+**Confirmation on server:**
 ```bash
-# Effective config
 $ /usr/sbin/sshd -T | grep maxstartups
 maxstartups 10:30:100
 
-# Listener state showed exceeded threshold
 $ pgrep -af 'sshd -D'
 1566689 sshd: /usr/sbin/sshd -D [listener] 25 of 10-100 startups
 ```
 
-### Root Cause: `SSHD_MAXSTARTUPS_LIMIT`
+**Fix Applied:** `MaxStartups` raised from `10:30:100` (default) to `100:30:200`.
 
-The SSH daemon had the compiled-in default `MaxStartups 10:30:100`, which drops new connections once **10 unauthenticated (pre-auth) sessions** exist. The server is publicly exposed and attracted 25+ concurrent pre-auth connections from scanners/bots — 15 beyond the threshold.
+**Result at the time:** Two concurrent SSH sessions verified working.
 
-### Why Direct SSH Also Failed
+**Root cause classification at this point:** `SSHD_MAXSTARTUPS_LIMIT`
 
-A direct route test (`ProxyCommand=none`) failed with:
+---
 
+### 3.2 2026-06-25: Recurrence — Scanners Overwhelm Limit
+
+**Symptom:** Could not connect at all through any path. SOCKS5 proxy (xray) was running, TCP through SOCKS5 reached the server, but no SSH banner was returned.
+
+**Discovery:** The increased `MaxStartups 100:30:200` was not enough — exposed server attracted **more than 100 concurrent scanner connections**, keeping all slots saturated 24/7.
+
+**Debug output:**
 ```
-debug1: Connection established.
-...
-Connection timed out during banner exchange
-Connection to 91.107.165.253 port 22 timed out
+SOCKS5 reply: 0 (connection accepted)
+No SSH banner received — server saturated
 ```
 
-TCP established, but the server sent `"Exceeded MaxStartups"` instead of an SSH protocol banner. OpenSSH interprets this as a timeout because the response is not a valid SSH banner.
+**Fix:**
+1. Provider VM reboot to clear all pre-auth connections
+2. Installed **fail2ban** to block repeat offenders
+3. Added **PerSourceMaxStartups 30** so no single IP can flood the slots
 
-### The Proxy Path
+**Execution of reboot + install:**
+```bash
+# Immediately after reboot:
+apt update && apt install -y fail2ban
 
-The `proxy_fallback.bat` script was **not** the primary defect. It correctly:
-- Tests SOCKS5 availability with an 800ms TCP probe
-- Routes through `connect.exe -S 127.0.0.1:10808` when SOCKS5 is up
-- Falls back to direct `connect.exe` when SOCKS5 is down
-- Uses no shared temp files, no fixed port listeners, no background spawning, no stdout corruption
+# Configure fail2ban:
+cat > /etc/fail2ban/jail.local << 'EOF'
+[DEFAULT]
+bantime = 3600
+findtime = 600
+maxretry = 5
 
-However, even the proxy path could not bypass the server-side `MaxStartups` limit.
+[sshd]
+enabled = true
+port = ssh
+logpath = %(sshd_log)s
+EOF
 
-### Classification
+systemctl restart fail2ban
 
-```
-PRIMARY:   SSHD_MAXSTARTUPS_LIMIT
-FIX:       Increase MaxStartups on the server
-SECONDARY: No direct route to port 22 (requires SOCKS5 proxy)
+# Add per-source rate limiting:
+echo 'PerSourceMaxStartups 30' >> /etc/ssh/sshd_config
+systemctl restart ssh
 ```
 
 ---
 
-## 4. Fix Applied
+### 3.3 2026-06-25: Local Auto-Healthcheck Discovered
 
-### 4.1 Server-Side: MaxStartups
+**Discovery:** A scheduled task `SSH-myserver-healthcheck` ran **every 5 minutes** and opened an SSH connection to verify reachability.
 
-**Backup created** on server before modification:
+**Evidence:**
 ```
-/etc/ssh/sshd_config.backup-
+Task: SSH-myserver-healthcheck
+Script: C:\Users\cebit.ir\.ssh\ssh-healthcheck.ps1
+Runs: Every 5 minutes, via powershell.exe
+Last run: 2026-06-25 at 09:49
+Log: C:\Users\cebit.ir\.ssh\healthcheck.log (659 lines)
 ```
 
-**Before** (commented out, using compiled-in defaults):
+The script:
+1. Checks if xray SOCKS5 is listening on `127.0.0.1:10808`
+2. If proxy is up → runs `ssh myserver "echo ok"`
+3. Logs result
+
+**Assessment:** Not the primary cause of saturation (sends 1 SSH attempt every 5 minutes), but it added unnecessary load during recovery attempts and could time out while holding a slot.
+
+**Fix:** Task **disabled**:
+```powershell
+Disable-ScheduledTask -TaskName "SSH-myserver-healthcheck"
+```
+
+---
+
+### 3.4 2026-06-25: ControlMaster Conflict Discovered
+
+**Discovery:** After adding `ControlMaster auto` to the global `Host *` block, SSH connections through the proxy path (`myserver-proxy`) failed with:
+
+```
+getsockname failed: Not a socket
+Entering interactive session.
+Read from remote host 91.107.165.253: Unknown error
+```
+
+**Root cause:** OpenSSH for Windows 9.5 has an incompatibility between `ControlMaster` and `ProxyCommand`. The control socket tries to getpeername/getsockname on the proxy's pipe, which is not a real socket — causing the connection to immediately abort after authentication.
+
+**Fix:** Commented out the entire `Host *` ControlMaster block. Connection multiplexing is now handled by VS Code's own mechanism.
+
+**Config change:**
 ```ssh-config
-#MaxStartups 10:30:100
-#MaxSessions 10
+# Host *
+#     ControlMaster auto
+#     ControlPath ~/.ssh/control-%r@%h:%p
+#     ControlPersist 15m
 ```
 
-**After**:
-```ssh-config
-MaxStartups 100:30:200
-MaxSessions 50
-```
+---
 
-**Applied**:
-```bash
-/usr/sbin/sshd -t       # Validate config — PASSED
-systemctl restart sshd   # Apply changes
-```
+### 3.5 2026-06-25: Server Reboot + fail2ban Install
 
-**Verification**:
-```bash
-$ /usr/sbin/sshd -T | grep -E "maxstartups|maxsessions"
+The server was rebooted from the provider dashboard to clear all pre-auth connections. Immediately after:
+
+1. Connected via `myserver-proxy` (old key `vscode-myserver`)
+2. Installed fail2ban (`apt install fail2ban`)
+3. Added `PerSourceMaxStartups 30` to `sshd_config`
+4. Added new `windows-laptop` key to `~/.ssh/authorized_keys`
+5. Restarted SSH service (`systemctl restart ssh`)
+
+**Verification after all fixes:**
+```
+$ fail2ban-client status sshd
+Status for the jail: sshd
+|- Currently failed: 1
+|- Total failed:     1
+`- Actions
+   |- Currently banned: 0
+   |- Total banned:     0
+
+$ /usr/sbin/sshd -T | grep -i 'maxstartup\|persource'
 maxstartups 100:30:200
-persourcemaxstartups none
-maxsessions 50
+persourcemaxstartups 30
+persourcenetblocksize 32:128
 ```
 
-### 4.2 Local SSH Aliases
+---
 
-Two explicit aliases were added to `%USERPROFILE%\.ssh\config` **without** removing existing entries (safety rules):
+## 4. Cumulative Changes
 
+### 4.1 Server-Side Changes
+
+| Setting | File | Before | After |
+|---------|------|--------|-------|
+| MaxStartups | `/etc/ssh/sshd_config` | `#MaxStartups 10:30:100` (default) | `MaxStartups 100:30:200` |
+| MaxSessions | `/etc/ssh/sshd_config` | `#MaxSessions 10` (default) | `MaxSessions 50` |
+| PerSourceMaxStartups | `/etc/ssh/sshd_config` | not set | `PerSourceMaxStartups 30` |
+| fail2ban SSH jail | `/etc/fail2ban/jail.local` | not installed | enabled, maxretry=5, bantime=3600 |
+| authorized_keys | `~/.ssh/authorized_keys` | 1 key: `vscode-myserver` | 4 keys (vscode-myserver, ide-ssh, windows-laptop, RSA default) |
+
+**Backups created:**
+- `/etc/ssh/sshd_config.backup-` (Jun 4, original)
+
+### 4.2 Local SSH Config Changes
+
+**File:** `%USERPROFILE%\.ssh\config`
+
+**Added aliases:**
 ```ssh-config
-# Direct alias (no proxy) — use when network allows direct SSH
 Host myserver-direct
     HostName 91.107.165.253
     User root
@@ -216,7 +282,6 @@ Host myserver-direct
     ServerAliveInterval 15
     ServerAliveCountMax 3
 
-# Proxy alias (explicit fallback via SOCKS5)
 Host myserver-proxy
     HostName 91.107.165.253
     User root
@@ -228,10 +293,30 @@ Host myserver-proxy
     ServerAliveCountMax 3
 ```
 
+**ControlMaster — added then removed:**
+```ssh-config
+# Connection sharing — REJECTED (Windows OpenSSH 9.5 incompatibility with ProxyCommand)
+# Host *
+#     ControlMaster auto
+#     ControlPath ~/.ssh/control-%r@%h:%p
+#     ControlPersist 15m
+```
+
+**Changed settings:**
+| Option | Value | Reason |
+|--------|-------|--------|
+| `ConnectTimeout` | 30 → 15 (in some aliases) | Fail faster when saturated |
+| `ServerAliveInterval` | 10–15 | Keep idle sessions alive |
+
+**Backups:**
+- `%USERPROFILE%\.ssh\backup-20260623-155306\config` — original config
+- `%USERPROFILE%\.ssh\backup-20260623-155306\proxy_fallback.bat` — original script
+
 ### 4.3 VS Code Configuration
 
-Added to `%APPDATA%\Code\User\settings.json`:
+**File:** `%APPDATA%\Code\User\settings.json`
 
+Added:
 ```json
 {
     "remote.SSH.path": "C:\\Windows\\System32\\OpenSSH\\ssh.exe",
@@ -247,92 +332,117 @@ Added to `%APPDATA%\Code\User\settings.json`:
 }
 ```
 
-Key choices:
-- `useLocalServer: false` — prevents VS Code from multiplexing connections through a local daemon, which can cause single-point-of-failure issues
-- `useExecServer: false` — ensures the remote `code-server` is freshly launched per window
-- `showLoginTerminal: true` — exposes SSH debug output for future troubleshooting
+**Key choices:**
+- `useLocalServer: false` — prevents VS Code from multiplexing connections through a local daemon, avoiding single-point-of-failure
+- `useExecServer: false` — ensures a fresh remote `code-server` per window
+- `showLoginTerminal: true` — exposes SSH debug output for troubleshooting
+
+### 4.4 SSH Key Management
+
+#### Key Generation History
+
+| Key Name | Fingerprint | Status | Notes |
+|----------|-------------|--------|-------|
+| `vscode-myserver` | `SHA256:7dn+...` | ✅ Backed up at `key-backup-20260625-094112/` | Original key, works |
+| `ide-ssh` | `SHA256:UmUY...` | ❌ Private key lost | Can be deleted from dashboard |
+| `windows-laptop` | `SHA256:Y4kp...` | ✅ **Currently active** | Generated 2026-06-25 |
+
+#### Best Practice Adopted
+
+- **One key per device** (not per project). The single `id_ed25519` key on this Windows laptop is added to every server that needs access.
+- Keys are labeled with a descriptive comment (e.g., `windows-laptop`).
+- Old keys are backed up before replacement.
+
+#### Local Key Backups
+
+```
+%USERPROFILE%\.ssh\
+├── id_ed25519            ← Current: windows-laptop
+├── id_ed25519.pub        ← Current: windows-laptop
+├── key-backup-20260625-094112\
+│   ├── id_ed25519        ← Old: vscode-myserver
+│   └── id_ed25519.pub    ← Old: vscode-myserver
+```
+
+#### Server authorized_keys (as of 2026-06-25)
+
+```
+SHA256:UmUYYwHk5Jl8mPk+kVyofLa4mhHA2EXgqTX7puHb954 ide-ssh         (from dashboard)
+SHA256:7dn+P1qcfTHtwwLz/+QfPuiiq3SJLhkvrl2UnKwjtCU vscode-myserver  (original)
+SHA256:Y4kp0ZbEddb9nLaZZGxP+MpiEdnts8dwP5xuxw9ur1M windows-laptop   (current)
+SHA256:AmD7Nr0oJDPUveR70Y7MNSGhg9168ZWcbsIkyNOk1QI (RSA default)
+```
+
+#### Healthcheck Task
+
+| Property | Value |
+|----------|-------|
+| Name | `SSH-myserver-healthcheck` |
+| Status | ❌ **Disabled** |
+| Script | `%USERPROFILE%\.ssh\ssh-healthcheck.ps1` |
+| Interval | Was every 5 minutes |
+| Re-enable | `Enable-ScheduledTask -TaskName "SSH-myserver-healthcheck"` |
 
 ---
 
-## 5. Verification
-
-### Test A: Two Concurrent Direct SSH Sessions
+## 5. Final Server State
 
 ```
-Session 1: vmtpnourixxx3jb109mzzb PID=2202055
-Session 2: vmtpnourixxx3jb109mzzb PID=2202103
-```
+$ /usr/sbin/sshd -T | grep -i 'maxstartup\|persource'
+maxstartups 100:30:200
+persourcemaxstartups 30
+persourcenetblocksize 32:128
 
-Both sessions active independently with distinct PIDs and source ports.
-
-### Test A2: Two Concurrent Proxy SSH Sessions
-
-```
-Session 1: vmtpnourixxx3jb109mzzb PID=2202153 (exit IP: 95.182.85.39)
-Session 2: vmtpnourixxx3jb109mzzb PID=2202203 (exit IP: 46.33.8.18)
-```
-
-Both sessions active through xray SOCKS5 with distinct proxy exit IPs.
-
-### Existing Entries Preserved
-
-```
-myserver:      OK (original host block still works)
-```
-
-### VS Code Settings
-
-```
-remote.SSH.path:          C:\Windows\System32\OpenSSH\ssh.exe
-remote.SSH.useLocalServer: false
-remote.SSH.useExecServer:  false
+$ fail2ban-client status sshd
+Status for the jail: sshd
+|- Currently failed: 1
+|- Total failed:     1
+`- Actions
+   |- Currently banned: 0
+   |- Total banned:     0
+   `- Banned IP list: (empty so far)
 ```
 
 ---
 
 ## 6. How to Use
 
-### Quick Start (Recommended)
+### Quick Start
 
 ```powershell
-# Connect VS Code to the server
-# In VS Code: Cmd+Shift+P → Remote-SSH: Connect to Host → myserver-direct
+# Via proxy (SOCKS5) — use this if direct route is blocked
+ssh myserver-proxy
+
+# In VS Code: Cmd+Shift+P → Remote-SSH: Connect to Host → myserver-proxy
 ```
 
 ### Which Alias to Use
 
 | Situation | Alias | Notes |
 |-----------|-------|-------|
-| Normal lab work | `myserver-direct` | No proxy overhead, fastest path |
-| Direct route blocked | `myserver-proxy` | Routes through xray SOCKS5 |
-| Scripted/CI access | `myserver-direct` | Use `-o BatchMode=yes` |
-| Original config | `myserver` | Preserved, uses proxy |
-
-### Multi-Root Workspace (Memory-Saving Alternative)
-
-To avoid running multiple VS Code windows:
-
-```powershell
-# Open the workspace file included with this report:
-C:\Users\cebit.ir\.ssh\reports\remote-workspace.code-workspace
-```
-
-This workspace contains three folders in a single remote window:
-- `/opt/bots/v2raych`
-- `/opt/bots/chat.bimeh`
-- `/root/cursor-automation`
+| Normal work (through xray) | `myserver-proxy` | Routes through SOCKS5, requires xray running |
+| Direct (no proxy) | `myserver-direct` | Only if firewall allows direct port 22 |
+| Original config | `myserver` | Preserved, uses `proxy_fallback.bat` |
 
 ### CLI Concurrency Test
 
 ```powershell
-# Test from PowerShell
-$j1 = Start-Job -ScriptBlock { ssh -o "BatchMode=yes" myserver-direct "hostname; sleep 10" }
-$j2 = Start-Job -ScriptBlock { ssh -o "BatchMode=yes" myserver-direct "hostname; sleep 10" }
+$j1 = Start-Job -ScriptBlock { ssh -o "BatchMode=yes" myserver-proxy "hostname; sleep 10" }
+$j2 = Start-Job -ScriptBlock { ssh -o "BatchMode=yes" myserver-proxy "hostname; sleep 10" }
 Start-Sleep 5
 Receive-Job $j1
 Receive-Job $j2
 Remove-Job $j1, $j2
 ```
+
+### Multi-Root Workspace (Alternative)
+
+File: `C:\Users\cebit.ir\.ssh\reports\remote-workspace.code-workspace`
+
+Contains three folders in a single window:
+- `/opt/bots/v2raych`
+- `/opt/bots/chat.bimeh`
+- `/root/cursor-automation`
 
 ---
 
@@ -347,56 +457,69 @@ cp -a /etc/ssh/sshd_config.backup- /etc/ssh/sshd_config
 # 2. Validate
 /usr/sbin/sshd -t
 
-# 3. Restart
-systemctl restart sshd
+# 3. Restart SSH
+systemctl restart ssh
 
-# 4. Confirm
-systemctl status sshd --no-pager -l
+# 4. Remove fail2ban (if desired)
+apt remove --purge fail2ban -y
+
+# 5. Remove PerSourceMaxStartups
+sed -i '/^PerSourceMaxStartups/d' /etc/ssh/sshd_config
+systemctl restart ssh
 ```
 
 ### Local SSH Config Rollback
 
 ```powershell
-# Restore from backup
+# Option A: Full rollback from backup
 Copy-Item "$env:USERPROFILE\.ssh\backup-20260623-155306\config" "$env:USERPROFILE\.ssh\config" -Force
 
-# Or manually remove the two added aliases (myserver-direct, myserver-proxy)
-# from %USERPROFILE%\.ssh\config
+# Option B: Manual edits
+# - Remove the three added Host blocks (myserver-direct, myserver-proxy)
+# - Remove the commented ControlMaster block
+# - Keep only the original two entries
 ```
 
 ### VS Code Settings Rollback
 
-Remove the following keys from `%APPDATA%\Code\User\settings.json`:
+Remove these keys from `%APPDATA%\Code\User\settings.json`:
 - `remote.SSH.path`
 - `remote.SSH.useLocalServer`
 - `remote.SSH.useExecServer`
 - `remote.SSH.showLoginTerminal`
 - `remote.SSH.enableDynamicForwarding`
-- `myserver-direct` and `myserver-proxy` from `remote.SSH.remotePlatform`
 
-Preserve all other settings.
+### Re-enable Healthcheck Task
+
+```powershell
+Enable-ScheduledTask -TaskName "SSH-myserver-healthcheck"
+```
 
 ---
 
 ## 8. Remaining Risks
 
-1. **Two-window VS Code test not performed in GUI** — CLI concurrency is proven, but the final two-window VS Code test requires human GUI confirmation.
+1. **fail2ban needs to accumulate bans** — Currently 0 banned IPs. It takes time for repeat offenders to hit the threshold. Until then, scanners may still consume slots.
 
-2. **Server remains publicly exposed** — The increased `MaxStartups` is a mitigation, not a cure. Consider:
-   - `fail2ban` to block scanners
+2. **`ide-ssh` key on provider dashboard** — Can be safely deleted. The private key was lost during key rotation. Both `vscode-myserver` (backed up) and `windows-laptop` (current) are on the server's `authorized_keys`.
+
+3. **Proxy path may be intermittent** — The `myserver-proxy` alias depends on the xray SOCKS5 proxy being running and responsive. If xray is down, no connection is possible.
+
+4. **No ControlMaster** — Connection multiplexing was disabled due to a Windows OpenSSH 9.5 bug. Each VS Code window creates a fully independent TCP connection.
+
+5. **Server IP is publicly exposed** — fail2ban and PerSourceMaxStartups mitigate but don't eliminate the risk. Consider:
    - Cloud firewall ACLs to restrict source IPs
    - Moving SSH to a non-default port
-   - `persourcemaxstartups` to rate-limit per source IP
+   - fail2ban can be tuned to shorter findtime / lower maxretry
 
-3. **Proxy path is intermittent** — The `myserver-proxy` alias occasionally times out. This appears to be a `connect.exe` or xray timing issue rather than the SSH server. For reliable work, use `myserver-direct`.
-
-4. **No `ControlMaster`** — VS Code's `useLocalServer: false` means each window creates fully independent connections. This is intentional and acceptable for reliability.
+6. **Two-window VS Code test not fully performed** — CLI concurrency is verified, but the final two-window VS Code Remote-SSH test requires human GUI confirmation.
 
 ---
 
 ## References
 
 - Full diagnostic report: `C:\Users\cebit.ir\.ssh\reports\remote_ssh_concurrency_report.md`
-- Server backup: `/etc/ssh/sshd_config.backup-`
-- Local backup: `%USERPROFILE%\.ssh\backup-20260623-155306\`
+- Server sshd_config backup: `/etc/ssh/sshd_config.backup-`
+- Local config backup: `%USERPROFILE%\.ssh\backup-20260623-155306\`
+- Local key backup: `%USERPROFILE%\.ssh\key-backup-20260625-094112\`
 - Related lab doc: `03-REMOTE-PLAYWRIGHT-LAB.md`
