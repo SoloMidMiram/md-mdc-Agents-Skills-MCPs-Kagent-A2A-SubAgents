@@ -1,0 +1,7 @@
+# Codex fixture for round-trip testing
+model = "gpt-5.4-mini"
+personality = "pragmatic"
+
+[mcp_servers.playwright-global]
+command = "npx"
+args = ["-y", "@playwright/mcp@0.0.76", "--isolated"]

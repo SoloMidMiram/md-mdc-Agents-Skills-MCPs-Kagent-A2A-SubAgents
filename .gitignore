@@ -25,6 +25,12 @@ test-results/
 # Node.js
 node_modules/
 
+# Evaluation framework results
+scripts/evaluation/results/
+
+# MCP config backups (machine-local, user profile)
+.mcp-config-backups/
+
 # IDE and OS
 .vscode/
 .idea/

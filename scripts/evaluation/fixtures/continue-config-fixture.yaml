@@ -1,0 +1,18 @@
+# Continue fixture for round-trip testing
+models:
+  - title: Test Model
+    provider: openai
+    model: gpt-4
+
+slashCommands:
+  - name: test
+    description: Test command
+
+mcpServers:
+  - name: playwright-global
+    type: stdio
+    command: npx
+    args:
+      - "-y"
+      - "@playwright/mcp@0.0.76"
+      - "--isolated"

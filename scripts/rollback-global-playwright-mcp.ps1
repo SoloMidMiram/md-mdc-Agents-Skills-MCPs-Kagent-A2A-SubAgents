@@ -7,13 +7,13 @@
     Requires an explicit backup path. Shows files to restore before proceeding.
     Use -Force to skip confirmation prompt.
 .PARAMETER BackupDir
-    The backup directory path (e.g., C:\Users\cebit.ir\.mcp-config-backups\20260624-085526)
+    The backup directory path (e.g., $env:USERPROFILE\.mcp-config-backups\20260624-085526)
 .PARAMETER Force
     Skip confirmation prompt.
 .EXAMPLE
-    .\rollback-global-playwright-mcp.ps1 -BackupDir "C:\Users\cebit.ir\.mcp-config-backups\20260624-085526"
+    .\rollback-global-playwright-mcp.ps1 -BackupDir "$env:USERPROFILE\.mcp-config-backups\20260624-085526"
 .EXAMPLE
-    .\rollback-global-playwright-mcp.ps1 -BackupDir "C:\Users\cebit.ir\.mcp-config-backups\20260624-085526" -Force
+    .\rollback-global-playwright-mcp.ps1 -BackupDir "$env:USERPROFILE\.mcp-config-backups\20260624-085526" -Force
 #>
 
 param(
