@@ -106,8 +106,8 @@ foreach ($p in $changesNeeded) {
     elseif ($t.Format -eq "TOML") {
         $content = Get-Content $path -Raw
         if ($content -match "\[mcp_servers\.$ServerName\]") {
-            # Replace existing section line by line-safe regex
-            $content = $content -replace "(?m)^\[mcp_servers\.$ServerName\].*?(?:^\[|$)", ""
+            # Remove entire stale section (header + body) up to next section or end
+            $content = $content -replace "(?s)\[mcp_servers\.$ServerName\].*?(?=\n\[|\z)", ""
         }
         $block = "`n[mcp_servers.$ServerName]`ncommand = ""$($t.DesiredCommand)""`nargs = [""-y"", ""$Package"", ""--isolated""]"
         $content += $block
@@ -118,6 +118,8 @@ foreach ($p in $changesNeeded) {
 
     elseif ($t.Format -eq "YAML") {
         $content = Get-Content $path -Raw
+        # Normalize CRLF to LF for line-anchored boundary detection
+        $content = $content -replace "`r`n", "`n"
         $newEntry = @"
   - name: $ServerName
     type: $($t.DesiredType)
@@ -127,7 +129,7 @@ foreach ($p in $changesNeeded) {
       - "$Package"
       - "--isolated"
 "@
-        if ($content -match "^mcpServers:") {
+        if ($content -match "(?m)^mcpServers:") {
             if ($content -match "name: $ServerName") {
                 # Replace existing stale entry using line-based approach
                 $namePos = $content.IndexOf("name: $ServerName")
@@ -138,7 +140,8 @@ foreach ($p in $changesNeeded) {
                 $after = $content.Substring($itemStart)
                 $nextItem = $after.IndexOf("`n  - name:", [Math]::Max($after.IndexOf("`n", 1), 1))
                 $itemEnd = if ($nextItem -ge 0) { $itemStart + $nextItem } else { $content.Length }
-                $content = $content.Substring(0, $itemStart) + "mcpServers:`n" + $newEntry + "`n" + $content.Substring($itemEnd)
+                # Replace the list item in-place; DON'T add another mcpServers: header
+                $content = $content.Substring(0, $itemStart) + "`n" + $newEntry + "`n" + $content.Substring($itemEnd)
             } else {
                 # Append to existing list — after the last existing entry
                 $lastEntry = $content.LastIndexOf("  - name:")

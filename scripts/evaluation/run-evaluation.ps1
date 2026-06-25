@@ -32,7 +32,7 @@ $ErrorActionPreference = "Continue"
 
 # --- Paths ---
 $Script:EvalRoot = $PSScriptRoot
-$Script:RepoRoot = Split-Path $PSScriptRoot -Parent
+$Script:RepoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $Script:DefaultOutput = Join-Path $PSScriptRoot "results"
 $Script:OutputDir = if ($OutputDir) { $OutputDir } else { $Script:DefaultOutput }
 

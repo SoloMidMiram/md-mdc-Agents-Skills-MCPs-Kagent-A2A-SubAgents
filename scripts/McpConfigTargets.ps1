@@ -125,6 +125,8 @@ function Get-ActualEntry {
     }
 
     if ($Target.Format -eq "YAML") {
+        # Normalize CRLF to LF for line-anchored parsing
+        $content = $content -replace "`r`n", "`n"
         if ($content -notmatch "name: $Script:ServerName") { return $null }
         $namePos = $content.IndexOf("name: $Script:ServerName")
         # Find start of this list item: go backward to previous `  - name:` or `mcpServers:`

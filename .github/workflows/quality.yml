@@ -37,6 +37,28 @@ jobs:
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
 
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
+
+      - name: Validate config/templates JSON
+        shell: pwsh
+        run: |
+          $errors = 0
+          Get-ChildItem config/templates/*.json | ForEach-Object {
+            try { ConvertFrom-Json (Get-Content $_ -Raw) -ErrorAction Stop | Out-Null }
+            catch { Write-Error "$($_.Name) is not valid JSON: $_"; $errors++ }
+          }
+          if ($errors -gt 0) { exit 1 }
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          $results = Invoke-ScriptAnalyzer -Path scripts -Recurse -Severity Error
+          if ($results) { $results | Format-Table; exit 1 }
+          Write-Output "PSScriptAnalyzer: no errors found."
+
       - name: Verify integration scaffold
         shell: pwsh
         run: .\scripts\integrations\verify-integration-scaffold.ps1
@@ -44,3 +66,10 @@ jobs:
       - name: Run evaluation suite
         shell: pwsh
         run: .\scripts\evaluation\run-evaluation.ps1 -CI
+
+      - name: Upload evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-reports
+          path: scripts/evaluation/results/

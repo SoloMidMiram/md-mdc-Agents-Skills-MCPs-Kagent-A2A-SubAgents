@@ -1,7 +1,3 @@
-# Sanitized VS Code User MCP Servers Template
-# Copy to: %APPDATA%\Code\User\mcp.json
-# NOTE: Input prompts for API keys remain; you must supply them on the target machine.
-
 {
     "servers": {
         "microsoft/markitdown": {

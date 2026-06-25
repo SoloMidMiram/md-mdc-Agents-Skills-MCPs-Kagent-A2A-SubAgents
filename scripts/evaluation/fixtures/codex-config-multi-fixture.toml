@@ -1,0 +1,13 @@
+# TOML fixture with multiple MCP sections to test stale-section replacement
+model = "test-model"
+
+[mcp_servers.playwright-global]
+command = "npx"
+args = ["-y", "@playwright/mcp@0.0.76", "--isolated"]
+
+[mcp_servers.other-server]
+command = "custom"
+args = ["--flag"]
+
+[windows]
+sandbox = "elevated"

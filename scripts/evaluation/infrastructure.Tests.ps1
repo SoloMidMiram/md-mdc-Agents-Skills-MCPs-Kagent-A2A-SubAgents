@@ -203,7 +203,7 @@ Describe "Package Availability" -Tag "Infrastructure", "Package" {
 Describe "Workspace Duplicate Detection" -Tag "Infrastructure", "Duplicates" {
 
     It "Detects no workspace-level MCP configs in this repo" {
-        $repoRoot = Split-Path -Path $PSScriptRoot -Parent
+        $repoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
         $duplicates = @(
             @{ Path = Join-Path $repoRoot ".vscode\mcp.json";        Condition = { param($c) $c -match "playwright" } }
             @{ Path = Join-Path $repoRoot ".continue\mcpServers";    Condition = { param($c) Test-Path $c } }
@@ -224,7 +224,7 @@ Describe "Workspace Duplicate Detection" -Tag "Infrastructure", "Duplicates" {
 Describe "Fixture Integrity" -Tag "Infrastructure", "Fixtures" {
 
     It "All fixture files exist" {
-        @("cursor-mcp-fixture.json", "codex-config-fixture.toml", "continue-config-fixture.yaml", "vscode-mcp-fixture.json") | ForEach-Object {
+        @("cursor-mcp-fixture.json", "codex-config-fixture.toml", "codex-config-multi-fixture.toml", "continue-config-fixture.yaml", "continue-config-crlf-fixture.yaml", "vscode-mcp-fixture.json") | ForEach-Object {
             Join-Path $Script:FixtureDir $_ | Should -Exist
         }
     }
@@ -242,9 +242,35 @@ Describe "Fixture Integrity" -Tag "Infrastructure", "Fixtures" {
         $content | Should -Match '\[mcp_servers\.playwright-global\]'
     }
 
+    It "Multi-section TOML fixture parses playwright-global correctly" {
+        $path = Join-Path $Script:FixtureDir "codex-config-multi-fixture.toml"
+        $entry = Get-NormalizedEntry -Path $path -Format "TOML"
+        $entry | Should -Not -BeNullOrEmpty
+        Test-EntryMatches $entry | Should -Be $true
+    }
+
     It "Fixture YAML file has playwright-global entry" {
         $path = Join-Path $Script:FixtureDir "continue-config-fixture.yaml"
         $content = Get-Content $path -Raw
         $content | Should -Match 'name: playwright-global'
+    }
+
+    It "CRLF fixture file has CRLF line endings" {
+        $path = Join-Path $Script:FixtureDir "continue-config-crlf-fixture.yaml"
+        $path | Should -Exist
+        $bytes = [System.IO.File]::ReadAllBytes($path)
+        $crlfCount = 0
+        for ($i = 0; $i -lt $bytes.Length - 1; $i++) {
+            if ($bytes[$i] -eq 13 -and $bytes[$i+1] -eq 10) { $crlfCount++ }
+        }
+        $lfCount = ($bytes -eq 10).Count
+        $crlfCount | Should -Be $lfCount -Because "all line endings should be CRLF"
+    }
+
+    It "Get-NormalizedEntry parses CRLF YAML fixture correctly" {
+        $path = Join-Path $Script:FixtureDir "continue-config-crlf-fixture.yaml"
+        $entry = Get-NormalizedEntry -Path $path -Format "YAML"
+        $entry | Should -Not -BeNullOrEmpty
+        Test-EntryMatches -Actual $entry -ExpectedType "stdio" | Should -Be $true
     }
 }

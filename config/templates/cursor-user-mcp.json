@@ -1,6 +1,3 @@
-# Sanitized Cursor User MCP Server Template
-# Copy to: %USERPROFILE%\.cursor\mcp.json
-
 {
     "mcpServers": {
         "playwright-global": {
