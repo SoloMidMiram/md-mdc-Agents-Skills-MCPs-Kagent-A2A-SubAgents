@@ -101,7 +101,7 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 | `scripts/install-global-playwright-mcp.ps1` | Register Playwright across all hosts (idempotent) |
 | `scripts/verify-global-playwright-mcp.ps1` | Validate all registrations |
 | `scripts/rollback-global-playwright-mcp.ps1` | Restore from timestamped backup |
-| `scripts/evaluation/run-evaluation.ps1` | Run Pester evaluation suite (65 tests: 32 infrastructure + 23 functional + 10 production-path) |
+| `scripts/evaluation/run-evaluation.ps1` | Run Pester evaluation suite (70 tests: 32 infrastructure + 23 functional + 15 production-path) |
 | `scripts/integrations/inventory-tooling.ps1` | Report all tooling state |
 | `scripts/integrations/verify-integration-scaffold.ps1` | Validate scaffold integrity |
 
@@ -125,7 +125,7 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 | 2 | **Local Playwright exercises** — 10 safe browser automation labs | `docs/02-LOCAL-PLAYWRIGHT-LAB.md` | *(exercise prompts)* | `evidence/local/exercise-*` | ✅ Complete |
 | 3 | **Remote Docker deployment** — headless Chromium via SSH tunnel | `docs/03-REMOTE-PLAYWRIGHT-LAB.md` | `server/compose.yaml` (pinned `v0.0.76`, healthcheck, resource limits, security controls), `server/README.md` | — | ⏳ Needs Linux server |
 | 4 | **SSH concurrency fix** — multi-window VS Code Remote-SSH repair | `docs/05-SSH-CONCURRENCY-FIX.md` | *(procedure doc)* | `memories/repo/ssh-concurrency-fix.md` | ✅ Complete |
-| 5 | **Global Playwright MCP** — register `playwright-global` across 4 config targets / 5 runtime surfaces | `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md`, `scripts/McpConfigTargets.ps1` (shared manifest), `scripts/install-global-playwright-mcp.ps1` (convergent + typed malformed state detection + section-scoped YAML), `scripts/rollback-global-playwright-mcp.ps1` (round-trip), `scripts/verify-global-playwright-mcp.ps1` (exit-1 on failure), `scripts/evaluation/` (65 Pester tests: 32 infrastructure + 23 functional + 10 production-path; 60 pass, 5 skipped, 0 fail) | `evidence/global/` | ✅ PRODUCTION-PATH TESTED |
+| 5 | **Global Playwright MCP** — register `playwright-global` across 4 config targets / 5 runtime surfaces | `docs/GLOBAL-PLAYWRIGHT-MCP-PLAN.md` | `docs/GLOBAL-PLAYWRIGHT-MCP-IMPLEMENTATION.md`, `scripts/McpConfigTargets.ps1` (shared manifest + typed state model with DEPENDENCY_MISSING + TOML/YAML malformed detection), `scripts/install-global-playwright-mcp.ps1` (convergent + typed state detection + section-scoped YAML with generic key boundaries), `scripts/rollback-global-playwright-mcp.ps1` (round-trip), `scripts/verify-global-playwright-mcp.ps1` (exit-1 on failure), `scripts/evaluation/` (70 Pester tests: 32 infrastructure + 23 functional + 15 production-path; 65 pass, 5 skip, 0 fail) | `evidence/global/` | ✅ PRODUCTION-PATH VERIFIED |
 | 6 | **AI tooling integration scaffold** — Azure MCP, Foundry, Chat Eval | `docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md` | `.vscode/settings.json`, `config/integrations/` | `evidence/integrations/` | ✅ AUDIT HARDENED |
 | 7 | **Portable settings bundle** — capture user-level configs for new laptops | `docs/PORTABLE-SETTINGS-BUNDLE.md` | `config/templates/` | — | ✅ Complete |
 | 8 | **Native VS Code agent customization** — `.instructions.md`, agents, prompts | *(recommended scaffold)* | `.github/instructions/`, `.github/agents/`, `.github/prompts/` | — | ✅ Implemented |
@@ -225,7 +225,7 @@ To undo the entire setup in reverse:
 │   ├── install-global-playwright-mcp.ps1
 │   ├── verify-global-playwright-mcp.ps1
 │   ├── rollback-global-playwright-mcp.ps1
-│   ├── evaluation/             → Pester-based evaluation framework (65 tests: 32 infra + 23 functional + 10 production-path)
+│   ├── evaluation/             → Pester-based evaluation framework (70 tests: 32 infra + 23 functional + 15 production-path)
 │   ├── integrations/           → Inventory & verify scripts
 │   ├── kubernetes/validate.ps1
 │   ├── quality/                → Python quality gate scripts
