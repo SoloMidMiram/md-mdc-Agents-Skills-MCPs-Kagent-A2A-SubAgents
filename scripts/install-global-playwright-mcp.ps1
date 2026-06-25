@@ -2,7 +2,7 @@
 .SYNOPSIS
     Install/update playwright-global MCP server across all 4 configuration targets.
 .DESCRIPTION
-    Convergent installer — creates, repairs, or skips depending on current state.
+    Convergent installer -- creates, repairs, or skips depending on current state.
     Targets: VS Code (mcp.json), Cursor (mcp.json), Codex (config.toml), Continue (config.yaml).
     
     Convergent behavior:
@@ -13,7 +13,7 @@
     - Unavailable    -> skip with message
     
     Creates timestamped backups only when at least one change is needed.
-    -WhatIf is truly non-mutating — no backup directory or files created.
+    -WhatIf is truly non-mutating -- no backup directory or files created.
 .PARAMETER WhatIf
     Show what would change without making any edits.
 .PARAMETER ConfigRoot
@@ -60,18 +60,18 @@ foreach ($t in $Script:ConfigTargets) {
     $state = Get-ConfigState $t
     switch ($state) {
         $Script:StateFileMissing {
-            $plan += @{ Target = $t; Action = "skip"; Reason = "file not found" }
+            $plan += @{ Target = $t; Action = "create_file"; Reason = "file does not exist -- will create" }
         }
         $Script:StateFileMalformed {
             $plan += @{ Target = $t; Action = "malformed"; Reason = "file is corrupted or unparseable" }
             $hasMalformed = $true
         }
         $Script:StateDependencyMissing {
-            $plan += @{ Target = $t; Action = "malformed"; Reason = "Python is required for TOML/YAML validation but not found on PATH" }
+            $plan += @{ Target = $t; Action = "malformed"; Reason = "Python/PyYAML required for TOML/YAML validation but not found on PATH" }
             $hasMalformed = $true
         }
         $Script:StateEntryMissing {
-            $plan += @{ Target = $t; Action = "create"; Reason = "$($Script:ServerName) not present" }
+            $plan += @{ Target = $t; Action = "create_entry"; Reason = "$($Script:ServerName) not present" }
         }
         $Script:StateEntryCorrect {
             $plan += @{ Target = $t; Action = "exists"; Reason = "correct" }
@@ -83,10 +83,11 @@ foreach ($t in $Script:ConfigTargets) {
 }
 
 # Report plan
-$changesNeeded = $plan | Where-Object { $_.Action -in @("create","update") }
+$changesNeeded = $plan | Where-Object { $_.Action -in @("create_file","create_entry","update") }
 foreach ($p in $plan) {
     $verb = switch ($p.Action) {
-        "create"    { "CREATE" }
+        "create_file"   { "CREATE" }
+        "create_entry"  { "CREATE" }
         "update"    { "UPDATE" }
         "exists"    { "EXISTS" }
         "skip"      { "SKIP" }
@@ -128,9 +129,8 @@ Backup-ConfigTargets -BackupDir $bkDir -AffectedTargets $affectedNames
 # Record ABSENT_BEFORE_INSTALL tombstones so rollback can delete created files
 $manifestPath = Join-Path $bkDir "manifest-sha256.txt"
 foreach ($p in $changesNeeded) {
-    if ($p.Action -eq "create") {
-        # The backup was taken from the file if it existed; if no backup was written,
-        # the file didn't exist before install - record a tombstone
+    if ($p.Action -in @("create_file","create_entry")) {
+        # If no backup was written, the file didn't exist before install - record a tombstone
         $backupFile = Join-Path $bkDir $p.Target.BackupName
         if (-not (Test-Path $backupFile)) {
             "ABSENT_BEFORE_INSTALL:$($p.Target.BackupName) | $($p.Target.Source)" | Out-File $manifestPath -Append -Encoding UTF8
@@ -145,6 +145,22 @@ $changed = 0
 foreach ($p in $changesNeeded) {
     $t = $p.Target
     $path = $t.Source
+
+    # If file doesn't exist yet, create parent directory and minimal valid config
+    if (-not (Test-Path $path)) {
+        $parentDir = Split-Path $path -Parent
+        New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        if ($t.Format -eq "JSON") {
+            '{}' | Set-Content $path -Encoding UTF8
+            Write-Output "[CREATED] $($t.Name) - directory and empty JSON config"
+        } elseif ($t.Format -eq "TOML") {
+            "# $($t.Name) config for playwright-global`n" | Set-Content $path -Encoding UTF8
+            Write-Output "[CREATED] $($t.Name) - directory and minimal TOML config"
+        } elseif ($t.Format -eq "YAML") {
+            "# $($t.Name) config for playwright-global`n" | Set-Content $path -Encoding UTF8
+            Write-Output "[CREATED] $($t.Name) - directory and minimal YAML config"
+        }
+    }
 
     if ($t.Format -eq "JSON") {
         try { $j = Get-Content $path -Raw | ConvertFrom-Json } catch {
@@ -205,7 +221,7 @@ foreach ($p in $changesNeeded) {
             $section = $content.Substring($mcpPos, $sectionEnd - $mcpPos)
             $sectionNamePos = $section.IndexOf("name: $ServerName")
             if ($sectionNamePos -ge 0) {
-                # Replace existing stale entry — find item boundaries within the section
+                # Replace existing stale entry -- find item boundaries within the section
                 # Include enough context so LastIndexOf finds the complete \n  - name:
                 $beforeEnd = $sectionNamePos + 5  # include up to the ':' in 'name:'
                 $before = $section.Substring(0, [Math]::Min($beforeEnd, $section.Length))
@@ -224,7 +240,7 @@ foreach ($p in $changesNeeded) {
                 $content = $content.Substring(0, $mcpPos) + $newSection + $trailing
             }
         } else {
-            # mcpServers section does not exist — find the first top-level key to insert before
+            # mcpServers section does not exist -- find the first top-level key to insert before
             $firstKeyMatch = [regex]::Match($content, "(?m)^[a-zA-Z_][a-zA-Z0-9_/-]*:")
             $newBlock = "mcpServers:`n$newEntry`n"
             if ($firstKeyMatch.Success) {

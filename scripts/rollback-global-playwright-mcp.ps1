@@ -54,33 +54,69 @@ Write-Output "=== Rollback: playwright-global MCP ==="
 Write-Output "Backup directory: $BackupDir"
 Write-Output ""
 
-Write-Output "Files to restore:"
-$availableFiles = @()
+# --- Parse manifest (hash entries + ABSENT_BEFORE_INSTALL tombstones) ---
+$manifest = Join-Path $BackupDir "manifest-sha256.txt"
+$absentBefore = @{}  # key: BackupName, tracks files created by installer
+$expectedHashes = @{}  # key: BackupName, value: expected SHA-256
+if (Test-Path $manifest) {
+    Write-Output "--- Parsing manifest ---"
+    foreach ($line in (Get-Content $manifest)) {
+        if ($line -match '^ABSENT_BEFORE_INSTALL:(.+?) \| (.+)$') {
+            $backupName = $matches[1]
+            $absentBefore[$backupName] = $true
+            Write-Output "[TOMBSTONE] ${backupName} was created by installer"
+        } elseif ($line -match '^(.+?) \| ([A-F0-9]{64})') {
+            $backupName = $matches[1]
+            $expectedHashes[$backupName] = $matches[2]
+        }
+    }
+} else {
+    Write-Output "[INFO] No manifest found -- all backup files will be restored without hash validation"
+}
+
+# --- Build action plan from manifest entries + backup files ---
+Write-Output "`nActions to perform:"
+$rollbackPlan = @()  # each: @{Target = $t; Action = "restore|delete|skip|fail"; BackupFile = "..."; Reason = "..."}
 foreach ($t in $Script:ConfigTargets) {
     $src = Join-Path $BackupDir $t.BackupName
     $dest = $t.Source
-    if (Test-Path $src) {
-        Write-Output "  $($t.BackupName) -> $dest"
-        $availableFiles += $t
+    $bn = $t.BackupName
+    if ($absentBefore.ContainsKey($bn)) {
+        $rollbackPlan += @{ Target = $t; Action = "delete"; BackupFile = $src; Reason = "file was created by installer" }
+        Write-Output "  [DELETE] ${bn} -> $dest"
+    } elseif (Test-Path $src) {
+        $rollbackPlan += @{ Target = $t; Action = "restore"; BackupFile = $src; Reason = "backup exists" }
+        Write-Output "  [RESTORE] ${bn} -> $dest"
+    } elseif ($expectedHashes.ContainsKey($bn)) {
+        $rollbackPlan += @{ Target = $t; Action = "fail"; Reason = "listed in manifest but backup file missing: ${bn}" }
+        Write-Output "  [FAIL] ${bn} -- listed in manifest but backup file is missing"
     } else {
-        Write-Output "  $($t.BackupName) - NOT IN BACKUP (skipping)"
+        $rollbackPlan += @{ Target = $t; Action = "skip"; Reason = "not in this backup set" }
+        Write-Output "  [SKIP] ${bn} -- not affected by this backup"
     }
 }
 
-if ($availableFiles.Count -eq 0) {
-    Write-Error "No backup files found in $BackupDir"
+$restoreTargets = $rollbackPlan | Where-Object { $_.Action -in @("restore","delete") }
+$failTargets = $rollbackPlan | Where-Object { $_.Action -eq "fail" }
+
+if ($failTargets.Count -gt 0) {
+    Write-Error "Backup validation failed: some files listed in manifest are missing."
+    exit 1
+}
+
+if ($restoreTargets.Count -eq 0) {
+    Write-Error "No backup or tombstone entries found in $BackupDir"
     exit 1
 }
 
 Write-Output ""
 if (-not $Force) {
-    $manifest = Join-Path $BackupDir "manifest-sha256.txt"
     if (Test-Path $manifest) {
         Write-Output "Backup manifest:"
         Get-Content $manifest
         Write-Output ""
     }
-    $confirm = Read-Host "Restore these $($availableFiles.Count) file(s)? (y/N)"
+    $confirm = Read-Host "Process these $($restoreTargets.Count) actions? (y/N)"
     if ($confirm -ne "y" -and $confirm -ne "Y") {
         Write-Output "Rollback cancelled."
         exit 0
@@ -88,53 +124,45 @@ if (-not $Force) {
 }
 
 # --- Validate backup hashes before restoring ---
-$manifest = Join-Path $BackupDir "manifest-sha256.txt"
-$hashMismatch = $false
-$absentBefore = @{}  # key: BackupName, tracks files created by installer
-if (Test-Path $manifest) {
+if ($expectedHashes.Count -gt 0) {
     Write-Output "--- Validating backup hashes ---"
-    $manifestLines = Get-Content $manifest
-    foreach ($line in $manifestLines) {
-        if ($line -match '^ABSENT_BEFORE_INSTALL:(.+?) \| (.+)$') {
-            $backupName = $matches[1]
-            $absentBefore[$backupName] = $true
-            Write-Output "[TOMBSTONE] ${backupName} was created by installer -- will be deleted"
-        } elseif ($line -match '^(.+?) \| ([A-F0-9]{64})') {
-            $backupName = $matches[1]
-            $expectedHash = $matches[2]
-            $backupFile = Join-Path $BackupDir $backupName
-            if (Test-Path $backupFile) {
-                $actualHash = (Get-FileHash $backupFile -Algorithm SHA256).Hash
-                if ($actualHash -ne $expectedHash) {
-                    Write-Output "[FAIL] Hash mismatch for ${backupName}: expected ${expectedHash}, got ${actualHash}"
-                    $hashMismatch = $true
-                } else {
-                    Write-Output "[PASS] $backupName hash matches manifest"
-                }
+    $hashMismatch = $false
+    foreach ($kv in $expectedHashes.GetEnumerator()) {
+        $backupName = $kv.Key
+        $expectedHash = $kv.Value
+        $backupFile = Join-Path $BackupDir $backupName
+        if (Test-Path $backupFile) {
+            $actualHash = (Get-FileHash $backupFile -Algorithm SHA256).Hash
+            if ($actualHash -ne $expectedHash) {
+                Write-Output "[FAIL] Hash mismatch for ${backupName}: expected ${expectedHash}, got ${actualHash}"
+                $hashMismatch = $true
+            } else {
+                Write-Output "[PASS] ${backupName} hash matches manifest"
             }
+        } else {
+            Write-Output "[FAIL] Backup listed in manifest is missing: ${backupName}"
+            $hashMismatch = $true
         }
     }
     if ($hashMismatch) {
-        Write-Error "Backup hash validation failed. Use -Force or restore manually."
+        Write-Error "Backup hash validation failed. Restore manually from the backup directory."
         exit 1
     }
-} else {
-    Write-Output "[WARN] No manifest-sha256.txt found -- skipping hash validation."
 }
 
-foreach ($t in $availableFiles) {
-    $src = Join-Path $BackupDir $t.BackupName
-    $dest = $t.Source
-    if ($absentBefore.ContainsKey($t.BackupName)) {
-        # File was created by installer -- delete it (no original to restore)
+# --- Apply all actions ---
+foreach ($planItem in $rollbackPlan) {
+    if ($planItem.Action -eq "delete") {
+        $dest = $planItem.Target.Source
         if (Test-Path $dest) {
             Remove-Item $dest -Force -ErrorAction SilentlyContinue
-            Write-Output "[DELETED] $($t.BackupName) (created by installer, no original to restore)"
+            Write-Output "[DELETED] $($planItem.Target.BackupName) (created by installer, no original to restore)"
         }
-    } else {
-        # Restore pre-existing file from backup
+    } elseif ($planItem.Action -eq "restore") {
+        $src = $planItem.BackupFile
+        $dest = $planItem.Target.Source
         Copy-Item $src $dest -Force
-        Write-Output "[RESTORED] $($t.BackupName) -> $dest"
+        Write-Output "[RESTORED] $($planItem.Target.BackupName) -> $dest"
     }
 }
 

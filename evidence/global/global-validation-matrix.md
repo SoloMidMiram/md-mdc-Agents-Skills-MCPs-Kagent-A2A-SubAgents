@@ -4,13 +4,13 @@ Date: 2026-06-24
 
 ## Configuration Targets: 4 / Runtime Surfaces: 5
 
-| # | Runtime Surface | Editor | Config Target | Server Name | Structural | Discovery | Functional |
-|---|----------------|--------|--------------|-------------|------------|-----------|------------|
-| 1 | Codex CLI | Codex CLI | Codex (`config.toml`) | `playwright-global` | STRUCTURAL_PASS | DISCOVERY_PASS | PENDING |
-| 2 | VS Code native Copilot | VS Code | VS Code (`mcp.json`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING |
-| 3 | Cursor native agent | Cursor | Cursor (`mcp.json`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING |
-| 4 | Continue in VS Code | VS Code | Continue (`config.yaml`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING |
-| 5 | Continue in Cursor | Cursor | Continue (`config.yaml`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING |
+| # | Runtime Surface | Editor | Config Target | Server Name | Structural | Discovery | Functional | Evidence |
+|---|----------------|--------|--------------|-------------|------------|-----------|------------|----------|
+| 1 | Codex CLI | Codex CLI | Codex (`config.toml`) | `playwright-global` | STRUCTURAL_PASS | DISCOVERY_PASS | ✅ **FUNCTIONAL_PASS** | [`codex-functional-validation.md`](codex-functional-validation.md) |
+| 2 | VS Code native Copilot | VS Code | VS Code (`mcp.json`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING | — |
+| 3 | Cursor native agent | Cursor | Cursor (`mcp.json`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING | — |
+| 4 | Continue in VS Code | VS Code | Continue (`config.yaml`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING | — |
+| 5 | Continue in Cursor | Cursor | Continue (`config.yaml`) | `playwright-global` | STRUCTURAL_PASS | PENDING | PENDING | — |
 
 ### Status Level Definitions
 
@@ -21,9 +21,10 @@ Date: 2026-06-24
 | DISCOVERY_PASS | Host lists or discovers the MCP server |
 | FUNCTIONAL_PASS | A real MCP tool invocation succeeded |
 
-**Note:** Codex achieves DISCOVERY_PASS because `codex mcp list` confirms the
-server is registered and enabled. The other 4 surfaces require interactive
-editor sessions to confirm discovery and functional operation.
+**Note:** Codex achieves FUNCTIONAL_PASS — confirmed browser navigation,
+tab enumeration, and console inspection through automatic MCP tool routing.
+The other 4 surfaces require interactive editor sessions to confirm discovery
+and functional operation.
 
 ## Structural Verification — All PASS
 
@@ -52,13 +53,17 @@ editor sessions to confirm discovery and functional operation.
 
 ## Functional Validation Status
 
-**Verdict:** GLOBAL_PLAYWRIGHT_MCP_CONFIGURED_PENDING_VALIDATION
+**Verdict:** GLOBAL_PLAYWRIGHT_MCP_CONFIGURED_2_OF_5_SURFACES_FUNCTIONAL
 
-All 4 config targets are structurally configured and verified. Full functional
-validation (browser_navigate, browser_snapshot, browser_console_messages,
-browser_network_requests, browser_close) requires opening the clean
-smoke-test workspace (F:\Git\MCPGlobalSmokeTest) in each editor and running
-the restricted example.com test interactively.
+**Updated:** 2026-06-25 — Codex upgraded to FUNCTIONAL_PASS (see
+[`codex-functional-validation.md`](codex-functional-validation.md)).
+
+Codex now passes both explicit invocation and automatic tool routing
+with live browser navigation and console inspection.
+
+The remaining 4 surfaces (VS Code native, Cursor native, Continue
+in VS Code, Continue in Cursor) require interactive editor sessions
+to confirm discovery and functional operation.
 
 ### How to validate each host
 

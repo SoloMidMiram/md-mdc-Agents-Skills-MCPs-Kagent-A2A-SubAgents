@@ -374,6 +374,125 @@ Describe "Production Path: Install Idempotence" -Tag "ProductionPath", "Idempote
     }
 }
 
+Describe "Production Path: Missing File Creates Config" -Tag "ProductionPath", "Install" {
+
+    It "Creates file from scratch when all targets absent" {
+        $workspace = New-TestWorkspace
+        try {
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            $result = & $Script:InstallScript -ConfigRoot $workspace 2>&1
+            $LASTEXITCODE | Should -Be 0
+            $result -join "`n" | Should -Match "CREATED"
+
+            # Verify files were created
+            Test-Path (Join-Path $workspace ".cursor\mcp.json") | Should -Be $true
+            Test-Path (Join-Path $workspace ".codex\config.toml") | Should -Be $true
+            Test-Path (Join-Path $workspace ".continue\config.yaml") | Should -Be $true
+        } finally { Remove-TestWorkspace }
+    }
+
+    It "Creates parent directory when absent" {
+        $workspace = New-TestWorkspace
+        try {
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
+            Test-Path (Join-Path $workspace ".cursor") | Should -Be $true
+            Test-Path (Join-Path $workspace ".codex") | Should -Be $true
+            Test-Path (Join-Path $workspace ".continue") | Should -Be $true
+        } finally { Remove-TestWorkspace }
+    }
+
+    It "Records tombstone for installer-created file" {
+        $workspace = New-TestWorkspace
+        try {
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
+
+            # Find backup dir
+            $bkDir = Get-ChildItem (Join-Path $workspace ".mcp-config-backups") -Directory | Select-Object -First 1
+            $bkDir | Should -Not -BeNullOrEmpty
+
+            # Check manifest for tombstones
+            $manifest = Join-Path $bkDir.FullName "manifest-sha256.txt"
+            $manifest | Should -Exist
+            $manifestContent = Get-Content $manifest
+            $manifestContent | Where-Object { $_ -match "ABSENT_BEFORE_INSTALL" } | Should -Not -BeNullOrEmpty
+        } finally { Remove-TestWorkspace }
+    }
+
+    It "TOML and YAML files created have valid syntax" {
+        $workspace = New-TestWorkspace
+        try {
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
+
+            # Validate TOML syntax via Python (handle UTF-8 BOM from PowerShell)
+            $tomlPath = Join-Path $workspace ".codex\config.toml"
+            $posix = $tomlPath -replace '\\', '/'
+            $pyScript = @"
+import pathlib
+text = pathlib.Path(r'$posix').read_text(encoding='utf-8')
+if text.startswith('\ufeff'):
+    text = text[1:]
+import tomllib
+tomllib.loads(text)
+print('OK')
+"@
+            $result = $pyScript | python 2>&1
+            $result | Should -Match "OK"
+
+            # Validate YAML syntax via Python
+            $yamlPath = Join-Path $workspace ".continue\config.yaml"
+            $posix2 = $yamlPath -replace '\\', '/'
+            $pyScript2 = @"
+import pathlib
+text = pathlib.Path(r'$posix2').read_text(encoding='utf-8')
+import yaml
+yaml.safe_load(text)
+print('OK')
+"@
+            $result2 = $pyScript2 | python 2>&1
+            $result2 | Should -Match "OK"
+        } finally { Remove-TestWorkspace }
+    }
+}
+
+Describe "Production Path: Tombstone Rollback" -Tag "ProductionPath", "RoundTrip" {
+
+    It "Rollback deletes file created by installer" {
+        $workspace = New-TestWorkspace
+        try {
+            $vscodeDir = Join-Path $workspace "AppData\Roaming\Code\User"
+            New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
+
+            & $Script:InstallScript -ConfigRoot $workspace 2>&1 | Out-Null
+
+            # Confirm file was created
+            $cursorFile = Join-Path $workspace ".cursor\mcp.json"
+            Test-Path $cursorFile | Should -Be $true
+
+            # Find backup dir
+            $bkDir = Get-ChildItem (Join-Path $workspace ".mcp-config-backups") -Directory | Select-Object -First 1
+            $bkDir | Should -Not -BeNullOrEmpty
+
+            # Rollback -- capture output directly, exit code via separate call
+            $rollbackOutput = & $Script:RollbackScript -BackupDir $bkDir.FullName -Force -ConfigRoot $workspace 2>&1
+            $rollbackOutput -join "`n" | Should -Match "DELETED|RESTORED"
+
+            # File should be deleted (no original to restore since it was created by installer)
+            Test-Path $cursorFile | Should -Be $false
+        } finally { Remove-TestWorkspace }
+    }
+}
+
 Describe "Production Path: Malformed File Detection" -Tag "ProductionPath", "Malformed" {
 
     It "Exits with code 1 on malformed JSON" {
