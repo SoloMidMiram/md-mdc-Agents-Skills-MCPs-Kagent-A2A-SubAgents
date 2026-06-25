@@ -26,7 +26,7 @@ Move from production-path-tested coverage to **laptop-stable v0.1**: the install
 | WhatIf non-mutating | ✅ Tested | No backup directory created |
 | CI workflow | ✅ Configured | PSScriptAnalyzer, JSON validation, Pester evaluation, artifact upload |
 | PyYAML dependency | ⚠️ **Pinned** | CI installs PyYAML; local `Get-ConfigState` skips gracefully if missing |
-| Documented test counts | ⚠️ **Static** | README says "70 tests" — derived from Pester run, not hardcoded per-file |
+| Documented test counts | ✅ **Updated** | README says "72 tests" — Pester-verified aggregate, not hardcoded per-file |
 | Dataset structural tests | ✅ Done | Assert file exists, entry non-null, fields match expected |
 | Old plan doc | ✅ Archived | `docs/laptop-stable-implementation-plan.md` → replaced by this file |
 | Corrupted review verdict | ✅ Archived | Moved to `docs/archive/` |
