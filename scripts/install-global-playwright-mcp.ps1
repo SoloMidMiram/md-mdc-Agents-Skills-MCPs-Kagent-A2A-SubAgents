@@ -15,49 +15,89 @@
     -WhatIf is truly non-mutating — no backup directory or files created.
 .PARAMETER WhatIf
     Show what would change without making any edits.
+.PARAMETER ConfigRoot
+    Override config root for testing. If provided, all config file paths are rebased
+    to this directory instead of the real user profile.
 .EXAMPLE
     .\install-global-playwright-mcp.ps1
 .EXAMPLE
     .\install-global-playwright-mcp.ps1 -WhatIf
+.EXAMPLE
+    .\install-global-playwright-mcp.ps1 -ConfigRoot C:\Temp\TestWorkspace
 #>
 
-param([switch]$WhatIf)
+param(
+    [switch]$WhatIf,
+    [string]$ConfigRoot = $null
+)
 
 $ErrorActionPreference = "Stop"
 
 # Load shared config target manifest
 . "$PSScriptRoot\McpConfigTargets.ps1"
 
+# If ConfigRoot is provided, rebase all target paths for testability
+if ($ConfigRoot) {
+    $cr = $ConfigRoot.TrimEnd('\')
+    $up = $env:USERPROFILE.TrimEnd('\')
+    $ad = $env:APPDATA.TrimEnd('\')
+    foreach ($t in $Script:ConfigTargets) {
+        $t.Source = $t.Source -replace [regex]::Escape($up), $cr
+        $t.Source = $t.Source -replace [regex]::Escape($ad), (Join-Path $cr "AppData\Roaming")
+    }
+    $Script:BackupRoot = Join-Path $cr ".mcp-config-backups"
+}
+
 Write-Output "=== playwright-global Installer (WhatIf=$WhatIf) ==="
 Write-Output "Package: $Package`n"
 
 # --- Phase 1: Inspect all targets and compute planned changes ---
 Write-Output "--- Inspection ---"
-$plan = @()  # each item: @{Target = $t; Action = "create|update|skip|exists"; Reason = "..."}
+$plan = @()  # each item: @{Target = $t; Action = "create|update|skip|exists|malformed"; Reason = "..."}
+$hasMalformed = $false
 foreach ($t in $Script:ConfigTargets) {
-    $path = $t.Source
-    if (-not (Test-Path $path)) {
-        $plan += @{ Target = $t; Action = "skip"; Reason = "file not found" }
-        continue
-    }
-    $actual = Get-ActualEntry $t
-    if (-not $actual) {
-        $plan += @{ Target = $t; Action = "create"; Reason = "$($Script:ServerName) not present" }
-    } elseif (Test-EntryMatches $actual $t) {
-        $plan += @{ Target = $t; Action = "exists"; Reason = "correct" }
-    } else {
-        $plan += @{ Target = $t; Action = "update"; Reason = "stale entry needs repair" }
+    $state = Get-ConfigState $t
+    switch ($state) {
+        $Script:StateFileMissing {
+            $plan += @{ Target = $t; Action = "skip"; Reason = "file not found" }
+        }
+        $Script:StateFileMalformed {
+            $plan += @{ Target = $t; Action = "malformed"; Reason = "file is corrupted or unparseable" }
+            $hasMalformed = $true
+        }
+        $Script:StateEntryMissing {
+            $plan += @{ Target = $t; Action = "create"; Reason = "$($Script:ServerName) not present" }
+        }
+        $Script:StateEntryCorrect {
+            $plan += @{ Target = $t; Action = "exists"; Reason = "correct" }
+        }
+        $Script:StateEntryStale {
+            $plan += @{ Target = $t; Action = "update"; Reason = "stale entry needs repair" }
+        }
     }
 }
 
 # Report plan
 $changesNeeded = $plan | Where-Object { $_.Action -in @("create","update") }
 foreach ($p in $plan) {
-    $verb = switch ($p.Action) { "create" { "CREATE" } "update" { "UPDATE" } "exists" { "EXISTS" } "skip" { "SKIP" } }
+    $verb = switch ($p.Action) {
+        "create"    { "CREATE" }
+        "update"    { "UPDATE" }
+        "exists"    { "EXISTS" }
+        "skip"      { "SKIP" }
+        "malformed" { "MALFORMED" }
+    }
     Write-Output "[$verb] $($p.Target.Name) - $($p.Reason)"
 }
 
-# --- Phase 2: If WhatIf or no changes needed, stop here ---
+# --- Phase 2: Exit early for malformed files (before any mutation) ---
+if ($hasMalformed) {
+    Write-Output "`n[FAIL] One or more config files are malformed or unparseable. Fix them manually before retrying."
+    Write-Output "=== ABORTED ==="
+    exit 1
+}
+
+# --- Phase 3: If WhatIf or no changes needed, stop here ---
 if ($WhatIf) {
     if ($changesNeeded.Count -gt 0) {
         Write-Output "`n[WHATIF] Would create backup and apply $($changesNeeded.Count) change(s)."
@@ -74,7 +114,7 @@ if ($changesNeeded.Count -eq 0) {
     exit 0
 }
 
-# --- Phase 3: Create backup and apply changes ---
+# --- Phase 4: Create backup and apply changes ---
 $affectedNames = $changesNeeded | ForEach-Object { $_.Target.Name }
 $bkDir = New-BackupDir
 Write-Output "`n--- Backups (backup dir: $bkDir) ---"
@@ -91,13 +131,15 @@ foreach ($p in $changesNeeded) {
         try { $j = Get-Content $path -Raw | ConvertFrom-Json } catch {
             Write-Output "[FAIL] $($t.Name) - cannot parse JSON: $_"; continue
         }
-        # Safe-create server container key
+        # Safe-create server container key using Add-Member -Force (works in PS 5.1 and 7+)
+        # Use [PSCustomObject]@{} so nested Add-Member works on the container value
         if (-not $j.$($t.ServerKey)) {
-            $j | Add-Member -MemberType NoteProperty -Name $t.ServerKey -Value @{} -Force
+            $j | Add-Member -MemberType NoteProperty -Name $t.ServerKey -Value ([PSCustomObject]@{}) -Force
         }
         $entry = @{ command = $t.DesiredCommand; args = @($t.DesiredArgs) }
         if ($t.DesiredType) { $entry.type = $t.DesiredType }
-        $j.$($t.ServerKey).$ServerName = $entry
+        # Add the server entry using Add-Member for reliability on PSCustomObject
+        $j.$($t.ServerKey) | Add-Member -MemberType NoteProperty -Name $ServerName -Value $entry -Force
         $j | ConvertTo-Json -Depth 5 | Set-Content $path -Encoding UTF8
         Write-Output "[$($p.Action.ToUpper())] $($t.Name)"
         $changed++
@@ -129,28 +171,44 @@ foreach ($p in $changesNeeded) {
       - "$Package"
       - "--isolated"
 "@
-        if ($content -match "(?m)^mcpServers:") {
-            if ($content -match "name: $ServerName") {
-                # Replace existing stale entry using line-based approach
-                $namePos = $content.IndexOf("name: $ServerName")
-                $before = $content.Substring(0, $namePos)
-                $itemStart = $before.LastIndexOf("`n  - name:")
-                if ($itemStart -lt 0) { $itemStart = $before.LastIndexOf("mcpServers:") }
-                if ($itemStart -lt 0) { Write-Output "[FAIL] $($t.Name) - cannot locate entry boundary"; continue }
-                $after = $content.Substring($itemStart)
-                $nextItem = $after.IndexOf("`n  - name:", [Math]::Max($after.IndexOf("`n", 1), 1))
-                $itemEnd = if ($nextItem -ge 0) { $itemStart + $nextItem } else { $content.Length }
-                # Replace the list item in-place; DON'T add another mcpServers: header
-                $content = $content.Substring(0, $itemStart) + "`n" + $newEntry + "`n" + $content.Substring($itemEnd)
+        # === Find mcpServers section boundaries ===
+        $mcpPos = $content.IndexOf("mcpServers:")
+        if ($mcpPos -ge 0) {
+            # Find the next top-level key after mcpServers: to bound the section
+            $afterMcp = $mcpPos + 12  # length of "mcpServers:"
+            $sectionEnd = $content.Length
+            foreach ($bound in @("`nmodels:", "`nslashCommands:", "`nrules:", "`nexperimental:", "`ndocs:", "`n# ")) {
+                $bp = $content.IndexOf($bound, $afterMcp)
+                if ($bp -gt 0 -and $bp -lt $sectionEnd) { $sectionEnd = $bp }
+            }
+            # Work only inside the mcpServers section
+            $section = $content.Substring($mcpPos, $sectionEnd - $mcpPos)
+            $sectionNamePos = $section.IndexOf("name: $ServerName")
+            if ($sectionNamePos -ge 0) {
+                # Replace existing stale entry — find item boundaries within the section
+                $before = $section.Substring(0, $sectionNamePos)
+                $itemStartRel = $before.LastIndexOf("`n  - name:")
+                if ($itemStartRel -lt 0) { $itemStartRel = 0 }
+                $afterName = $section.Substring($sectionNamePos)
+                $nextItem = $afterName.IndexOf("`n  - name:", 1)
+                $itemEndRel = if ($nextItem -ge 0) { $sectionNamePos + $nextItem } else { $section.Length }
+                # Replace the list item within the section slice
+                $newSection = $section.Substring(0, $itemStartRel) + "`n" + $newEntry + "`n" + $section.Substring($itemEndRel)
+                $content = $content.Substring(0, $mcpPos) + $newSection + $content.Substring($sectionEnd)
             } else {
-                # Append to existing list — after the last existing entry
-                $lastEntry = $content.LastIndexOf("  - name:")
-                $insertPos = $content.IndexOf("`n", $lastEntry)
-                if ($insertPos -le 0) { $insertPos = $content.IndexOf("mcpServers:") + 12 }
-                $content = $content.Substring(0, $insertPos) + "`n" + $newEntry + $content.Substring($insertPos)
+                # Append to existing mcpServers list — find last entry within the section
+                $lastEntryRel = $section.LastIndexOf("`n  - name:")
+                $insertRel = if ($lastEntryRel -ge 0) {
+                    $section.IndexOf("`n", $lastEntryRel + 1)
+                } else {
+                    $section.IndexOf("`n", 11)  # after "mcpServers:"
+                }
+                if ($insertRel -le 0) { $insertRel = 11 }  # fallback to after header
+                $newSection = $section.Substring(0, $insertRel) + "`n" + $newEntry + $section.Substring($insertRel)
+                $content = $content.Substring(0, $mcpPos) + $newSection + $content.Substring($sectionEnd)
             }
         } else {
-            # Insert before slashCommands: or at end
+            # mcpServers section does not exist — insert before slashCommands: or at end
             $newBlock = "mcpServers:`n$newEntry`n"
             $insert = $content.IndexOf("slashCommands:")
             if ($insert -ge 0) {

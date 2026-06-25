@@ -10,22 +10,40 @@
     The backup directory path (e.g., $env:USERPROFILE\.mcp-config-backups\20260624-085526)
 .PARAMETER Force
     Skip confirmation prompt.
+.PARAMETER ConfigRoot
+    Override config root for testing. If provided, all config file paths are rebased
+    to this directory instead of the real user profile.
 .EXAMPLE
     .\rollback-global-playwright-mcp.ps1 -BackupDir "$env:USERPROFILE\.mcp-config-backups\20260624-085526"
 .EXAMPLE
     .\rollback-global-playwright-mcp.ps1 -BackupDir "$env:USERPROFILE\.mcp-config-backups\20260624-085526" -Force
+.EXAMPLE
+    .\rollback-global-playwright-mcp.ps1 -BackupDir C:\Backups\20260624-085526 -ConfigRoot C:\Temp\TestWorkspace
 #>
 
 param(
     [Parameter(Mandatory = $true)]
     [string]$BackupDir,
-    [switch]$Force
+    [switch]$Force,
+    [string]$ConfigRoot = $null
 )
 
 $ErrorActionPreference = "Stop"
 
 # Load shared config target manifest
 . "$PSScriptRoot\McpConfigTargets.ps1"
+
+# If ConfigRoot is provided, rebase all target paths for testability
+if ($ConfigRoot) {
+    $cr = $ConfigRoot.TrimEnd('\')
+    $up = $env:USERPROFILE.TrimEnd('\')
+    $ad = $env:APPDATA.TrimEnd('\')
+    foreach ($t in $Script:ConfigTargets) {
+        $t.Source = $t.Source -replace [regex]::Escape($up), $cr
+        $t.Source = $t.Source -replace [regex]::Escape($ad), (Join-Path $cr "AppData\Roaming")
+    }
+    $Script:BackupRoot = Join-Path $cr ".mcp-config-backups"
+}
 
 if (-not (Test-Path $BackupDir)) {
     Write-Error "Backup directory not found: $BackupDir"

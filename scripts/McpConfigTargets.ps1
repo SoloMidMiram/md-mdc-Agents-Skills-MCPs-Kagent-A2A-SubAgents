@@ -58,6 +58,40 @@ $Script:ConfigTargets = @(
 
 $Script:BackupRoot = Join-Path $env:USERPROFILE ".mcp-config-backups"
 
+# --- Typed State Constants ---
+$Script:StateFileMissing   = "FILE_MISSING"
+$Script:StateEntryMissing  = "ENTRY_MISSING"
+$Script:StateEntryCorrect  = "ENTRY_CORRECT"
+$Script:StateEntryStale    = "ENTRY_STALE"
+$Script:StateFileMalformed = "FILE_MALFORMED"
+
+function Get-ConfigState {
+    <#
+    .SYNOPSIS
+      Returns the typed state of a config target.
+      Returns one of: FILE_MISSING, FILE_MALFORMED, ENTRY_MISSING, ENTRY_CORRECT, ENTRY_STALE
+    .PARAMETER Target
+      A config target from $Script:ConfigTargets.
+    #>
+    param($Target)
+    if (-not (Test-Path $Target.Source)) { return $Script:StateFileMissing }
+
+    # Check parseability before checking entry
+    $content = Get-Content $Target.Source -Raw -ErrorAction SilentlyContinue
+    if (-not $content) { return $Script:StateFileMalformed }
+
+    if ($Target.Format -eq "JSON") {
+        try { $null = $content | ConvertFrom-Json } catch { return $Script:StateFileMalformed }
+    }
+    # TOML and YAML: rely on Get-ActualEntry internal error handling since
+    # we don't have a native TOML/YAML parser in PowerShell.
+
+    $actual = Get-ActualEntry $Target
+    if (-not $actual) { return $Script:StateEntryMissing }
+    if (Test-EntryMatches $actual $Target) { return $Script:StateEntryCorrect }
+    return $Script:StateEntryStale
+}
+
 function New-BackupDir {
     param([switch]$WhatIf)
     if ($WhatIf) { return "[WHATIF] $Script:BackupRoot\<TIMESTAMP>" }

@@ -93,16 +93,30 @@ Describe "Dataset-Driven Evaluation" -Tag "Functional", "Dataset" {
     }
 
     # Structural checks from dataset: verify each structural entry against real files
+    # Uses Get-NormalizedEntry from test-helper to read and parse each config file,
+    # then validates the playwright-global entry matches expected metadata.
 
     foreach ($entry in $structuralEntries) {
         It "Dataset structural: $($entry.id) - $($entry.description)" -Tag "DatasetStructural" {
             $hostConfig = switch ($entry.host) {
-                "cursor"   { @{ Path = Join-Path $env:USERPROFILE ".cursor\mcp.json";        Format = "JSON";   Key = "mcpServers" } }
-                "vscode"   { @{ Path = Join-Path $env:APPDATA "Code\User\mcp.json";          Format = "JSON";   Key = "servers" } }
-                "codex"    { @{ Path = Join-Path $env:USERPROFILE ".codex\config.toml";      Format = "TOML";   Key = $null } }
-                "continue" { @{ Path = Join-Path $env:USERPROFILE ".continue\config.yaml";   Format = "YAML";   Key = $null } }
+                "cursor"   { @{ Path = Join-Path $env:USERPROFILE ".cursor\mcp.json";        Format = "JSON";   Key = "mcpServers"; ExpectedType = $null } }
+                "vscode"   { @{ Path = Join-Path $env:APPDATA "Code\User\mcp.json";          Format = "JSON";   Key = "servers";     ExpectedType = "stdio" } }
+                "codex"    { @{ Path = Join-Path $env:USERPROFILE ".codex\config.toml";      Format = "TOML";   Key = $null;        ExpectedType = $null } }
+                "continue" { @{ Path = Join-Path $env:USERPROFILE ".continue\config.yaml";   Format = "YAML";   Key = $null;        ExpectedType = "stdio" } }
             }
             $entry.expected | Should -Not -BeNullOrEmpty
+            if ((Test-Path $hostConfig.Path) -and $entry.expected.command) {
+                $actualEntry = Get-NormalizedEntry -Path $hostConfig.Path -Format $hostConfig.Format -ServerKey $hostConfig.Key
+                if ($actualEntry) {
+                    $actualEntry.command | Should -Be $entry.expected.command
+                    if ($entry.expected.args) {
+                        ($actualEntry.args -join " ") | Should -Be ($entry.expected.args -join " ")
+                    }
+                    if ($hostConfig.ExpectedType -and $actualEntry.type) {
+                        $actualEntry.type | Should -Be $hostConfig.ExpectedType
+                    }
+                }
+            }
         }
     }
 

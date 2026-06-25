@@ -3,7 +3,18 @@
     Verify playwright-global MCP configuration across all registered hosts.
     Exits with code 1 if any required check fails.
     Optional failures (warnings) are reported but do not cause exit.
+.PARAMETER ConfigRoot
+    Override config root for testing. If provided, all config file paths are rebased
+    to this directory instead of the real user profile.
+.EXAMPLE
+    .\verify-global-playwright-mcp.ps1
+.EXAMPLE
+    .\verify-global-playwright-mcp.ps1 -ConfigRoot C:\Temp\TestWorkspace
 #>
+
+param(
+    [string]$ConfigRoot = $null
+)
 
 $ErrorActionPreference = "Continue"
 $failures = @()
@@ -11,6 +22,18 @@ $warnings = @()
 
 # Load shared config target manifest
 . "$PSScriptRoot\McpConfigTargets.ps1"
+
+# If ConfigRoot is provided, rebase all target paths for testability
+if ($ConfigRoot) {
+    $cr = $ConfigRoot.TrimEnd('\')
+    $up = $env:USERPROFILE.TrimEnd('\')
+    $ad = $env:APPDATA.TrimEnd('\')
+    foreach ($t in $Script:ConfigTargets) {
+        $t.Source = $t.Source -replace [regex]::Escape($up), $cr
+        $t.Source = $t.Source -replace [regex]::Escape($ad), (Join-Path $cr "AppData\Roaming")
+    }
+    $Script:BackupRoot = Join-Path $cr ".mcp-config-backups"
+}
 
 function Add-Failure {
     param([string]$Message)

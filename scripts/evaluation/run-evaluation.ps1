@@ -40,13 +40,15 @@ $Script:OutputDir = if ($OutputDir) { $OutputDir } else { $Script:DefaultOutput 
 $Script:TestFiles = @(
     (Join-Path $Script:EvalRoot "infrastructure.Tests.ps1")
     (Join-Path $Script:EvalRoot "functional.Tests.ps1")
+    (Join-Path $Script:EvalRoot "production-path.Tests.ps1")
 )
 
 # Available tags
 $Script:AllTags = @(
     "Infrastructure", "Parsing", "Comparison", "RoundTrip", "Hosts", "Package",
     "Duplicates", "Fixtures",
-    "Functional", "Dataset", "DatasetStructural", "DatasetFunctional", "Scripts"
+    "Functional", "Dataset", "DatasetStructural", "DatasetFunctional", "Scripts",
+    "ProductionPath", "Install", "Idempotent", "Malformed", "Verify"
 )
 
 # --- List Tags ---
