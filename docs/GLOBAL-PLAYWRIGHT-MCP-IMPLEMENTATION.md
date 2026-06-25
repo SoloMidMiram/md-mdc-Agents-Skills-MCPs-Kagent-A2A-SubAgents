@@ -139,7 +139,7 @@ Get-FileHash "$bk\*" -Algorithm SHA256 | Format-Table
 # (file edit via replace_string_in_file)
 
 # Phase 9: Workspace duplicate resolution
-# Moved old .vscode/mcp.json content to docs/templates/mcp-vscode-workspace.json
+# Refreshed docs/templates/mcp-vscode-workspace.json as an empty workspace template
 # Cleared .vscode/mcp.json servers object
 
 # Phase 10: Smoke-test workspace
@@ -168,7 +168,7 @@ New-Item -ItemType Directory -Path "F:\Git\MCPGlobalSmokeTest" -Force
 
 ## 10. Duplicate Workspace Configurations Removed
 
-- `F:\Git\MCPtest\.vscode\mcp.json`: `playwright-local` removed (now empty servers object). Old config saved to `docs/templates/mcp-vscode-workspace.json`.
+- `F:\Git\MCPtest\.vscode\mcp.json`: `playwright-local` removed (now empty servers object). `docs/templates/mcp-vscode-workspace.json` is now the empty workspace template.
 - `F:\Git\MCPtest\.continue\mcpServers\`: Did not exist — nothing to remove.
 - `F:\Git\MCPtest\.codex\config.toml`: Did not exist — nothing to remove.
 - Cursor workspace: No workspace-level config exists.
@@ -203,6 +203,7 @@ Copy-Item "$bk\codex-config.toml" "C:\Users\cebit.ir\.codex\config.toml" -Force
 Copy-Item "$bk\continue-config.yaml" "C:\Users\cebit.ir\.continue\config.yaml" -Force
 Copy-Item "$bk\vscode-user-mcp.json" "$env:APPDATA\Code\User\mcp.json" -Force
 # Restore workspace .vscode/mcp.json from docs/templates/mcp-vscode-workspace.json
+# The workspace template is intentionally empty; user-level configs provide Playwright.
 ```
 
 ## 15. How to Add Another MCP Host Later

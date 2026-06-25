@@ -38,7 +38,7 @@ cd /opt/playwright-mcp
 ### 2. Start the Container
 
 ```bash
-# Pull the latest image
+# Pull the pinned image
 docker compose pull
 
 # 3. Start the container
@@ -86,7 +86,7 @@ docker compose down
 # Stop and remove images
 docker compose down --rmi all
 
-# Update to latest image
+# Update the pinned image after validating a new tested version
 docker compose pull
 docker compose up -d
 ```

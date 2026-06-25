@@ -5,7 +5,13 @@ services:
     restart: unless-stopped
     init: true
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8931/mcp', r => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "const net=require('net');const s=net.createConnection({host:'127.0.0.1',port:8931});s.once('connect',()=>process.exit(0));s.once('error',()=>process.exit(1));",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3

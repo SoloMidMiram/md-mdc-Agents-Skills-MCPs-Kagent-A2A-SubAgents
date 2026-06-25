@@ -24,7 +24,7 @@ Windows Laptop (MCP Host)
 Linux Server (127.0.0.1:8931)
         │
         ▼
-Docker Container: mcr.microsoft.com/playwright/mcp
+Docker Container: mcr.microsoft.com/playwright/mcp:v0.0.76
         │
         ▼
 Headless Chromium (inside container)
@@ -71,7 +71,7 @@ Create `/opt/playwright-mcp/compose.yaml`:
 ```yaml
 services:
   playwright-mcp:
-    image: mcr.microsoft.com/playwright/mcp
+    image: mcr.microsoft.com/playwright/mcp:v0.0.76
     container_name: playwright-mcp
     restart: unless-stopped
     init: true
@@ -102,6 +102,7 @@ services:
 ### 4. Start the Container
 
 ```bash
+# Pull the pinned image
 docker compose pull
 docker compose up -d
 docker compose ps

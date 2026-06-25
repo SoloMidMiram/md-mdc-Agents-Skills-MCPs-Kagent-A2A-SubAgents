@@ -3,7 +3,7 @@
 
 registry:
   version: 1.0
-  updated: 2026-06-24
+  updated: 2026-06-25
 
 components:
 
@@ -54,7 +54,7 @@ components:
     potential_cost: false
     mutation_risk: read_only_with_policy
     config_paths:
-      - "F:\\Git\\MCPtest\\.vscode\\settings.json"
+      - "config/integrations/azure-mcp.placeholder.yaml"
     evidence_path: evidence/integrations/
     activation_gate: azure_sign_in + policy_validation
     rollback: code --uninstall-extension ms-azuretools.vscode-azure-mcp-server
@@ -100,7 +100,7 @@ components:
     potential_cost: false
     mutation_risk: deferred
     config_paths:
-      - "F:\\Git\\MCPtest\\config\\integrations\\azure-mcp.placeholder.yaml"
+      - "config/integrations/azure-mcp.placeholder.yaml"
     evidence_path: evidence/integrations/
     activation_gate: compatibility_verification
     rollback: not_applied

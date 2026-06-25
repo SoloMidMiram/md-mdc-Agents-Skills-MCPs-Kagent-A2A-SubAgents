@@ -183,7 +183,7 @@ Each issue entry follows this structure:
 | **Probable Layer** | Infrastructure |
 | **Diagnostic Commands** | `docker compose logs playwright-mcp`; `docker compose ps -a` |
 | **Interpretation** | The Playwright MCP process fails to start, typically due to missing dependencies, incorrect command arguments, or Chromium launch failure. |
-| **Safe Repair** | Check command arguments carefully. Ensure `--headless`, `--browser chromium`, `--port 8931`. Ensure `--no-sandbox` is present for Docker. Pull the latest image: `docker compose pull`. If the image is not found, verify the image name. |
+| **Safe Repair** | Check command arguments carefully. Ensure `--headless`, `--browser chromium`, `--port 8931`. Ensure `--no-sandbox` is present for Docker. Pull the pinned image again with `docker compose pull`. If the image is not found, verify the image tag. |
 | **Verification** | `docker compose ps` shows "Up" status. `docker compose logs` shows the MCP server listening. |
 
 ---

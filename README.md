@@ -6,6 +6,7 @@
 [![Cursor](https://img.shields.io/badge/Cursor-Agent_MCP-6C47FF)](#)
 [![Codex CLI](https://img.shields.io/badge/Codex_CLI-Agent_MCP-000000)](#)
 [![Continue](https://img.shields.io/badge/Continue-Agent_MCP-FF6B35)](#)
+[![CI](https://img.shields.io/badge/CI-Evaluation_Suite-1a73e8)](#)
 
 A complete **MCP (Model Context Protocol) developer tooling environment** —
 browser automation, agent configurations, AI tools, and infrastructure templates
@@ -100,10 +101,15 @@ registered at the **user level** in all 4 hosts — no per-project setup needed.
 | `scripts/install-global-playwright-mcp.ps1` | Register Playwright across all hosts (idempotent) |
 | `scripts/verify-global-playwright-mcp.ps1` | Validate all registrations |
 | `scripts/rollback-global-playwright-mcp.ps1` | Restore from timestamped backup |
+| `scripts/evaluation/run-evaluation.ps1` | Run Pester evaluation suite (52 tests) |
 | `scripts/integrations/inventory-tooling.ps1` | Report all tooling state |
 | `scripts/integrations/verify-integration-scaffold.ps1` | Validate scaffold integrity |
 
----
+### 🤖 CI Pipeline
+
+| Workflow | Trigger | What It Does |
+|----------|---------|-------------|
+| `.github/workflows/quality.yml` | `push` / `pull_request` | Installs Codex CLI + Pester, verifies integration scaffold, runs evaluation suite (`windows-latest`, 30-min timeout) |
 
 ---
 
@@ -183,7 +189,9 @@ To undo the entire setup in reverse:
 │   ├── copilot-instructions.md → Repository-wide rules
 │   ├── instructions/           → File-pattern rules (Python, K8s, tests, security, docs)
 │   ├── prompts/                → Reusable agent prompts (quality, diagnosis, review, memory)
-│   └── agents/                 → Custom agents (Python reviewer, K8s reviewer, release auditor)
+│   ├── agents/                 → Custom agents (Python reviewer, K8s reviewer, release auditor)
+│   └── workflows/
+│       └── quality.yml         → CI: evaluation suite + scaffold verification
 ├── .project-ai/
 │   ├── memory/                 → Durable project memory (7 knowledge domains)
 │   └── templates/              → Incident and decision templates
@@ -215,10 +223,11 @@ To undo the entire setup in reverse:
 │   ├── install-global-playwright-mcp.ps1
 │   ├── verify-global-playwright-mcp.ps1
 │   ├── rollback-global-playwright-mcp.ps1
-│   ├── quality/python-fast.ps1 & python-full.ps1
+│   ├── evaluation/             → Pester-based evaluation framework (52 tests)
+│   ├── integrations/           → Inventory & verify scripts
 │   ├── kubernetes/validate.ps1
-│   ├── security/scan.ps1
-│   └── integrations/           → Inventory & verify scripts
+│   ├── quality/                → Python quality gate scripts
+│   └── security/scan.ps1
 └── server/                     → Docker deployment for remote browser
 ```
 
@@ -269,112 +278,7 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-*Last updated: 2026-06-24*
-```
-- `docs/04-KAGENT-INTEGRATION.md` — Future kagent design
-- `docs/TROUBLESHOOTING.md` — Troubleshooting matrix
-- `docs/archive/playwrightraw.md` — Raw execution plan (archived)
-- `docs/templates/mcp-vscode.json` — VS Code MCP config template
-- `docs/templates/mcp-cursor.json` — Cursor MCP config template
-- `docs/templates/compose.yaml` — Standalone Docker Compose template
-- `server/compose.yaml` — Docker Compose configuration
-- `server/env-example.txt` — Environment variable template
-- `server/README.md` — Server deployment commands
-- `.gitignore` — Sensitive file exclusions
-- `evidence/local/.gitkeep` — Placeholder
-- `evidence/remote/.gitkeep` — Placeholder
-
-### � Files Created or Changed (Local — gitignored)
-- `.vscode/mcp.json` — VS Code MCP server config (STDIO, playwright-local)
-- `%USERPROFILE%\.cursor\mcp.json` — Cursor MCP server config (STDIO, playwright-local)
-
-### 📂 Backups Created
-- None (no pre-existing configs were modified — all were created fresh)
-
-### 🧪 Commands Executed (Implementation Phase)
-- `codex mcp add playwright-local -- npx -y "@playwright/mcp@0.0.76" --user-data-dir "$env:USERPROFILE\AppData\Local\ms-playwright\codex-mcp-profile"`
-- `codex mcp list` — verified: `playwright-local` enabled
-- VS Code: `browser_navigate` → https://example.com — SUCCESS
-- VS Code: `browser_getAccessibilitySnapshot` — structured tree returned
-- VS Code: Safe click → IANA page → `goBack` — round-trip SUCCESS
-- VS Code: Console messages — 0 errors, 0 warnings (clean page)
-- VS Code: Network inspection — 1 request, 200 OK
-- VS Code: Element-not-found → Timeout 10000ms error
-- VS Code: Closed port → `net::ERR_CONNECTION_REFUSED`
-- VS Code: DNS failure → Timeout 10000ms (DNS layer)
-- VS Code: Browser IP → `46.151.26.41` (laptop IP confirmed)
-
-### 🔢 Exact Versions Discovered
-- Node.js: v23.0.0
-- npm: 10.9.0
-- npx: 10.9.0
-- Playwright MCP: 0.0.76
-- Codex CLI: 0.141.0 (installed via `npm install -g @openai/codex`)
-- Git: 2.45.2.windows.1
-- OS: Windows 10.0.26200
-
-### ✅ Tests Passed
-- ✅ Environment inspection (Node >= 18, npm, npx, git, codex all present)
-- ✅ Playwright MCP package version check (`npm view`)
-- ✅ Playwright MCP CLI help (`npx @playwright/mcp@0.0.76 --help`)
-- ✅ Codex MCP registration (`codex mcp add playwright-local`)
-- ✅ VS Code browser validation (all 10 exercises passed)
-- ✅ Cursor MCP config created (`%USERPROFILE%\.cursor\mcp.json`)
-- ✅ Exercise 1: Read-Only Navigation
-- ✅ Exercise 2: Accessibility Structure Inspection
-- ✅ Exercise 3: Safe Clicking and Navigation
-- ✅ Exercise 4: Console Error Inspection
-- ✅ Exercise 5: Network Request Inspection
-- ✅ Exercise 6: Persistent Profile vs --isolated
-- ✅ Exercise 7: Element-Not-Found Failure
-- ✅ Exercise 8: Navigation Timeout
-- ✅ Exercise 9: DNS Failure
-- ✅ Exercise 10: Browser IP Comparison
-
-### ⏳ Tests Pending
-- ⏳ Codex browser validation (needs new Codex session)
-- ⏳ Cursor browser validation (needs Cursor restart to load MCP)
-- ⏳ Server Docker deployment (needs Linux server)
-- ⏳ SSH tunnel test (needs Linux server)
-- ⏳ Remote browser validation (needs Linux server)
-- 📋 kagent integration (future — design only)
-
-### 🚫 Configuration Changes Deliberately Not Made
-- No edits to `~/.codex/config.toml` (MCP was added via `codex mcp add` CLI instead)
-- No global npm installations of @playwright/mcp (always via npx)
-- No Windows Firewall modifications (no HTTP MCP server running locally)
-- No SSH connection was initiated
-- No server commands were executed from Windows
-- No edits to `.vscode/mcp.json`
-- No Windows Firewall modifications
-- No SSH connection was initiated
-- No server commands were executed from Windows
-
-### ✅ Configuration Changes Made
-- `npm install -g @openai/codex` — Installed Codex CLI (required for `codex mcp add`)
-
-### 🔒 Security Decisions
-- All future server deployments bound to 127.0.0.1 only
-- No public exposure of MCP endpoints
-- No credentials, cookies, or secrets in version control
-- No form submission or data modification during tests
-- No `--ignore-https-errors` unless explicitly justified
-- No Docker socket mounts
-- No privileged containers
-
-### 👣 Implementation Progress
-
-| Step | Status |
-|------|--------|
-| Phase 0: Repo cleanup | ✅ Complete |
-| Phase 1: Environment re-verification | ✅ Complete |
-| Phase 2: Codex MCP integration | 🔄 In progress |
-| Phase 3: Cursor MCP configuration | ⏳ Pending |
-| Phase 4: VS Code MCP configuration | ⏳ Pending |
-| Phase 5: Local learning exercises | ⏳ Pending |
-| Phase 6: Server deployment prep | ⏳ Pending |
-| Phase 7: Server deploy & SSH tunnel | ⏳ Requires Linux server |
-| Phase 8: kagent integration | 🔮 Future (design doc only) |
+*Last updated: 2026-06-25*
 
 ---
 

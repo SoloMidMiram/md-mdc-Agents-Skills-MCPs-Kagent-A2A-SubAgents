@@ -1,9 +1,37 @@
 services:
   playwright-mcp:
-    image: mcr.microsoft.com/playwright/mcp
+    image: mcr.microsoft.com/playwright/mcp:v0.0.76
     container_name: playwright-mcp
     restart: unless-stopped
     init: true
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "const net=require('net');const s=net.createConnection({host:'127.0.0.1',port:8931});s.once('connect',()=>process.exit(0));s.once('error',()=>process.exit(1));",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: "1.0"
+        reservations:
+          memory: 512m
+          cpus: "0.5"
+    pids_limit: 512
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     entrypoint:
       - node
     command:
@@ -12,10 +40,10 @@ services:
       - --browser
       - chromium
       - --no-sandbox
+      - --isolated
       - --port
       - "8931"
       - --host
       - 0.0.0.0
-      - --isolated
     ports:
       - 127.0.0.1:8931:8931

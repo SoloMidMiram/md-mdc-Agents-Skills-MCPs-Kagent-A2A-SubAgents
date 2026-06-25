@@ -1,0 +1,46 @@
+name: Quality
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluation:
+    name: Repository Evaluation
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "23"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Codex CLI
+        shell: pwsh
+        run: npm install -g @openai/codex@0.141.0
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+
+      - name: Verify integration scaffold
+        shell: pwsh
+        run: .\scripts\integrations\verify-integration-scaffold.ps1
+
+      - name: Run evaluation suite
+        shell: pwsh
+        run: .\scripts\evaluation\run-evaluation.ps1 -CI

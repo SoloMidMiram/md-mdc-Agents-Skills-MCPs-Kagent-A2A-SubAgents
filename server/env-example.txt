@@ -17,4 +17,4 @@
 # MCP_ALLOWED_ORIGINS=https://example.com
 
 # Docker image tag
-# PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp
+# PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.76

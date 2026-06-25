@@ -1,14 +1,3 @@
 {
-    "servers": {
-        "playwright-local": {
-            "type": "stdio",
-            "command": "npx",
-            "args": [
-                "-y",
-                "@playwright/mcp@0.0.76",
-                "--user-data-dir",
-                "${userHome}\\AppData\\Local\\ms-playwright\\vscode-mcp-profile"
-            ]
-        }
-    }
+    "servers": {}
 }

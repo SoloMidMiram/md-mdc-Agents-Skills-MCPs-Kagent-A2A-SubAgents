@@ -27,6 +27,8 @@ all from one Git repository that you can clone onto any machine.
 | **Azure tooling (dormant)** | Azure MCP installed but stopped; read-only policy pre-configured |
 | **Foundry Toolkit (local)** | Installed; no model run or cloud deployment yet |
 | **Safe browser testing** | 10 exercises for navigation, accessibility, console, network |
+| **Evaluation framework** | 52 Pester tests across config targets, backup/restore, dataset-driven |
+| **CI pipeline** | GitHub Actions: scaffold verification + evaluation suite on push/PR |
 
 ### Planned / Future
 
@@ -110,6 +112,8 @@ registered at the **user level** in every host. There is no single OS setting.
 
 ```
 F:\Git\MCPtest\
+├── .github\                → CI, instructions, agents, prompts
+│   └── workflows\          → quality.yml: evaluation suite
 ├── .vscode\                → Workspace MCP, settings, extensions
 ├── config\                 → Tooling registries, placeholders
 │   └── integrations\       → Azure MCP, Foundry placeholders
@@ -121,12 +125,13 @@ F:\Git\MCPtest\
 │   ├── integrations\       → Tooling scaffold evidence
 │   └── local\              → Playwright exercise evidence
 ├── scripts\                → Reusable PowerShell scripts
+│   ├── evaluation\         → Pester-based evaluation (52 tests)
 │   └── integrations\       → Scaffold verification scripts
 └── server\                 → Docker deployment for remote browser
 ```
 
 ---
 
-> **Last updated:** 2026-06-24
+> **Last updated:** 2026-06-25
 > **Source repo:** `F:\Git\MCPtest`
 > **Remote:** `https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents`
