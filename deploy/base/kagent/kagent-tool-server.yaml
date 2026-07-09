@@ -1,0 +1,16 @@
+apiVersion: kagent.dev/v1alpha2
+kind: RemoteMCPServer
+metadata:
+  name: kagent-tool-server
+  namespace: kagent
+  labels:
+    app.kubernetes.io/managed-by: kagent-lab
+spec:
+  description: Kubernetes MCP tool server for k8s-agent and k8s-a2a-agent
+  protocol: STREAMABLE_HTTP
+  sseReadTimeout: 5m0s
+  terminateOnClose: true
+  timeout: 30s
+  # URL will point to a k8s MCP server running in-cluster.
+  # For full tool availability, deploy a k8s MCP server at this address.
+  url: http://kagent-tool-server.kagent:8000/mcp

@@ -1,0 +1,50 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: k8s-a2a-agent
+  namespace: kagent
+  labels:
+    app.kubernetes.io/managed-by: kagent-lab
+    app.kubernetes.io/part-of: kagent-a2a-samples
+spec:
+  description: |
+    Sample A2A agent that knows how to inspect Kubernetes resources.
+    This is a read-only agent suitable for local lab experimentation.
+  type: Declarative
+  declarative:
+    modelConfig: default-model-config
+    systemMessage: |-
+      You are an expert Kubernetes agent that uses tools to help users.
+      Focus on read-only cluster inspection tasks.
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: kagent-tool-server
+          kind: RemoteMCPServer
+          toolNames:
+            - k8s_get_resources
+            - k8s_get_available_api_resources
+    a2aConfig:
+      skills:
+        - id: get-resources-skill
+          name: Get Resources
+          description: Get resources in the Kubernetes cluster
+          inputModes:
+            - text
+          outputModes:
+            - text
+          tags:
+            - k8s
+            - resources
+          examples:
+            - Get all resources in the Kubernetes cluster
+            - Get the pods in the default namespace
+            - Get the services in the kagent namespace
+            - Get the deployments in the kagent namespace
+---
+# Prerequisite: kagent-tool-server RemoteMCPServer must exist in the cluster.
+# Apply it first from:
+#   deploy/base/kagent/kagent-tool-server.yaml
+#
+# Then apply this agent:
+#   kubectl apply -f deploy/samples/kagent/k8s-a2a-agent.yaml
