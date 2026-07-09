@@ -16,8 +16,9 @@ for VS Code, Cursor, Codex CLI, and Continue.
 ```powershell
 git clone https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents.git
 cd md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents
-.\scripts\install-global-playwright-mcp.ps1
-.\scripts\verify-global-playwright-mcp.ps1
+.\scripts\install-global-playwright-mcp.ps1 -WhatIf      # preview changes
+.\scripts\install-global-playwright-mcp.ps1               # apply
+.\scripts\verify-global-playwright-mcp.ps1                # confirm
 codex mcp list
 ```
 
@@ -40,17 +41,8 @@ Runbooks:
 
 Two paths matter today:
 
-- Stable path: user-level Playwright MCP registration across VS Code, Cursor, Codex, and Continue
-- Active lab path: local `kagent` and A2A setup on `docker-desktop`, with all agents accepted and ready
-
-Current local `kagent` observations from July 9, 2026:
-
-- all 17 core `kagent` workloads are `1/1 Running` in the `kagent` namespace
-- the UI serves HTTP `200` on `http://localhost:8080` through port-forward
-- `k8s-a2a-agent`: **Accepted=True, Ready=True** (RemoteMCPServer `kagent-tool-server` created)
-- all agents including `promql-agent`: **Running and Accepted=True** (secrets resolved)
-- A2A agent card accessible via `kagent-controller` REST API on port 8083
-- A2A JSON-RPC `tasks/sendTask` not exposed in current controller version (use `a2a-cli`)
+- **Stable path**: user-level `playwright-global` registration across VS Code, Cursor, Codex, and Continue. Verified by repeatable install (`-WhatIf` first) / verify / rollback / verify round-trip, covered by 73+ Pester tests, and validated by CI on push and pull_request.
+- **Active lab path**: local `kagent` and A2A on `docker-desktop` — all 17 pods running, all 11 agents `Accepted=True`, agent card accessible via the controller REST API.
 
 Use [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/local-kagent-a2a-lab.md) for the
 cluster runbook and [docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
@@ -154,7 +146,6 @@ for the target repo shape.
 - MCP is not built into the editor. The editor is the host and the MCP server is a separate process.
 - There is no shared cross-IDE MCP registry. Each host reads its own config format from its own location.
 - "Global" in this repo means user-level registration in every supported host, not one system-wide toggle.
-- The local `kagent` path is working: all 17 pods running, all agents Accepted=True, A2A agent card accessible via REST API.
 
 ## License
 

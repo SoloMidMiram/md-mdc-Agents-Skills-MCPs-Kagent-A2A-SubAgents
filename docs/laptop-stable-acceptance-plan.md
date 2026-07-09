@@ -99,8 +99,8 @@ These are explicitly excluded from the laptop-stable v0.1 gate:
 
 - **Remote Docker browser** (`server/compose.yaml`) — requires Linux server
 - **SSH tunnel concurrency** (`docs/05-SSH-CONCURRENCY-FIX.md`) — server-side hardening, operational, not install-time correctness
-- **kagent / Kubernetes MCP** (`docs/04-KAGENT-INTEGRATION.md`) — design only
-- **A2A delegation** — design only
+- **kagent / Kubernetes MCP** (`docs/runbooks/local-kagent-a2a-lab.md`) — lab active (not production baseline)
+- **A2A task dispatch** — available via REST card discovery; JSON-RPC tasks/sendTask requires a2a-cli
 - **Functional MCP invocation across all 5 surfaces** — requires interactive editor sessions; structural/production-path tests prove config correctness
 - **Node.js version upgrade** (23 → 24 LTS) — deploy-time, not install-time
 - **Dev container reproducibility** (pip install uv) — Linux dev environment, not Windows target

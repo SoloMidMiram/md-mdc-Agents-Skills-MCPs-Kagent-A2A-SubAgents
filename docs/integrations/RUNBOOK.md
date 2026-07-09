@@ -54,7 +54,7 @@ code --uninstall-extension ms-azuretools.vscode-azure-mcp-server
 code --uninstall-extension ms-windows-ai-studio.windows-ai-studio
 
 # Restore from backup
-$bk = "C:\Users\cebit.ir\.mcp-config-backups\<TIMESTAMP>"
+$bk = "$env:USERPROFILE\.mcp-config-backups\<TIMESTAMP>"
 Copy-Item "$bk\vscode-user-mcp.json" "$env:APPDATA\Code\User\mcp.json" -Force
 Copy-Item "$bk\vscode-user-settings.json" "$env:APPDATA\Code\User\settings.json" -Force
 ```
