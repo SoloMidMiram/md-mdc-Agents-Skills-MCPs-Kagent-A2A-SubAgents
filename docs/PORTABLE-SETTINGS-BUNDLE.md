@@ -15,10 +15,10 @@
 3. [Cursor MCP & Settings](#3-cursor-mcp--settings)
 4. [Codex CLI Configuration](#4-codex-cli-configuration)
 5. [Continue Configuration](#5-continue-configuration)
-6. [Continue Agent Personas](#6-continue-agent-personas)
+6. [Continue Slash-Command Personas](#6-continue-slash-command-personas)
 7. [Continue Global Rules](#7-continue-global-rules)
 8. [Azure Copilot Skills](#8-azure-copilot-skills)
-9. [Workspace Extension Recommendations](#9-workspace-extension-recommendations)
+9. [VS Code Extension Bundle](#9-vs-code-extension-bundle)
 10. [Quick-Install Scripts](#10-quick-install-scripts)
 11. [Installation Order for a New Laptop](#11-installation-order-for-a-new-laptop)
 
@@ -186,7 +186,7 @@ mcpServers:
 
 ---
 
-## 6. Continue Agent Personas
+## 6. Continue Slash-Command Personas
 
 8 slash-command personas defined in `config.yaml` under `slashCommands:`:
 
@@ -245,22 +245,43 @@ installed from `https://github.com/microsoft/azure-skills`.
 
 ---
 
-## 9. Workspace Extension Recommendations
+## 9. VS Code Extension Bundle
+
+The workspace recommendation list is the source of truth for editor
+extensions:
 
 **File:** `F:\Git\MCPtest\.vscode\extensions.json`
 
 ```json
 {
     "recommendations": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-python.debugpy",
+        "ms-python.mypy-type-checker",
         "ms-azuretools.vscode-azureresourcegroups",
         "ms-azuretools.vscode-azure-mcp-server",
-        "ms-windows-ai-studio.windows-ai-studio"
+        "ms-windows-ai-studio.windows-ai-studio",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-containers",
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode-remote.remote-ssh",
+        "github.vscode-github-actions"
     ]
 }
 ```
 
-> VS Code prompts to install these when you open the workspace. Cursor does
-> not support VS Code UI extensions.
+For the default Python profile, install the repo's Python/Ruff bundle:
+
+```powershell
+code --install-extension ms-python.python
+code --install-extension ms-python.vscode-pylance
+code --install-extension charliermarsh.ruff
+code --install-extension ms-python.debugpy
+code --install-extension ms-python.mypy-type-checker
+```
 
 ---
 
@@ -290,14 +311,10 @@ winget install Microsoft.VisualStudioCode
 # Download Cursor from https://cursor.sh
 npm install -g @openai/codex
 
-# Install VS Code extensions
-code --install-extension continue.continue
-code --install-extension ms-azuretools.vscode-azureresourcegroups
-code --install-extension ms-azuretools.vscode-azure-mcp-server
-code --install-extension ms-windows-ai-studio.windows-ai-studio
+# Install Python 3.12 and uv (required by the workspace tooling)
 
-# Install Cursor extensions
-cursor --install-extension continue.continue
+# Optional: install non-Python workspace extensions one-by-one or let VS Code
+# prompt from .vscode\extensions.json when the workspace opens.
 ```
 
 ### Phase 2 — MCP Configuration

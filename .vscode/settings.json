@@ -4,6 +4,12 @@
         "foundry"
     ],
     "azureMcp.readOnly": true,
+    "remote.SSH.maxReconnectionAttempts": 0,
+    "remote.SSH.connectTimeout": 15,
+    "remote.SSH.useLocalServer": false,
+    "remote.SSH.useExecServer": false,
+    "remote.SSH.showLoginTerminal": true,
+    "remote.SSH.enableDynamicForwarding": true,
     "python.defaultInterpreterPath": ".venv\\Scripts\\python.exe",
     "python.terminal.activateEnvironment": true,
     "ruff.enable": true,

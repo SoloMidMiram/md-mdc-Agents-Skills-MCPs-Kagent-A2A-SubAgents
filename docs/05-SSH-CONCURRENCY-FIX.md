@@ -251,6 +251,49 @@ persourcenetblocksize 32:128
 
 ---
 
+### 3.6 2026-06-27: Unlimited Retry Loop — Corrected Fix
+
+**Symptom:** VS Code Remote-SSH kept retrying a failed connection indefinitely, opening concurrent tunnels ("like a mad man"). Error: `Unauthorized client refused: auth mismatch` on port 17863.
+
+**Wrong fix attempted (2026-06-27 earlier):** Changed `remote.SSH.maxReconnectionAttempts` from `0` to `3`. This made retries WORSE because `0` means "disable reconnection" (with a known bug where the first retry always fires), while `3` means "allow 3 actual reconnection attempts".
+
+**Root cause:**
+
+1. **Auth mismatch:** The remote `.vscode-server` directory on `91.107.165.253` contains a stale connection secret/password that doesn't match the local VS Code client. This is the root error — the SSH transport works, but the VS Code remote server process rejects the tunnel connection.
+2. **VS Code resolver loop:** When the remote server returns `auth mismatch`, VS Code treats it as a recoverable error and the resolver enters a retry loop — spawning a new SSH tunnel for each attempt.
+3. **Atomic retry bug:** `remote.SSH.maxReconnectionAttempts: 0` has a [known bug](https://github.com/microsoft/vscode-remote-release/issues/8910) where the first reconnection attempt fires before the setting is checked. With `0` this means exactly 1 rogue retry then stop. With `3` this means 4 total attempts.
+
+**Correct fix applied:**
+
+| Layer | Setting | Value | Purpose |
+|-------|---------|-------|---------|
+| VS Code workspace | `maxReconnectionAttempts` | `0` | Disable reconnection (1 buggy retry then stop) |
+| VS Code workspace | `connectTimeout` | `15` | Fail fast per tunnel attempt |
+| VS Code workspace | `useLocalServer` | `false` | No local daemon multiplexing |
+| VS Code workspace | `useExecServer` | `false` | Fresh remote code-server per window |
+| VS Code workspace | `showLoginTerminal` | `true` | Surface SSH debug output |
+| VS Code workspace | `enableDynamicForwarding` | `true` | Avoid terminal-width wrapping bug (#5818) |
+| SSH all hosts | `ConnectionAttempts` | `1` | Each SSH invocation tries exactly once |
+| SSH all hosts | `ConnectTimeout` | `15` | Fail fast per SSH attempt |
+
+**Files modified:**
+
+- `.vscode/settings.json` — all 6 VS Code Remote-SSH settings above
+- `%USERPROFILE%\.ssh\config` — `ConnectionAttempts 1`, `ConnectTimeout 15` on all 4 Host blocks
+
+**Recovery command (run this in a terminal):**
+
+```powershell
+# Kill the stale VS Code server on the remote host
+ssh myserver-proxy "rm -rf ~/.vscode-server"
+```
+
+Or from VS Code: `Ctrl+Shift+P` → `Remote-SSH: Kill VS Code Server on Host...` → select `myserver-proxy`.
+
+**Expected behavior after fix:** The initial connection attempt will fail within ~15s (fast). VS Code will fire one unavoidable buggy retry. Then the connection failure is surfaced to the user. No more indefinite retry storms or concurrent tunnels.
+
+---
+
 ## 4. Cumulative Changes
 
 ### 4.1 Server-Side Changes
@@ -324,6 +367,7 @@ Added:
     "remote.SSH.useExecServer": false,
     "remote.SSH.showLoginTerminal": true,
     "remote.SSH.enableDynamicForwarding": true,
+    "remote.SSH.maxReconnectionAttempts": 0,
     "remote.SSH.remotePlatform": {
         "myserver-direct": "linux",
         "myserver-proxy": "linux",
@@ -336,6 +380,7 @@ Added:
 - `useLocalServer: false` — prevents VS Code from multiplexing connections through a local daemon, avoiding single-point-of-failure
 - `useExecServer: false` — ensures a fresh remote `code-server` per window
 - `showLoginTerminal: true` — exposes SSH debug output for troubleshooting
+- `maxReconnectionAttempts: 0` — prevents VS Code from repeatedly retrying a failed Remote-SSH connection
 
 ### 4.4 SSH Key Management
 
@@ -488,6 +533,7 @@ Remove these keys from `%APPDATA%\Code\User\settings.json`:
 - `remote.SSH.useExecServer`
 - `remote.SSH.showLoginTerminal`
 - `remote.SSH.enableDynamicForwarding`
+- `remote.SSH.maxReconnectionAttempts`
 
 ### Re-enable Healthcheck Task
 

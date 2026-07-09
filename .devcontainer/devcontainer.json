@@ -21,6 +21,7 @@
                 "ms-python.vscode-pylance",
                 "charliermarsh.ruff",
                 "ms-python.debugpy",
+                "ms-python.mypy-type-checker",
                 "redhat.vscode-yaml",
                 "ms-azuretools.vscode-containers",
                 "ms-kubernetes-tools.vscode-kubernetes-tools",

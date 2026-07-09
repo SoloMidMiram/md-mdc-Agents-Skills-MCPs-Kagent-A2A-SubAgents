@@ -5,7 +5,7 @@
 1. Repository code and tests
 2. `pyproject.toml`
 3. Deployment manifests
-4. Architecture decisions under `docs/adr/`
+4. Architecture decisions under `.project-ai/memory/architecture-decisions.md`
 5. `.project-ai/memory/`
 
 Memory documents are evidence summaries, not authority over current code.
