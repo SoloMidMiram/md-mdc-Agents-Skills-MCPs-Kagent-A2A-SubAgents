@@ -24,4 +24,20 @@ Record release outcomes, notable changes, and lessons learned.
 - Full round-trip verified: install → verify (exit 0) → rollback → verify (exit 1)
 - CI workflow configured: JSON validation, PSScriptAnalyzer, integration scaffold, Pester -CI
 - Local kagent lab documented but not yet release-gated
-- Recorded in docs/laptop-stable-acceptance-plan.md and docs/07-IMPLEMENTED-STATE-AND-ROADMAP.md
+- Recorded in docs/laptop-stable-acceptance-plan.md and docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md
+
+---
+
+## 2026-07-10 — laptop-stable v0.1.1 (pending)
+
+**Version:** laptop-stable-v0.1.1
+**Release commit:** TBD — after CI pass
+**Status:** PENDING — local gates pass; CI verification in progress
+
+**Notable changes:**
+- Fixed UTF-16 encoding in onboarding docs → UTF-8 (HEAD had 7k+ NUL bytes)
+- Acceptance plan: honest `READY_FOR_PATCH_TAG` status; v0.1 historical at `cdb7dc0`
+- README: Current State notes both tags; stub naming `0x-*` → `01-*`–`07-*`
+- Added bridge manifests: GLOSSARY.md, REPO_MANIFEST.yaml, constraints.md
+- Removed deprecated `ruff.lint.run` from `.vscode/settings.json`
+- Removed stale "encoding artifacts" note from IMPLEMENTED-STATE-AND-ROADMAP.md

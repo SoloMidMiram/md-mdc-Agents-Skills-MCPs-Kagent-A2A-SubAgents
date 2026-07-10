@@ -27,6 +27,8 @@ Primary docs:
 - [Getting started](docs/onboarding/GETTING-STARTED.md)
 - [Implemented state and roadmap](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
 - [Portable settings bundle](docs/reference/portable-settings-bundle.md)
+- [Glossary](docs/reference/GLOSSARY.md)
+- [Project constraints](constraints.md)
 - [Scalable refactor plan](docs/architecture/SCALABLE-REFACTOR-PLAN.md)
 
 Runbooks:
@@ -41,7 +43,8 @@ Runbooks:
 
 Two paths matter today:
 
-- **Stable path**: user-level `playwright-global` registration across VS Code, Cursor, Codex, and Continue. Verified by repeatable install (`-WhatIf` first) / verify / rollback / verify round-trip, covered by 73+ Pester tests, and validated by CI on push and pull_request.
+- **Stable path**: user-level `playwright-global` registration across VS Code, Cursor, Codex, and Continue. Verified by repeatable install (`-WhatIf` first) / verify / rollback / verify round-trip, covered by 73+ Pester tests, and validated by CI on push and pull_request.  
+  `laptop-stable-v0.1` is tagged at `cdb7dc0`; this tree targets patch `laptop-stable-v0.1.1` (UTF-8 onboarding, narrative sync, bridge manifests).
 - **Active lab path**: local `kagent` and A2A on `docker-desktop` — all 17 pods running, all 11 agents `Accepted=True`, agent card accessible via the controller REST API.
 
 Use [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/local-kagent-a2a-lab.md) for the
@@ -83,11 +86,16 @@ for the current repo-wide status.
 
 ## Roadmap
 
-Next-stage priorities:
+Deferred lab priorities (outside the laptop-stable gate):
+
+*These items do not block `laptop-stable-v0.1`; the stable path is Playwright MCP host registration.*
 
 1. **A2A task dispatch via `a2a-cli`** — the controller exposes agent card discovery via REST on port 8083. The next step is to use `a2a-cli` (or a compatible client) for JSON-RPC `tasks/sendTask` delivery.
 2. **Optional real MCP server for `kagent-tool-server`** — `RemoteMCPServer/Accepted=False` is the expected degraded-lab state today. Deploying a lightweight MCP server behind the `kagent-tool-server` service makes the full tool-execution path testable.
-3. **Finish doc stub cleanup** — root-level `docs/0x-*.md` files are now compat redirects only. A future pass can remove them after consumers have updated their bookmarks.
+
+General cleanup (non-blocking):
+
+3. **Finish doc stub cleanup** — root-level `docs/01-*.md`–`docs/07-*.md` files are now compat redirects only. A future pass can remove them after consumers have updated their bookmarks.
 
 Architecture direction:
 
@@ -103,6 +111,8 @@ for the target repo shape.
 
 ```text
 .
+|-- constraints.md              Non-negotiables and project invariants
+|-- REPO_MANIFEST.yaml          Flat index of repo artifacts (machine-readable)
 |-- .devcontainer/              Reproducible Linux development container
 |-- .github/                    CI, prompts, agents, repo-specific instructions
 |-- .project-ai/                Durable project memory and templates
@@ -119,7 +129,7 @@ for the target repo shape.
 |   |-- architecture/            Target structure and runtime separation plans
 |   |-- integrations/            Host capability matrix and AI tooling plans
 |   |-- archive/                 Historical plan documents (redirect source)
-|   `-- 0x-*.md                  Root-level compat redirects only
+|   `-- 01-*.md–07-*.md          Root-level compat redirects only
 |-- evidence/                   Validation evidence
 |-- scripts/
 |   |-- kagent/                  kagent health checks and A2A helpers

@@ -1,0 +1,144 @@
+# Repository Manifest — flat index of repo artifacts
+#
+# Fields:
+#   path      — repo-root-relative path (or glob for multi-file sections)
+#   purpose   — one of: onboarding | runbook | architecture | reference | script
+#              | config | deploy | memory | entry | constraint
+#   status    — stable | lab | deferred | historical
+#   authority — true if this file is the canonical source of truth for its domain
+
+entries:
+
+  # — Entry point —
+  - path: README.md
+    purpose: entry
+    status: stable
+    authority: true
+
+  # — Agent contract —
+  - path: AGENTS.md
+    purpose: reference
+    status: stable
+    authority: true
+
+  # — Project constraints —
+  - path: constraints.md
+    purpose: constraint
+    status: stable
+    authority: true
+
+  # — Release gate —
+  - path: docs/laptop-stable-acceptance-plan.md
+    purpose: reference
+    status: stable
+    authority: true
+
+  # — Onboarding —
+  - path: docs/onboarding/GETTING-STARTED.md
+    purpose: onboarding
+    status: stable
+    authority: false
+
+  - path: docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md
+    purpose: onboarding
+    status: stable
+    authority: true
+
+  # — Runbooks —
+  - path: docs/runbooks/local-playwright-lab.md
+    purpose: runbook
+    status: stable
+    authority: true
+
+  - path: docs/runbooks/remote-playwright-lab.md
+    purpose: runbook
+    status: stable
+    authority: false
+
+  - path: docs/runbooks/local-kagent-a2a-lab.md
+    purpose: runbook
+    status: lab
+    authority: true
+
+  - path: docs/runbooks/troubleshooting.md
+    purpose: runbook
+    status: stable
+    authority: false
+
+  - path: docs/runbooks/ssh-concurrency-fix.md
+    purpose: runbook
+    status: deferred
+    authority: false
+
+  # — Architecture —
+  - path: docs/architecture/SCALABLE-REFACTOR-PLAN.md
+    purpose: architecture
+    status: stable
+    authority: true
+
+  # — Reference —
+  - path: docs/reference/GLOSSARY.md
+    purpose: reference
+    status: stable
+    authority: true
+
+  - path: docs/reference/portable-settings-bundle.md
+    purpose: reference
+    status: stable
+    authority: false
+
+  - path: docs/reference/host-capability-matrix.md
+    purpose: reference
+    status: stable
+    authority: false
+
+  # — Integrations —
+  - path: docs/integrations/ACTIVATION-GATES.md
+    purpose: reference
+    status: stable
+    authority: true
+
+  - path: docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md
+    purpose: architecture
+    status: deferred
+    authority: false
+
+  - path: docs/integrations/HOST-CAPABILITY-MATRIX.md
+    purpose: reference
+    status: stable
+    authority: true
+
+  - path: docs/integrations/RUNBOOK.md
+    purpose: runbook
+    status: lab
+    authority: false
+
+  # — Tooling registry —
+  - path: config/integrations/tooling-registry.yaml
+    purpose: config
+    status: stable
+    authority: true
+
+  # — Config templates —
+  - path: config/templates/*
+    purpose: config
+    status: stable
+    authority: true
+
+  # — Validation —
+  - path: evidence/global/global-validation-matrix.md
+    purpose: reference
+    status: stable
+    authority: true
+
+  # — Release diary —
+  - path: .project-ai/memory/release-diary.md
+    purpose: memory
+    status: stable
+    authority: false
+
+  # — Archive —
+  - path: docs/archive/*
+    purpose: reference
+    status: historical
+    authority: false

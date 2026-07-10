@@ -1,18 +1,21 @@
 # Laptop-Stable Acceptance Plan
 
 > **Derived from:** Static QA review of commit `cdaa760`
-> **Release commit:** `cdb7dc0`
-> **Status:** `LAPTOP_STABLE_V0_1_RELEASED` after CI pass (local checklist verified; CI confirms on push)
+> **Tag history:**
+> - `laptop-stable-v0.1` @ `cdb7dc0` — initial release (2026-07-09)
+> - **`laptop-stable-v0.1.1`** — pending (this stabilization SHA after CI)
+> **Status:** `READY_FOR_PATCH_TAG` — local acceptance gates pass; CI must pass before `laptop-stable-v0.1.1`
 
 ---
 
 ## Goal
 
-Move from production-path-tested coverage to **laptop-stable v0.1**: the installer can be run on a new Windows machine, register `playwright-global` across all 4 config targets, and roll back cleanly — with CI affirmatively proving it.
+Move from production-path-tested coverage to **laptop-stable v0.1**: the installer can be run on a new Windows machine, register `playwright-global` across all 4 config targets, and roll back cleanly — with CI affirmatively proving it.  
+This document now tracks the **v0.1.1 patch** (UTF-8 onboarding, narrative sync, bridge manifests).
 
 ---
 
-## Current Status (at laptop-stable-v0.1 — cdb7dc0)
+## Current Status
 
 | Domain | Status | Evidence |
 |--------|--------|----------|
@@ -27,13 +30,13 @@ Move from production-path-tested coverage to **laptop-stable v0.1**: the install
 | WhatIf non-mutating | ✅ Tested | No backup directory created |
 | CI workflow | ✅ Configured | PSScriptAnalyzer, JSON validation, Pester evaluation, artifact upload |
 | PyYAML dependency | ⚠️ **Pinned** | CI installs PyYAML; local `Get-ConfigState` skips gracefully if missing |
-| Documented test counts | ✅ **Updated** | README says "72 tests" — Pester-verified aggregate, not hardcoded per-file |
+| Documented test counts | ✅ **Updated** | README says "73+ tests" — Pester-verified aggregate, not hardcoded per-file |
 | Dataset structural tests | ✅ Done | Assert file exists, entry non-null, fields match expected |
 | Old plan doc | ✅ Archived | `docs/laptop-stable-implementation-plan.md` → replaced by this file |
 | Corrupted review verdict | ✅ Archived | Moved to `docs/archive/` |
 | Terminology normalized | ✅ Done | "4 config targets / 5 runtime surfaces" used consistently |
 | Remote Docker runtime | ❌ Deferred | Requires Linux server; non-blocking for laptop-stable |
-| SSH/kagent/A2A | ❌ Future | Design only; non-blocking for laptop-stable |
+| SSH/kagent/A2A | ❌ Deferred | Lab active; outside laptop-stable v0.1 gate |
 
 ---
 
@@ -117,8 +120,10 @@ When all acceptance gates above pass:
 4. ✅ Run `.\scripts\verify-global-playwright-mcp.ps1` — exit 0, all 4 targets correct
 5. ✅ Run `.\scripts\rollback-global-playwright-mcp.ps1 -BackupDir <latest> -Force` — restore confirmed
 6. ✅ Run `.\scripts\verify-global-playwright-mcp.ps1` — exit 1 (Cursor entry correctly absent after rollback)
-7. [**Requires manual check**] Confirm CI workflow passes for the release commit — commit `cdb7dc0` pushed to `origin/main`; check at https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions
-8. Tag the commit as `laptop-stable-v0.1`
+7. [ ] Confirm CI workflow passes for the release commit — verify at https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/workflows/quality.yml after push
+8. [ ] Tag the commit as `laptop-stable-v0.1.1`
+
+> **Tag note:** `laptop-stable-v0.1` remains at `cdb7dc0` (historical). The next tag is `v0.1.1`.
 
 ---
 
