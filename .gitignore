@@ -25,6 +25,11 @@ test-results/
 # Node.js
 node_modules/
 
+# Python generated files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
 # Evaluation framework results
 scripts/evaluation/results/
 
@@ -39,3 +44,9 @@ scripts/evaluation/results/
 *~
 .DS_Store
 Thumbs.db
+
+# Disposable local planning notes
+PRECOMMIT-DRAFT.md
+
+# Local ephemeral kagent lab captures (never commit)
+evidence/kagent/tmp/

@@ -17,31 +17,23 @@ This repository is a portable MCP learning and implementation lab. It combines:
 | Local browser automation exercises | Working and documented |
 | Remote browser Docker scaffold | Implemented; needs a Linux server to use remotely |
 | AI tooling scaffold and host guidance | Implemented |
-| Local `kagent` namespace and UI | All 17 pods running, all 11 agents Accepted=True Ready=True |
-| A2A sample agent and tool-server manifests | Committed; agent accepted and ready, tool-server RemoteMCPServer exists (Accepted=False expected) |
+| Local `kagent` namespace and UI | 18 pods and 11 accepted/ready agents observed on July 16, 2026 |
+| A2A sample agent and tool-server manifests | Committed; agent accepted/ready and tool-server RemoteMCPServer Accepted=True |
 | kagent health and A2A verification scripts | Available for cluster inspection and agent card validation |
 
 ## Current Local kagent Reality
 
-The repo is past design-only kagent documentation. The cluster is healthy and all agents are accepted.
-
-Observed on this machine on July 9, 2026:
-
-- the `kagent` namespace exists in the local `docker-desktop` cluster
-- **17 pods all `1/1 Running`**
-- **11 agents all `Accepted=True, Ready=True`**
-- the UI is reachable on `http://localhost:8080` (HTTP 200)
-- `k8s-a2a-agent` is **Accepted=True, Ready=True** referencing `RemoteMCPServer "kagent-tool-server"`
-- `promql-agent` is **Running and Accepted=True** (secrets resolved)
-- both `RemoteMCPServer` resources exist; both show `Accepted=False` — this is expected because there is no MCP server behind the `kagent-tool-server` service yet
-- A2A agent card is accessible via the `kagent-controller` REST API on port 8083
-- A2A JSON-RPC `tasks/sendTask` is not exposed in the current controller version (`-32601 method not found`); use `a2a-cli` for task dispatch
+The repo is past design-only kagent documentation. The authoritative dated
+status, capability decisions, implemented corrections, and open flaw ledger are
+maintained in `evidence/kagent/README.md`. In summary, L0-L5 are proven (L4 by
+strict `message/stream` dispatch evidence); L6 and L7 remain unproven.
 
 Use these documents in order for cluster work:
 
-1. `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md`
-2. `docs/runbooks/local-kagent-a2a-lab.md`
-3. `docs/04-KAGENT-INTEGRATION.md`
+1. `evidence/kagent/README.md`
+2. `docs/reference/kagent-capability-matrix.md`
+3. `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`
+4. `docs/runbooks/local-kagent-a2a-lab.md`
 
 ## Quick Start
 
@@ -56,21 +48,24 @@ codex mcp list
 Then use:
 
 - `docs/reference/portable-settings-bundle.md` for the full machine setup path
+- `docs/onboarding/EDUCATIONAL-PROJECTS.md` to choose and safely extend an educational lane
 - `docs/runbooks/local-playwright-lab.md` for safe browser exercises
+- `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md` for the phased kagent learning path
 - `docs/runbooks/local-kagent-a2a-lab.md` for the active local cluster lab
 
 ## Reading Order
 
 1. `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md`
-2. `docs/01-MCP-MENTAL-MODEL.md`
-3. `docs/reference/portable-settings-bundle.md`
-4. `docs/runbooks/local-playwright-lab.md`
-5. `docs/runbooks/remote-playwright-lab.md`
-6. `docs/runbooks/local-kagent-a2a-lab.md`
-7. `docs/architecture/SCALABLE-REFACTOR-PLAN.md`
-8. `docs/integrations/`
-9. `docs/04-KAGENT-INTEGRATION.md`
-10. `docs/runbooks/troubleshooting.md`
+2. `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`
+3. `docs/01-MCP-MENTAL-MODEL.md`
+4. `docs/reference/portable-settings-bundle.md`
+5. `docs/runbooks/local-playwright-lab.md`
+6. `docs/runbooks/remote-playwright-lab.md`
+7. `docs/runbooks/local-kagent-a2a-lab.md`
+8. `docs/architecture/SCALABLE-REFACTOR-PLAN.md`
+9. `docs/integrations/`
+10. `docs/04-KAGENT-INTEGRATION.md`
+11. `docs/runbooks/troubleshooting.md`
 
 ## Key Concepts
 
@@ -116,5 +111,8 @@ F:\Git\MCPtest\
 Reference documents:
 
 - [Glossary](../reference/GLOSSARY.md) — canonical definitions for terms
+- [Documentation organization](../DOCUMENTATION-ORGANIZATION.md) — placement and maintenance rules
+- [Educational lanes architecture](../architecture/EDUCATIONAL-LANES-ARCHITECTURE.md) — stable-core isolation and promotion rules
+- [Educational problem manual](../runbooks/educational-problem-manual.md) — diagnose, document, reflect, and promote lessons
 - [Project constraints](../../constraints.md) — non-negotiables and invariants
 - [REPO_MANIFEST.yaml](../../REPO_MANIFEST.yaml) — flat index of repo artifacts

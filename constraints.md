@@ -36,8 +36,13 @@ policies. These apply during manual work, automation, and CI.
 - **Lab path** = kagent / A2A on `docker-desktop`. Documented and working
   locally but explicitly **outside** the laptop-stable gate. No CI dependency.
 - New lab features must not break stable path CI.
+- Stable tests and configuration must not depend on live browser state, learner
+  evidence, live websites, Docker Desktop cluster state, or lab-only secrets.
+- Educational helpers enter the stable core only through the promotion gate in
+  `docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md`.
 
-**Reference:** `docs/laptop-stable-acceptance-plan.md` (Non-Blocking section)
+**Reference:** `docs/laptop-stable-acceptance-plan.md` (Non-Blocking section),
+`docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md`
 
 ---
 
