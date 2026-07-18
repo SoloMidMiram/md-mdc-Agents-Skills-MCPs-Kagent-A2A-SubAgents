@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0",
+  "evidenceKind": "agent-mediated-mcp",
+  "observedAt": "2026-07-17T12:00:00Z",
+  "taskOrMessageId": "task-1",
+  "requestId": "req-1",
+  "toolObserved": true,
+  "sourceKind": "protocol-result",
+  "target": {
+    "clusterContext": "docker-desktop",
+    "namespace": "kagent",
+    "agent": "k8s-a2a-agent",
+    "controller": "http://127.0.0.1:8083",
+    "mcpServer": "kagent-tool-server"
+  },
+  "toolEvidence": {
+    "kind": "protocol-result",
+    "eventIndex": 2,
+    "partIndex": 0,
+    "taskOrMessageId": "task-1",
+    "server": "kagent-tool-server",
+    "tool": "k8s_get_resources",
+    "argumentsSummary": {
+      "resourceType": "pod",
+      "namespace": "kagent"
+    },
+    "partKind": "data",
+    "reference": "protocol-result:event=2:part=0"
+  },
+  "resultEvidence": {
+    "returnedThroughA2A": true,
+    "toolDerivedResourceNames": [
+      "k8s-a2a-agent-abc"
+    ],
+    "crossCheckResourceNames": [
+      "k8s-a2a-agent-abc",
+      "kagent-controller-xyz"
+    ],
+    "matched": true
+  },
+  "logSearches": [],
+  "eventCount": 4,
+  "eventSummaries": [
+    {
+      "kind": "status-update",
+      "state": "submitted",
+      "taskId": "task-1"
+    },
+    {
+      "kind": "status-update",
+      "state": "completed",
+      "taskId": "task-1"
+    }
+  ]
+}
