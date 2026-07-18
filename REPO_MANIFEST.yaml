@@ -3,7 +3,7 @@
 # Fields:
 #   path      — repo-root-relative path (or glob for multi-file sections)
 #   purpose   — one of: onboarding | runbook | architecture | reference | script
-#              | config | deploy | memory | entry | constraint
+#              | test | config | deploy | manifest | memory | entry | constraint
 #   status    — stable | lab | deferred | historical
 #   authority — true if this file is the canonical source of truth for its domain
 
@@ -27,6 +27,11 @@ entries:
     status: stable
     authority: true
 
+  - path: docs/DOCUMENTATION-ORGANIZATION.md
+    purpose: reference
+    status: stable
+    authority: true
+
   # — Release gate —
   - path: docs/laptop-stable-acceptance-plan.md
     purpose: reference
@@ -39,12 +44,37 @@ entries:
     status: stable
     authority: false
 
+  - path: docs/onboarding/EDUCATIONAL-PROJECTS.md
+    purpose: onboarding
+    status: stable
+    authority: true
+
+  - path: .github/prompts/implement-next-educational-stage.prompt.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md
+    purpose: onboarding
+    status: lab
+    authority: true
+
   - path: docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md
     purpose: onboarding
     status: stable
     authority: true
 
+  - path: docs/onboarding/IMPLEMENTED-WORK-NARRATIVE.md
+    purpose: onboarding
+    status: stable
+    authority: false
+
   # — Runbooks —
+  - path: docs/runbooks/educational-problem-manual.md
+    purpose: runbook
+    status: stable
+    authority: true
+
   - path: docs/runbooks/local-playwright-lab.md
     purpose: runbook
     status: stable
@@ -71,12 +101,22 @@ entries:
     authority: false
 
   # — Architecture —
+  - path: docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md
+    purpose: architecture
+    status: stable
+    authority: true
+
   - path: docs/architecture/SCALABLE-REFACTOR-PLAN.md
     purpose: architecture
     status: stable
     authority: true
 
   # — Reference —
+  - path: docs/ai-tooling.md
+    purpose: reference
+    status: stable
+    authority: true
+
   - path: docs/reference/GLOSSARY.md
     purpose: reference
     status: stable
@@ -91,6 +131,16 @@ entries:
     purpose: reference
     status: stable
     authority: false
+
+  - path: docs/reference/kagent-capability-matrix.md
+    purpose: reference
+    status: lab
+    authority: true
+
+  - path: docs/templates/educational-problem-record.md
+    purpose: reference
+    status: stable
+    authority: true
 
   # — Integrations —
   - path: docs/integrations/ACTIVATION-GATES.md
@@ -126,9 +176,165 @@ entries:
     authority: true
 
   # — Validation —
+  - path: evidence/kagent/README.md
+    purpose: reference
+    status: lab
+    authority: true
+
   - path: evidence/global/global-validation-matrix.md
     purpose: reference
     status: stable
+    authority: true
+
+  - path: evidence/kagent/educational-practice-phase-0-2.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/educational-practice-phase-0-2-review.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/educational-practice-phase-3.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/educational-practice-phase-4a-design.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/educational-practice-phase-4.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/educational-practice-phase-5.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/educational-practice-phase-5b-direct-mcp.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/educational-practice-phase-5c-health-profiles.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/educational-practice-phase-5d-trustworthy-a2a.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/problems/2026-07-17-mcp-session-reuse.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/problems/2026-07-17-health-profile-overclaim.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/problems/2026-07-17-a2a-dispatch-compatibility.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/problems/2026-07-17-agent-mcp-correlation.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: docs/reference/kagent-health-profiles.md
+    purpose: reference
+    status: lab
+    authority: true
+
+  - path: docs/reference/kagent-a2a-dispatch-evidence.md
+    purpose: reference
+    status: lab
+    authority: true
+
+  - path: docs/reference/kagent-agent-mediated-mcp-evidence.md
+    purpose: reference
+    status: lab
+    authority: true
+
+  - path: tests/kagent/test_a2a_helper.py
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: tests/kagent/test_agent_mcp_trace.py
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: tests/kagent/fixtures/agent-mediated-source.json
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/mcp_session_smoke.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/test-a2a-agent.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/agent_mcp_trace.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/KagentHealth.psm1
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/check-kagent-health.ps1
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: tests/kagent/test_mcp_session_smoke.py
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: tests/kagent/KagentHealth.Tests.ps1
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: uv.lock
+    purpose: config
+    status: stable
+    authority: true
+
+  # — Base deploy manifests —
+  - path: deploy/base/kagent/kagent-tool-server.yaml
+    purpose: manifest
+    status: lab
+    authority: true
+
+  - path: deploy/base/kagent/kagent-tool-server-runtime.yaml
+    purpose: manifest
+    status: lab
     authority: true
 
   # — Release diary —
