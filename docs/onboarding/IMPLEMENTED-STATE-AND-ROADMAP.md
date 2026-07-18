@@ -3,6 +3,9 @@
 This document records the current observed state of the repository and the
 local validation environment.
 
+For a narrative of completed work only, with critique and good-practice notes,
+see `docs/onboarding/IMPLEMENTED-WORK-NARRATIVE.md`.
+
 It answers four questions:
 
 1. What is implemented now?
@@ -91,33 +94,31 @@ Implemented and validated:
 - local `kagent` CRDs installed
 - local `kagent` controller and UI running in `docker-desktop`
 - local UI reachable on `http://localhost:8080` through port-forward (HTTP 200)
-- **17 pods: all `1/1 Running`**
-- **11 agents: all `Accepted=True, Ready=True`**
-- sample A2A manifest at `deploy/samples/kagent/k8s-a2a-agent.yaml` (Accepted=True, Ready=True)
-- base `RemoteMCPServer` at `deploy/base/kagent/kagent-tool-server.yaml` (exists, Accepted=False — expected, no backing service)
+- sample A2A manifest accepted and deployment-ready
+- real MCP runtime at `deploy/base/kagent/kagent-tool-server-runtime.yaml`
+- `RemoteMCPServer/kagent-tool-server` accepted with discovered tools (L5)
 - health verification script at `scripts/kagent/check-kagent-health.ps1`
-- A2A verification helper at `scripts/kagent/test-a2a-agent.py` (card probe works, task dispatch returns `-32601`)
+- named `CardLab`, `DirectMcpServer`, `A2ADispatch`, and `FullMcpExecution`
+  health profiles with deterministic gate tests
+- A2A helper with truthful `card`, `probe`, `task`, and `both` exit semantics
+- structured Phase 5D A2A tests and a selected controller 0.9.11
+  `message/stream` SSE compatibility path (L4 Proven)
+- Phase 5E single-task agent-mediated producer and `FullMcpExecution` consumer
+  with deterministic transport/protocol/dispatch, freshness, target, source,
+  tool, result, and exit-consistency tests
 - `kagent-controller` REST API exposes agent card on port 8083
-- `promql-agent`: **Running and Accepted=True** (no longer failing)
 
-Observed local state on 2026-07-09:
-
-| Component | Status |
-|-----------|--------|
-| `kagent-controller` | Running |
-| `kagent-ui` | Running |
-| `kagent-kmcp-controller-manager` | Running |
-| `kagent-postgresql` | Running |
-| `kagent-grafana-mcp` | Running |
-| `kagent-querydoc` | Running |
-| `promql-agent` | Accepted=True, Ready=True |
-| `k8s-a2a-agent` | Accepted=True, Ready=True |
-| `RemoteMCPServer (kagent-tool-server)` | Created, Accepted=False (expected) |
-| `RemoteMCPServer (azure-tool-server)` | Created, Accepted=False (expected) |
-
-The local A2A path is ready for card and acceptance testing. JSON-RPC task
-dispatch requires `a2a-cli` or a compatible client (not exposed by the current
-controller version).
+Current capability decisions, dated observations, corrections, and major flaws
+are canonical in `evidence/kagent/README.md`. L0-L5 are proven. L4 is supported
+by a recorded, strictly validated `message/stream` status-update with a
+non-empty task identifier. Phase 5E shipped a nested agent-mediated evidence
+helper and tightened `FullMcpExecution` gates; the live attempt failed closed
+without a correlated tool observation, so L6 remains Not proven. L7
+repeatability is not proven.
+The historical Phase 5 direct `tools/call` failed because its negotiated session
+was not reused. Phase 5B subsequently proved a direct, session-reusing call with
+`k8s_get_resources`; this is auxiliary server evidence only and does not prove
+L4 or L6. See `evidence/kagent/educational-practice-phase-5b-direct-mcp.md`.
 
 ## How To Use What Exists Today
 
@@ -181,50 +182,172 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 
 ### Working but still rough
 
+- release acceptance evidence for `laptop-stable-v0.1.1` still needs an exact green GitHub Actions run recorded against the release SHA
+- integration scaffold verification reports findings but does not yet fail CI truthfully for every detected failure
+- PyYAML/Python dependency behavior needs one documented contract across code, tests, README, and the acceptance plan
 - local `kagent` installation path (not yet reduced to a one-command install flow)
-- A2A JSON-RPC task dispatch (requires `a2a-cli`, not exposed by controller natively)
+- A2A dispatch uses the pinned controller 0.9.11 `message/stream` SSE path;
+  legacy blocking `tasks/sendTask` and `message/send` remain unsuitable
+- native read-only MCP tool exposure; the current pinned image relies on RBAC for write denial
+- live correlated L6 tool observation (schema/helper exist; live still Not proven)
 
 ### Not yet closed
 
-- `RemoteMCPServer` resources show `Accepted=False` — expected until a real MCP server is deployed behind the `kagent-tool-server` service
+- L6 agent-mediated MCP invocation (live tool marker + kubectl match)
+- L7 bootstrap, cleanup, and fresh-install evidence
 - root `docs/01-*.md`–`docs/07-*.md` stubs remain as compatibility redirects; full removal pending consumer bookmark updates
 
 ## Practical Roadmap
 
-### Stage 1: A2A task dispatch (current)
+The order below is the project priority order. Do not move a later lab phase
+ahead of the release-truthfulness work unless the stable Playwright lane is
+explicitly out of scope for that change.
 
-1. Validate `a2a-cli` or a compatible client for JSON-RPC `tasks/sendTask` against the `kagent-controller` REST API on port 8083.
-2. Deploy a lightweight MCP server behind the `kagent-tool-server` service so `RemoteMCPServer` can reach `Accepted=True`.
-3. Document the full end-to-end dispatch flow.
+### Phase 0: Release truthfulness (immediate blocker)
 
-### Stage 2: Repeatable install (near-term)
+Goal: make the `laptop-stable-v0.1.1` release evidence match what CI and the
+repository can actually prove.
+
+Why this comes first: the stable path is the current usable product. It should
+not be tagged until every release gate can fail truthfully and the exact release
+commit has a green workflow run.
+
+Jobs:
+
+1. Fix `scripts/integrations/verify-integration-scaffold.ps1` so every detected hard failure is accumulated and exits non-zero.
+2. Replace the staged-only secret scan with a scan over tracked repository files or a dedicated scanner such as Gitleaks.
+3. Align the PyYAML/Python dependency contract across code, tests, README, and `docs/laptop-stable-acceptance-plan.md`.
+4. Push the corrected release commit and confirm `quality.yml` passes for that exact SHA.
+5. Record the workflow evidence and release SHA in `docs/laptop-stable-acceptance-plan.md`.
+6. Tag `laptop-stable-v0.1.1` only after the acceptance plan contains that evidence.
+
+Exit evidence:
+
+- `verify-integration-scaffold.ps1` returns exit code 1 when required files, required Playwright entries, invalid config, or hard policy checks fail.
+- Secret scanning covers committed repository content, not only staged local files.
+- The dependency behavior documented in the acceptance plan matches installer behavior.
+- A green GitHub Actions run exists for the exact release commit.
+- The acceptance plan links or records the successful run and commit SHA.
+
+### Phase 1: A2A task dispatch
+
+Goal: separate card inspection, protocol probing, and real task dispatch into
+truthful gates.
+
+Why this comes second: the local kagent lab already proves cluster health and
+agent acceptance. The next useful capability is proving whether a task can cross
+the A2A boundary.
+
+Jobs:
+
+1. (DONE) Make `task` fail for unavailable dispatch and keep `probe` neutral.
+2. (DONE) Keep `card` scoped to validated REST details and make `both` require card plus task success.
+3. (DONE) Select and pin controller 0.9.11 `message/stream` with SSE dispatch.
+4. (DONE) Record a successful request and strictly validated status-update
+   response before documenting the working L4 flow.
+
+Exit evidence:
+
+- `card` passes when the agent card/details are reachable and the agent is accepted/ready.
+- `probe` reports method support without being used as a dispatch success gate.
+- `task` fails for `-32601` and passes only when a task is accepted or completed.
+- The runbook shows the exact command and expected successful response shape.
+
+### Phase 2: Real MCP execution behind kagent
+
+Goal: move from accepted agents to real MCP-backed tool execution.
+
+Why this comes third: RemoteMCPServer acceptance and tool invocation should be
+tested only after task dispatch semantics are truthful.
+
+Jobs:
+
+1. (DONE) Deploy a lightweight MCP server behind the `kagent-tool-server` service.
+2. (DONE) Make `RemoteMCPServer/kagent-tool-server` reach `Accepted=True`.
+3. (DONE) Add capability-gated health profiles (`CardLab`, `DirectMcpServer`,
+   `A2ADispatch`, `FullMcpExecution`) with deterministic tests and live phase 5c
+   evidence. Direct MCP success does not satisfy FullMcpExecution.
+4. (DONE) Structured A2A output and exact L4 response-shape validation
+   (phase 5d).
+5. (DONE) Nested agent-mediated evidence schema, `agent_mcp_trace.py`, and
+   single-task FullMcpExecution gates (phase 5e), including observed-target,
+   freshness, source-content, tool-argument, result-array, and exit agreement.
+   Live L6 remains Not proven.
+6. Prove one live end-to-end path: task reaches agent, agent invokes a real MCP
+   tool, and kubectl-matched names return through the correlated task.
+
+Exit evidence:
+
+- `kubectl get remotemcpserver -n kagent` shows the target server accepted.
+- The health checker FullMcpExecution profile fails truthfully until live
+  correlated agent-mediated evidence exists.
+- A recorded command shows an A2A task invoking one real MCP tool through the
+  agent path (`agent_mcp_trace.py` exit 0).
+
+### Phase 3: Repeatable kagent install
+
+Goal: turn the current local lab into a reproducible setup.
+
+Why this comes fourth: bootstrap automation is useful, but it should automate a
+known-good flow after dispatch and execution requirements are clearer.
+
+Jobs:
 
 1. Reduce the local `kagent` path to a one-command install from a known Helm chart version.
-2. Add a bootstrap script that creates the `docker-desktop` cluster, installs the CRDs, and deploys the base manifests.
+2. Pin known-good kagent, Helm chart, CRD, and sample manifest versions.
+3. Add a bootstrap script that verifies the `docker-desktop` context, installs CRDs/controller/UI, and deploys the base and sample manifests predictably.
+4. (DONE) Improve `scripts/kagent/check-kagent-health.ps1` with profiles
+   `CardLab`, `DirectMcpServer`, `A2ADispatch`, and `FullMcpExecution`
+   (`scripts/kagent/KagentHealth.psm1`).
+5. (DONE) Fix pod readiness parsing so valid multi-container readiness such as `2/2` is accepted instead of only matching `1/1`.
+6. Document rollback or cleanup steps for the local cluster lab.
 
-### Stage 3: Repo scalability
+Exit evidence:
 
-1. Keep `README.md` short and current-state oriented.
-2. Move historical strategy and archival planning into secondary docs.
-3. Continue separating docs by purpose: onboarding, runbooks, architecture, reference, archive.
-4. Continue separating deploy assets by runtime: local sample manifests, reusable base manifests, environment overlays, policies.
+- A fresh Docker Desktop Kubernetes context can reach the documented kagent state through the bootstrap path.
+- The health checker profile selected in the runbook matches the user's current lab goal.
+- Pod readiness checks compare ready and total container counts numerically.
 
-### Stage 4: Integration path
+### Phase 4: Repository stabilization
 
-1. Add a documented Playwright-to-`kagent` integration path after the local A2A path supports task dispatch.
-2. Provide an optional real MCP server deployment for the `kagent-tool-server` RemoteMCPServer.
+Goal: reduce documentation drift and make the repo easier to trust as it grows.
+
+Why this comes last: it should consolidate proven behavior and current
+priorities, not replace missing executable evidence.
+
+Jobs:
+
+1. (DONE) Define placement and maintenance rules in `docs/DOCUMENTATION-ORGANIZATION.md`.
+2. (DONE) Create canonical L0-L7 definitions in `docs/reference/kagent-capability-matrix.md`.
+3. (DONE) Create `evidence/kagent/README.md` as the current status and ranked flaw ledger.
+4. (DONE) Define stable-core isolation and promotion rules for both educational lanes in `docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md`.
+5. (DONE) Add a shared problem manual, reflection template, and educational-project entry map.
+6. Keep `README.md` short and current-state oriented.
+7. Update or demote stale architecture docs so authoritative files describe current structure or clearly mark target-only content.
+8. Add automated validation for `REPO_MANIFEST.yaml`: path existence, allowed purpose/status values, authority consistency, and historical files not marked authoritative.
+9. Continue replacing duplicated runtime snapshots with canonical evidence links.
+10. Retire root compatibility stubs only after consumers update bookmarks.
+
+Exit evidence:
+
+- Manifest validation runs locally or in CI.
+- The architecture plan is either current and authoritative or explicitly historical/target-only.
+- The maturity matrix reflects the same stable/lab/planned boundaries as the README and this roadmap.
+- Root compatibility stubs are removed only after their consumers have a replacement path.
 
 ## Recommended Next Steps
 
 If the goal is immediate usefulness:
 
-1. keep using the Playwright host setup as the stable path
-2. use `docs/runbooks/local-kagent-a2a-lab.md` for the active cluster lab
-3. run `scripts/kagent/check-kagent-health.ps1` to verify cluster health
-4. use `python scripts/kagent/test-a2a-agent.py card` to validate the A2A agent card
+1. finish Phase 0 before tagging `laptop-stable-v0.1.1`
+2. keep using the Playwright host setup as the stable path
+3. use `docs/runbooks/local-kagent-a2a-lab.md` for the active cluster lab
+4. run `scripts/kagent/check-kagent-health.ps1` to verify cluster health
+5. use `python scripts/kagent/test-a2a-agent.py card` to validate the A2A agent card
 
 If the goal is repo scalability:
 
-1. adopt the target structure in `docs/architecture/SCALABLE-REFACTOR-PLAN.md`
-2. move toward purpose-based documentation
-3. stop adding new behavior to the historical plan documents
+1. complete the evidence-producing phases before adding another planning layer
+2. update or demote stale architecture docs
+3. add manifest and maturity-matrix validation
+4. stop adding new behavior to historical plan documents

@@ -1,0 +1,94 @@
+# kagent Evidence and Status Index
+
+This index is the canonical current-status summary for the local kagent
+educational lane. Detailed records remain dated snapshots and must not be edited
+to imply capabilities that were not observed.
+
+## Latest Verified Status
+
+Environment observed through 2026-07-17: local Docker Desktop Kubernetes cluster.
+
+| Level | Decision | Evidence |
+|-------|----------|----------|
+| L0 | Proven | Manifests and helpers in `deploy/` and `scripts/kagent/` |
+| L1 | Proven | [phases 0-2](educational-practice-phase-0-2.md) |
+| L2 | Proven | [phases 0-2](educational-practice-phase-0-2.md) |
+| L3 | Proven | [phases 0-2](educational-practice-phase-0-2.md) and [phase 3](educational-practice-phase-3.md) |
+| L4 | Proven | [phase 5d](educational-practice-phase-5d-trustworthy-a2a.md): `message/stream` status-update with non-empty task id |
+| L5 | Proven | [phase 4](educational-practice-phase-4.md): target server accepted and tools discovered |
+| L6 | Not proven | [phase 5e](educational-practice-phase-5e-agent-mediated-mcp.md): no correlated tool observation for the A2A task (helper exit 1) |
+| L7 | Not proven | No fresh-install bootstrap and cleanup evidence |
+
+The phase 5 MCP `initialize` handshake succeeded. The subsequent direct
+`tools/call` failed because its session identifier was not reused
+([phase 5](educational-practice-phase-5.md)). That failure is corrected and
+live-validated in [phase 5b](educational-practice-phase-5b-direct-mcp.md):
+**direct MCP tool invocation is proven** as server evidence only. It still
+does not substitute for L6.
+
+Helper implemented and deterministic tests complete.
+Live direct-MCP tool invocation proven on 2026-07-17 (see phase 5b).
+
+Problem record: [2026-07-17 MCP session reuse](problems/2026-07-17-mcp-session-reuse.md).
+Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_session_smoke.py`.
+
+## Implemented Corrections
+
+- `task` and `both` now fail when dispatch fails; `probe` remains observational.
+- Card validation now requires both `Accepted=True` and `DeploymentReady=True`.
+- Pod readiness parsing accepts any complete positive ratio such as `1/1` or `2/2`.
+- A real in-cluster MCP runtime backs `kagent-tool-server`, proving L5.
+- The runtime safety description now states the actual control: image `0.0.13`
+  lacks native `--read-only`, while its Kubernetes service account has read-only RBAC.
+- Roadmap, runbook, and onboarding language distinguish historical phase 0-2
+  degradation from the current phase 4/5 state.
+- Direct MCP session smoke helper implements mandatory initialize →
+  `notifications/initialized` → `tools/list` schema discovery → session-reusing
+  `tools/call`, with deterministic offline tests and live phase 5b evidence.
+- Named health profiles (`CardLab`, `DirectMcpServer`, `A2ADispatch`,
+  `FullMcpExecution`) evaluate independent gates; default remains CardLab.
+  Live phase 5c: CardLab/DirectMcpServer pass; A2ADispatch/FullMcpExecution fail
+  truthfully.
+- Phase 5d trustworthy A2A helper: structured JSON, `message/stream` SSE,
+  strict response shapes; L4 proven. The fail-closed review rejects any bad
+  event in a mixed stream and requires schema/helper/decision/transport/
+  protocol/dispatch agreement. Health consumes JSON only. Problem:
+  [2026-07-17 A2A dispatch compatibility](problems/2026-07-17-a2a-dispatch-compatibility.md).
+- Phase 5e agent-mediated MCP helper: nested schema 1.0 with one-task A2A
+  transport/protocol/dispatch agreement, recomputed freshness, observed target
+  binding, exact tool/arguments, bounded source-content correlation, and
+  recomputed kubectl name matching. `FullMcpExecution` derives both gates from
+  the same Phase 5E task. Live attempt failed closed (no tool marker). L4
+  remains Proven; L6 Not proven. Problem:
+  [2026-07-17 agent MCP correlation](problems/2026-07-17-agent-mcp-correlation.md).
+
+## Major Open Flaws
+
+| Priority | Flaw | Impact | Recommended closure evidence |
+|----------|------|--------|------------------------------|
+| P0 | No live correlated agent-mediated MCP result | Core L6 objective remains unproved; deterministic gates cannot promote it | One fresh `agent_mcp_trace.py` exit 0 binding a taskId to `kagent-tool-server` / `k8s_get_resources`, same-task returned names, bounded source proof, and kubectl match |
+| P1 | MCP image advertises write tools | RBAC is the only write barrier and tool discovery is misleading | Native read-only image plus retained restrictive RBAC |
+| P1 | Manifest validators may silently skip | A green script run can lack schema/security validation | CI installs validators and fails if unavailable |
+| P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
+| P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
+
+## Record Index
+
+- [Phases 0-2 evidence](educational-practice-phase-0-2.md)
+- [Phases 0-2 review](educational-practice-phase-0-2-review.md)
+- [Phase 3 truthful dispatch semantics](educational-practice-phase-3.md)
+- [Phase 4A design](educational-practice-phase-4a-design.md)
+- [Phase 4 L5 evidence](educational-practice-phase-4.md)
+- [Phase 5 L4/L6 attempt](educational-practice-phase-5.md)
+- [Phase 5B direct MCP session reuse](educational-practice-phase-5b-direct-mcp.md)
+- [Phase 5C truthful health profiles](educational-practice-phase-5c-health-profiles.md)
+- [Phase 5D trustworthy A2A dispatch](educational-practice-phase-5d-trustworthy-a2a.md)
+- [Phase 5E correlated agent-mediated MCP](educational-practice-phase-5e-agent-mediated-mcp.md)
+- [Problem: MCP session reuse](problems/2026-07-17-mcp-session-reuse.md)
+- [Problem: health profile overclaim](problems/2026-07-17-health-profile-overclaim.md)
+- [Problem: A2A dispatch compatibility](problems/2026-07-17-a2a-dispatch-compatibility.md)
+- [Problem: agent MCP correlation](problems/2026-07-17-agent-mcp-correlation.md)
+
+Definitions: [kagent capability matrix](../../docs/reference/kagent-capability-matrix.md).
+Health profiles: [kagent health profiles](../../docs/reference/kagent-health-profiles.md).
+Roadmap: [kagent educational roadmap](../../docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md).
