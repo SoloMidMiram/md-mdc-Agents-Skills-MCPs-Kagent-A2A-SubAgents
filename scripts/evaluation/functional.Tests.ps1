@@ -10,25 +10,26 @@
 BeforeAll {
     $modulePath = Join-Path $PSScriptRoot "test-helper.psm1"
     Import-Module $modulePath -Force
-    $Script:ExpectedCommand = "npx"
-    $Script:ExpectedArgs = @("-y", "@playwright/mcp@0.0.76", "--isolated")
-    $Script:Package = "@playwright/mcp@0.0.76"
 }
 
 Describe "Package Verification" -Tag "Functional", "Package" {
 
+    BeforeAll {
+        $Package = "@playwright/mcp@0.0.76"
+    }
+
     It "Playwright MCP package version is resolvable" {
-        $out = npm view "$Script:Package" version 2>$null
+        $out = npm view $Package version 2>$null
         $out.Trim() | Should -Be "0.0.76"
     }
 
     It "Playwright MCP CLI responds with help" {
-        $out = npx -y "$Script:Package" --help 2>$null | Out-String
+        $out = npx -y $Package --help 2>$null | Out-String
         $out | Should -Match "Usage:"
     }
 
     It "Playwright MCP --isolated flag is documented" {
-        $out = npx -y "$Script:Package" --help 2>$null | Out-String
+        $out = npx -y $Package --help 2>$null | Out-String
         $out | Should -Match "isolated"
     }
 }
