@@ -121,10 +121,28 @@ Describe "Dataset-Driven Evaluation" -Tag "Functional", "Dataset" {
         # Run installer in a child pwsh so `exit 1` cannot kill the Pester host.
         try {
             $pwsh = (Get-Command pwsh -ErrorAction Stop).Source
+            $preflight = & $pwsh -NoProfile -Command @'
+$ErrorActionPreference = "Continue"
+Write-Output "preflight: pwsh=$($PSVersionTable.PSVersion)"
+Write-Output "preflight: python=$(Get-Command python -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source)"
+try {
+  $ver = & python -c "import yaml; print(yaml.__version__)" 2>&1
+  Write-Output "preflight: pyyaml=$ver; exit=$LASTEXITCODE"
+} catch {
+  Write-Output "preflight: pyyaml_error=$_"
+}
+'@ 2>&1
             $installOut = & $pwsh -NoProfile -File $installer `
                 -ConfigRoot $Script:StructuralWorkspace 2>&1
             $Script:InstallerExitCode = $LASTEXITCODE
-            $Script:InstallerOutput = ($installOut | Out-String)
+            $Script:InstallerOutput = @(($preflight | Out-String), ($installOut | Out-String)) -join "`n"
+            $diagDir = Join-Path $PSScriptRoot "results"
+            New-Item -ItemType Directory -Force -Path $diagDir | Out-Null
+            @(
+                "installerExit=$($Script:InstallerExitCode)"
+                "workspace=$($Script:StructuralWorkspace)"
+                $Script:InstallerOutput
+            ) | Set-Content -LiteralPath (Join-Path $diagDir "structural-installer-diag.txt") -Encoding UTF8
         }
         catch {
             $Script:InstallerExitCode = 2
