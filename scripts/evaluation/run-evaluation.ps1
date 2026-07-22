@@ -166,6 +166,19 @@ $report | Out-File $reportPath -Encoding UTF8 -Force
 # --- Final output ---
 if ($CI) {
     Write-Output "[EVAL] Passed: $passed / $total | Failed: $failed | Skipped: $skipped | Report: $reportPath"
+    if ($failed -gt 0) {
+        Write-Output "[EVAL] Failed tests:"
+        foreach ($t in @($result.Failed)) {
+            $name = $t.ExpandedName
+            if ([string]::IsNullOrWhiteSpace($name)) { $name = $t.Name }
+            $msg = $null
+            if ($null -ne $t.ErrorRecord) {
+                $msg = [string]$t.ErrorRecord.Exception.Message
+            }
+            if ([string]::IsNullOrWhiteSpace($msg)) { $msg = "(no message)" }
+            Write-Output ("[EVAL] FAIL: {0} :: {1}" -f $name, $msg)
+        }
+    }
 } else {
     Write-Output ""
     Write-Output "=== Evaluation Complete ==="
