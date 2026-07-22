@@ -4,7 +4,7 @@
 > **Tag history:**
 > - `laptop-stable-v0.1` @ `cdb7dc0` — initial release (2026-07-09)
 > - **`laptop-stable-v0.1.1`** — pending (this stabilization SHA after CI)
-> **Status:** `READY_FOR_PATCH_TAG` locally; **CI Gate A3 still open** awaiting green GitHub-hosted Quality after child-process installer harness
+> **Status:** `READY_FOR_PATCH_TAG` — Gate A3 closed on hosted Quality green (`46a1d7d`, run [29953440286](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/29953440286))
 
 ---
 
@@ -31,7 +31,7 @@ This document now tracks the **v0.1.1 patch** (UTF-8 onboarding, narrative sync,
 | CI workflow | ✅ Configured | PSScriptAnalyzer, JSON validation, Pester evaluation, artifact upload |
 | PyYAML dependency | ⚠️ **Pinned** | CI installs PyYAML; local `Get-ConfigState` skips gracefully if missing |
 | Documented test counts | ✅ **Updated** | README says "73+ tests" — Pester-verified aggregate, not hardcoded per-file |
-| Dataset structural tests | ⚠️ **In progress** | ConfigRoot isolation + child `pwsh` installer harness; awaiting hosted Quality green |
+| Dataset structural tests | ✅ **Done** | ConfigRoot isolation + child `pwsh` installer; Package scope in Describe; hosted Quality green |
 | Old plan doc | ✅ Archived | `docs/laptop-stable-implementation-plan.md` → replaced by this file |
 | Corrupted review verdict | ✅ Archived | Moved to `docs/archive/` |
 | Terminology normalized | ✅ Done | "4 config targets / 5 runtime surfaces" used consistently |
@@ -48,7 +48,7 @@ This document now tracks the **v0.1.1 patch** (UTF-8 onboarding, narrative sync,
 |---|-------|-------------|
 | A1 | ✅ **Done** | CI step validates `config/templates/*.json` |
 | A2 | ✅ **Done** | CI step `Invoke-ScriptAnalyzer -Severity Error` |
-| A3 | ❌ **Open** | CI step `run-evaluation.ps1 -CI` — exit code 0 on a clean runner (awaiting green GitHub-hosted Quality after child-process installer harness) |
+| A3 | ✅ **Done** | CI step `run-evaluation.ps1 -CI` — exit 0 on clean runner; hosted Quality SUCCESS @ `46a1d7d` (ConfigRoot + Package Describe scope) |
 | A4 | ✅ **Done** | CI step `pip install pyyaml` |
 | A5 | ✅ **Done** | CI step `actions/upload-artifact` |
 | A6 | ✅ **Done** | Workflow runs on `push` and `pull_request` |
