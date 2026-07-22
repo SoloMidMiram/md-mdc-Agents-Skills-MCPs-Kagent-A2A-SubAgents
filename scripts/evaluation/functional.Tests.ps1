@@ -58,19 +58,97 @@ Describe "Host Tool Availability" -Tag "Functional", "Hosts" {
 
 Describe "Dataset-Driven Evaluation" -Tag "Functional", "Dataset" {
 
+    BeforeDiscovery {
+        $modulePath = Join-Path $PSScriptRoot "test-helper.psm1"
+        Import-Module $modulePath -Force
+        $script:EvalDataset = Get-EvalDataset
+        $script:StructuralEntries = @(
+            $script:EvalDataset |
+                Where-Object { $_.group -eq "structural" -and $_.host -ne "workspace" -and $_.host -ne "all" }
+        )
+        $script:StructuralCases = @(
+            $script:StructuralEntries | ForEach-Object {
+                @{
+                    EntryId          = $_.id
+                    EntryDescription = $_.description
+                    EntryHost        = $_.host
+                    EntryExpected    = $_.expected
+                }
+            }
+        )
+        $script:CliEntries = @(
+            $script:EvalDataset |
+                Where-Object { $_.group -eq "functional" -and $_.host -eq "cli" }
+        )
+    }
+
     BeforeAll {
-        $dataset = Get-EvalDataset
-        $structuralEntries = $dataset | Where-Object { $_.group -eq "structural" -and $_.host -ne "workspace" -and $_.host -ne "all" }
-        $cliEntries = $dataset | Where-Object { $_.group -eq "functional" -and $_.host -eq "cli" }
+        $modulePath = Join-Path $PSScriptRoot "test-helper.psm1"
+        Import-Module $modulePath -Force
+        $Script:Dataset = Get-EvalDataset
+        $Script:CliEntriesRuntime = @(
+            $Script:Dataset |
+                Where-Object { $_.group -eq "functional" -and $_.host -eq "cli" }
+        )
+
+        # Use OS profile folders so assertions stay on the real user even if
+        # USERPROFILE/APPDATA env vars are redirected for isolation tests.
+        $realUser = [Environment]::GetFolderPath("UserProfile")
+        $realAppData = [Environment]::GetFolderPath("ApplicationData")
+        $profilePaths = @(
+            (Join-Path $realUser ".cursor\mcp.json")
+            (Join-Path $realAppData "Code\User\mcp.json")
+            (Join-Path $realUser ".codex\config.toml")
+            (Join-Path $realUser ".continue\config.yaml")
+        )
+        $Script:RealProfileBefore = @{}
+        foreach ($p in $profilePaths) {
+            if (Test-Path -LiteralPath $p) {
+                $item = Get-Item -LiteralPath $p
+                $Script:RealProfileBefore[$p] = @{
+                    Exists = $true
+                    Length = [int64]$item.Length
+                    Hash   = (Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash
+                }
+            }
+            else {
+                $Script:RealProfileBefore[$p] = @{ Exists = $false; Length = $null; Hash = $null }
+            }
+        }
+
+        $Script:StructuralWorkspace = New-TestWorkspace
+        $installer = Join-Path (Split-Path $PSScriptRoot -Parent) "install-global-playwright-mcp.ps1"
+        try {
+            $installOut = & $installer -ConfigRoot $Script:StructuralWorkspace 2>&1
+            $code = $LASTEXITCODE
+            # Successful scripts without an explicit `exit` may leave LASTEXITCODE unset.
+            if ($null -eq $code) { $code = 0 }
+            $Script:InstallerExitCode = [int]$code
+            $Script:InstallerOutput = ($installOut | Out-String)
+        }
+        catch {
+            $Script:InstallerExitCode = 1
+            $Script:InstallerOutput = "$_"
+        }
+        if ($Script:InstallerExitCode -ne 0) {
+            Write-Warning "Isolated installer failed (exit $($Script:InstallerExitCode)): $($Script:InstallerOutput)"
+        }
+    }
+
+    AfterAll {
+        if ($Script:StructuralWorkspace -and (Test-Path -LiteralPath $Script:StructuralWorkspace)) {
+            Remove-Item -LiteralPath $Script:StructuralWorkspace -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        $Script:StructuralWorkspace = $null
     }
 
     It "Evaluation dataset is non-empty" {
-        $dataset | Should -Not -BeNullOrEmpty
-        $dataset.Count | Should -BeGreaterThan 0
+        $Script:Dataset | Should -Not -BeNullOrEmpty
+        $Script:Dataset.Count | Should -BeGreaterThan 0
     }
 
     It "All dataset entries have required fields" {
-        foreach ($item in $dataset) {
+        foreach ($item in $Script:Dataset) {
             $item.id | Should -Not -BeNullOrEmpty
             $item.group | Should -Not -BeNullOrEmpty
             $item.description | Should -Not -BeNullOrEmpty
@@ -81,50 +159,103 @@ Describe "Dataset-Driven Evaluation" -Tag "Functional", "Dataset" {
     }
 
     It "No duplicate dataset IDs exist" {
-        $ids = $dataset | ForEach-Object { $_.id }
+        $ids = $Script:Dataset | ForEach-Object { $_.id }
         $ids.Count | Should -Be ($ids | Select-Object -Unique).Count
     }
 
     It "Dataset has entries in each required group" {
-        $groups = $dataset | ForEach-Object { $_.group } | Select-Object -Unique
+        $groups = $Script:Dataset | ForEach-Object { $_.group } | Select-Object -Unique
         @("structural", "functional", "backup", "rollback") | ForEach-Object {
             $_ | Should -BeIn $groups
         }
     }
 
-    # Structural checks from dataset: verify each structural entry against real files
-    # Uses Get-NormalizedEntry from test-helper to read and parse each config file,
-    # then validates the playwright-global entry matches expected metadata.
-    # Fails if the file is missing or the entry is absent.
+    It "Installer creates isolated configs via -ConfigRoot" -Tag "DatasetStructural" {
+        $Script:InstallerExitCode | Should -Be 0 -Because "install-global-playwright-mcp.ps1 -ConfigRoot must succeed for structural proof"
+        $Script:StructuralWorkspace | Should -Not -BeNullOrEmpty
+        Test-Path -LiteralPath $Script:StructuralWorkspace | Should -Be $true
+    }
 
-    foreach ($entry in $structuralEntries) {
-        It "Dataset structural: $($entry.id) - $($entry.description)" -Tag "DatasetStructural" {
-            $hostConfig = switch ($entry.host) {
-                "cursor"   { @{ Path = Join-Path $env:USERPROFILE ".cursor\mcp.json";        Format = "JSON";   Key = "mcpServers"; ExpectedType = $null } }
-                "vscode"   { @{ Path = Join-Path $env:APPDATA "Code\User\mcp.json";          Format = "JSON";   Key = "servers";     ExpectedType = "stdio" } }
-                "codex"    { @{ Path = Join-Path $env:USERPROFILE ".codex\config.toml";      Format = "TOML";   Key = $null;        ExpectedType = $null } }
-                "continue" { @{ Path = Join-Path $env:USERPROFILE ".continue\config.yaml";   Format = "YAML";   Key = $null;        ExpectedType = "stdio" } }
-            }
-            $entry.expected | Should -Not -BeNullOrEmpty
-            if ($entry.expected.command) {
-                Test-Path $hostConfig.Path | Should -Be $true -Because "config file for $($entry.host) should exist when playwright-global is expected"
-                $actualEntry = Get-NormalizedEntry -Path $hostConfig.Path -Format $hostConfig.Format -ServerKey $hostConfig.Key
-                $actualEntry | Should -Not -BeNullOrEmpty -Because "$($entry.host) should have a playwright-global entry"
-                $actualEntry.command | Should -Be $entry.expected.command
-                if ($entry.expected.args) {
-                    ($actualEntry.args -join " ") | Should -Be ($entry.expected.args -join " ")
-                }
-                if ($hostConfig.ExpectedType) {
-                    $actualEntry.type | Should -Be $hostConfig.ExpectedType
+    It "Dataset structural: <EntryId> - <EntryDescription>" -Tag "DatasetStructural" -ForEach $script:StructuralCases {
+        $workspace = $Script:StructuralWorkspace
+        $hostConfig = switch ($EntryHost) {
+            "cursor" {
+                @{
+                    Path         = Join-Path $workspace ".cursor\mcp.json"
+                    Format       = "JSON"
+                    Key          = "mcpServers"
+                    ExpectedType = $null
                 }
             }
+            "vscode" {
+                @{
+                    Path         = Join-Path $workspace "AppData\Roaming\Code\User\mcp.json"
+                    Format       = "JSON"
+                    Key          = "servers"
+                    ExpectedType = "stdio"
+                }
+            }
+            "codex" {
+                @{
+                    Path         = Join-Path $workspace ".codex\config.toml"
+                    Format       = "TOML"
+                    Key          = $null
+                    ExpectedType = $null
+                }
+            }
+            "continue" {
+                @{
+                    Path         = Join-Path $workspace ".continue\config.yaml"
+                    Format       = "YAML"
+                    Key          = $null
+                    ExpectedType = "stdio"
+                }
+            }
+            default {
+                throw "Unsupported structural host: $EntryHost"
+            }
+        }
+        $EntryExpected | Should -Not -BeNullOrEmpty
+        if ($EntryExpected.command) {
+            Test-Path $hostConfig.Path | Should -Be $true -Because "config file for $EntryHost should exist under -ConfigRoot workspace"
+            $actualEntry = Get-NormalizedEntry -Path $hostConfig.Path -Format $hostConfig.Format -ServerKey $hostConfig.Key
+            $actualEntry | Should -Not -BeNullOrEmpty -Because "$EntryHost should have a playwright-global entry"
+            $actualEntry.command | Should -Be $EntryExpected.command
+            if ($EntryExpected.args) {
+                ($actualEntry.args -join " ") | Should -Be ($EntryExpected.args -join " ")
+            }
+            if ($hostConfig.ExpectedType) {
+                $actualEntry.type | Should -Be $hostConfig.ExpectedType
+            }
+        }
+    }
+
+    It "Real user-profile config files were not created or modified" -Tag "DatasetStructural" {
+        $before = $Script:RealProfileBefore
+        $before | Should -Not -BeNullOrEmpty
+        foreach ($path in $before.Keys) {
+            $b = $before[$path]
+            if (Test-Path -LiteralPath $path) {
+                $item = Get-Item -LiteralPath $path
+                $exists = $true
+                $length = [int64]$item.Length
+                $hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+            }
+            else {
+                $exists = $false
+                $length = $null
+                $hash = $null
+            }
+            $exists | Should -Be $b.Exists -Because "existence of $path must be unchanged by -ConfigRoot install"
+            $hash | Should -Be $b.Hash -Because "content of $path must be unchanged by -ConfigRoot install"
+            $length | Should -Be $b.Length -Because "size of $path must be unchanged by -ConfigRoot install"
         }
     }
 
     # CLI checks from dataset
 
     It "All dataset CLI entries reference valid commands" -Tag "DatasetFunctional" {
-        foreach ($entry in $cliEntries) {
+        foreach ($entry in $Script:CliEntriesRuntime) {
             if ($entry.expected.command_found) {
                 Get-Command $entry.expected.command_found -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             }
@@ -133,7 +264,7 @@ Describe "Dataset-Driven Evaluation" -Tag "Functional", "Dataset" {
 
     It "Playwright CLI help contains expected output" -Tag "DatasetFunctional" {
         $out = npx -y "@playwright/mcp@0.0.76" --help 2>&1 | Out-String
-        $cliEntries | Where-Object { $_.expected.output_contains } | ForEach-Object {
+        $Script:CliEntriesRuntime | Where-Object { $_.expected.output_contains } | ForEach-Object {
             $out | Should -Match $_.expected.output_contains
         }
     }
