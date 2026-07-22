@@ -118,17 +118,21 @@ Describe "Dataset-Driven Evaluation" -Tag "Functional", "Dataset" {
 
         $Script:StructuralWorkspace = New-TestWorkspace
         $installer = Join-Path (Split-Path $PSScriptRoot -Parent) "install-global-playwright-mcp.ps1"
+        # Run installer in a child pwsh so `exit 1` cannot kill the Pester host.
         try {
-            $installOut = & $installer -ConfigRoot $Script:StructuralWorkspace 2>&1
-            $code = $LASTEXITCODE
-            # Successful scripts without an explicit `exit` may leave LASTEXITCODE unset.
-            if ($null -eq $code) { $code = 0 }
-            $Script:InstallerExitCode = [int]$code
+            $pwsh = (Get-Command pwsh -ErrorAction Stop).Source
+            $installOut = & $pwsh -NoProfile -File $installer `
+                -ConfigRoot $Script:StructuralWorkspace 2>&1
+            $Script:InstallerExitCode = $LASTEXITCODE
             $Script:InstallerOutput = ($installOut | Out-String)
         }
         catch {
-            $Script:InstallerExitCode = 1
+            $Script:InstallerExitCode = 2
             $Script:InstallerOutput = "$_"
+        }
+        if ($null -eq $Script:InstallerExitCode) {
+            $Script:InstallerExitCode = 1
+            $Script:InstallerOutput = "child pwsh returned no exit code`n$($Script:InstallerOutput)"
         }
         if ($Script:InstallerExitCode -ne 0) {
             Write-Warning "Isolated installer failed (exit $($Script:InstallerExitCode)): $($Script:InstallerOutput)"
@@ -171,9 +175,38 @@ Describe "Dataset-Driven Evaluation" -Tag "Functional", "Dataset" {
     }
 
     It "Installer creates isolated configs via -ConfigRoot" -Tag "DatasetStructural" {
-        $Script:InstallerExitCode | Should -Be 0 -Because "install-global-playwright-mcp.ps1 -ConfigRoot must succeed for structural proof"
+        $out = [string]$Script:InstallerOutput
+        if ($out.Length -gt 4000) {
+            $out = $out.Substring($out.Length - 4000)
+        }
+        $Script:InstallerExitCode | Should -Be 0 -Because (
+            "install-global-playwright-mcp.ps1 -ConfigRoot must succeed for structural proof; " +
+            "child exit=$($Script:InstallerExitCode); output tail:`n$out"
+        )
         $Script:StructuralWorkspace | Should -Not -BeNullOrEmpty
         Test-Path -LiteralPath $Script:StructuralWorkspace | Should -Be $true
+    }
+
+    It "Installer targets stay inside the ConfigRoot workspace" -Tag "DatasetStructural" {
+        $workspace = $Script:StructuralWorkspace
+        $workspace | Should -Not -BeNullOrEmpty
+        $root = [IO.Path]::GetFullPath($workspace)
+        if (-not $root.EndsWith([IO.Path]::DirectorySeparatorChar)) {
+            $root = $root + [IO.Path]::DirectorySeparatorChar
+        }
+        $targets = @(
+            (Join-Path $workspace ".cursor\mcp.json")
+            (Join-Path $workspace "AppData\Roaming\Code\User\mcp.json")
+            (Join-Path $workspace ".codex\config.toml")
+            (Join-Path $workspace ".continue\config.yaml")
+        )
+        foreach ($path in $targets) {
+            $full = [IO.Path]::GetFullPath($path)
+            $full.StartsWith($root, [StringComparison]::OrdinalIgnoreCase) |
+                Should -Be $true -Because "resolved path $full must stay under workspace $root"
+            Test-Path -LiteralPath $full |
+                Should -Be $true -Because "contained installer target must exist: $full"
+        }
     }
 
     It "Dataset structural: <EntryId> - <EntryDescription>" -Tag "DatasetStructural" -ForEach $script:StructuralCases {
@@ -246,9 +279,18 @@ Describe "Dataset-Driven Evaluation" -Tag "Functional", "Dataset" {
                 $length = $null
                 $hash = $null
             }
-            $exists | Should -Be $b.Exists -Because "existence of $path must be unchanged by -ConfigRoot install"
-            $hash | Should -Be $b.Hash -Because "content of $path must be unchanged by -ConfigRoot install"
-            $length | Should -Be $b.Length -Because "size of $path must be unchanged by -ConfigRoot install"
+            $exists | Should -Be $b.Exists -Because (
+                "secondary safety: existence of $path must be unchanged by -ConfigRoot install " +
+                "(can flake if another local app edits this file during the suite)"
+            )
+            $hash | Should -Be $b.Hash -Because (
+                "secondary safety: content of $path must be unchanged by -ConfigRoot install " +
+                "(can flake if another local app edits this file during the suite)"
+            )
+            $length | Should -Be $b.Length -Because (
+                "secondary safety: size of $path must be unchanged by -ConfigRoot install " +
+                "(can flake if another local app edits this file during the suite)"
+            )
         }
     }
 

@@ -4,7 +4,7 @@
 > **Tag history:**
 > - `laptop-stable-v0.1` @ `cdb7dc0` — initial release (2026-07-09)
 > - **`laptop-stable-v0.1.1`** — pending (this stabilization SHA after CI)
-> **Status:** `READY_FOR_PATCH_TAG` locally; **CI Gate A3 still open** until DatasetStructural uses `-ConfigRoot` isolation and Quality is green
+> **Status:** `READY_FOR_PATCH_TAG` locally; **CI Gate A3 still open** awaiting green GitHub-hosted Quality after child-process installer harness
 
 ---
 
@@ -31,7 +31,7 @@ This document now tracks the **v0.1.1 patch** (UTF-8 onboarding, narrative sync,
 | CI workflow | ✅ Configured | PSScriptAnalyzer, JSON validation, Pester evaluation, artifact upload |
 | PyYAML dependency | ⚠️ **Pinned** | CI installs PyYAML; local `Get-ConfigState` skips gracefully if missing |
 | Documented test counts | ✅ **Updated** | README says "73+ tests" — Pester-verified aggregate, not hardcoded per-file |
-| Dataset structural tests | ⚠️ **In progress** | Must assert installer `-ConfigRoot` output, not the runner USERPROFILE/APPDATA |
+| Dataset structural tests | ⚠️ **In progress** | ConfigRoot isolation + child `pwsh` installer harness; awaiting hosted Quality green |
 | Old plan doc | ✅ Archived | `docs/laptop-stable-implementation-plan.md` → replaced by this file |
 | Corrupted review verdict | ✅ Archived | Moved to `docs/archive/` |
 | Terminology normalized | ✅ Done | "4 config targets / 5 runtime surfaces" used consistently |
@@ -48,7 +48,7 @@ This document now tracks the **v0.1.1 patch** (UTF-8 onboarding, narrative sync,
 |---|-------|-------------|
 | A1 | ✅ **Done** | CI step validates `config/templates/*.json` |
 | A2 | ✅ **Done** | CI step `Invoke-ScriptAnalyzer -Severity Error` |
-| A3 | ❌ **Open** | CI step `run-evaluation.ps1 -CI` — exit code 0 on a clean runner (blocked by DatasetStructural host-profile coupling until ConfigRoot isolation fix) |
+| A3 | ❌ **Open** | CI step `run-evaluation.ps1 -CI` — exit code 0 on a clean runner (awaiting green GitHub-hosted Quality after child-process installer harness) |
 | A4 | ✅ **Done** | CI step `pip install pyyaml` |
 | A5 | ✅ **Done** | CI step `actions/upload-artifact` |
 | A6 | ✅ **Done** | Workflow runs on `push` and `pull_request` |
@@ -114,7 +114,7 @@ These are explicitly excluded from the laptop-stable v0.1 gate:
 
 When all acceptance gates above pass:
 
-1. ✅ Run `.\scripts\evaluation\run-evaluation.ps1` — **79 passed, 0 failed** (5 skipped optional hosts; includes ConfigRoot structural isolation)
+1. ✅ Run `.\scripts\evaluation\run-evaluation.ps1` — **79+ passed, 0 failed** locally (5 skipped optional hosts; includes ConfigRoot structural isolation). **Local validation only — not CI evidence until Quality is green.**
 2. ✅ Run `.\scripts\install-global-playwright-mcp.ps1 -WhatIf` — plan correct, no mutation
 3. ✅ Run `.\scripts\install-global-playwright-mcp.ps1` — backup + install (backup dir `20260709-125005`)
 4. ✅ Run `.\scripts\verify-global-playwright-mcp.ps1` — exit 0, all 4 targets correct
