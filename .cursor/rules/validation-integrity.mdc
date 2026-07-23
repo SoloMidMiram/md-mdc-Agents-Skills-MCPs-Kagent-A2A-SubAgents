@@ -1,0 +1,21 @@
+---
+description: Test, workflow, validator, and evaluation script integrity
+globs: "tests/**, .github/workflows/**, scripts/quality/**, scripts/evaluation/**, scripts/benchmark/**, scripts/kubernetes/**, scripts/security/**, .agents/skills/**, .cursor/rules/**, .cursor/hooks.json, .cursor/hooks/**, pyproject.toml"
+alwaysApply: false
+---
+# Validation Integrity
+
+Derive applicable commands from `pyproject.toml`, the owning test suite, and
+`.github/workflows/quality.yml`.
+
+- Do not replace a failing assertion with a weaker one to obtain a pass.
+- Distinguish passed, failed, skipped, unavailable, and not run.
+- A missing required validator is not a pass.
+- Mark advisory checks explicitly; do not present them as required gates.
+- Reject incomplete or contradictory benchmark data instead of computing a
+  successful summary.
+- Keep task inputs separate from scoring criteria and expected answers.
+- Use deterministic fixtures for CI; never use live learner or cluster state as
+  a deterministic test oracle.
+- Preserve command output and exit classification needed to reproduce a
+  reported result.

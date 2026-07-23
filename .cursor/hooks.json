@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "pwsh -NoProfile -File .cursor/hooks/governance-hook.ps1 -EventName afterFileEdit",
+        "timeout": 10
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "pwsh -NoProfile -File .cursor/hooks/governance-hook.ps1 -EventName beforeShellExecution",
+        "timeout": 10
+      }
+    ],
+    "stop": [
+      {
+        "command": "pwsh -NoProfile -File .cursor/hooks/governance-hook.ps1 -EventName stop",
+        "timeout": 10
+      }
+    ]
+  }
+}

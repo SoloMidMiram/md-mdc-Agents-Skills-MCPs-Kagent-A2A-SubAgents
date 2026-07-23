@@ -33,6 +33,9 @@ __pycache__/
 # Evaluation framework results
 scripts/evaluation/results/
 
+# Benchmark runner results (never commit generated benchmark output)
+scripts/benchmark/results/
+
 # MCP config backups (machine-local, user profile)
 .mcp-config-backups/
 

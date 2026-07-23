@@ -1,0 +1,23 @@
+---
+description: Documentation, evidence, and manifest ownership rules
+globs: "docs/**, evidence/**, REPO_MANIFEST.yaml"
+alwaysApply: false
+---
+# Documentation and Evidence Ownership
+
+Use `docs/DOCUMENTATION-ORGANIZATION.md` to choose the owner before creating or
+moving a file.
+
+- Give each document one primary job.
+- Link to canonical status instead of duplicating volatile observations.
+- Preserve dated evidence; use an appended dated addendum for later
+  interpretation.
+- Treat `evidence/kagent/README.md` as the current kagent status owner.
+- Keep review reports non-authoritative.
+- Add every new canonical repository artifact to `REPO_MANIFEST.yaml`; never
+  map generated, ignored, or temporary output.
+- Assess every affected owner independently. An unchanged earlier owner does
+  not imply later owners can be skipped.
+- Run applicable link, manifest, and format checks before reporting completion.
+- Do not create a competing roadmap, status ledger, capability matrix, or
+  documentation-placement guide.

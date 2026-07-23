@@ -17,6 +17,11 @@ Architecture and problem handling shared by both lanes:
 - `docs/runbooks/educational-problem-manual.md`
 - `docs/templates/educational-problem-record.md`
 
+Agent customization shared by the repository:
+
+- `docs/onboarding/AGENT-GOVERNANCE-ROADMAP.md` — phased evaluation and
+  promotion of rules, skills, hooks, and related CI enforcement
+
 ## Before Continuing an Example
 
 You do not need a complete rules review before every exercise. Confirm this

@@ -58,6 +58,16 @@ Implemented and documented:
 - VS Code-specific repo instructions
 - Continue slash-command personas
 - explicit host-surface separation for Cursor, Continue, VS Code, and Codex
+- an agent-governance pilot with three scoped Cursor rules, two manual
+  project skills with deterministic helpers, three observation-only Cursor
+  hooks, and a deterministic benchmark contract
+
+The rules and skills are implemented but not promoted. The hooks are in shadow
+mode: they log sanitized classifications and validation-family state, never
+block commands, and never submit a follow-up. The original generated YAML files
+were empty templates rather than scored baseline/candidate runs. The repaired
+JSON harness rejects incomplete or contradictory assessments; a genuine
+isolated baseline/candidate comparison and ten-event hook sample remain open.
 
 Primary artifacts:
 
@@ -66,6 +76,12 @@ Primary artifacts:
 - `.github/instructions/`
 - `.github/agents/`
 - `.github/prompts/`
+- `.cursor/rules/`
+- `.cursor/hooks.json`
+- `.cursor/hooks/`
+- `.agents/skills/`
+- `scripts/benchmark/`
+- `docs/onboarding/AGENT-GOVERNANCE-ROADMAP.md`
 - `docs/ai-tooling.md`
 
 ### Tooling scaffold
@@ -190,6 +206,9 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
   legacy blocking `tasks/sendTask` and `message/send` remain unsuitable
 - native read-only MCP tool exposure; the current pinned image relies on RBAC for write denial
 - live correlated L6 tool observation (schema/helper exist; live still Not proven)
+- agent-governance R1-R3/S1-S2 benchmark scoring and H1-H3 shadow measurement;
+  artifacts exist, but no independently assessed comparison or ten-event hook
+  sample supports promotion or blocking yet
 
 ### Not yet closed
 
