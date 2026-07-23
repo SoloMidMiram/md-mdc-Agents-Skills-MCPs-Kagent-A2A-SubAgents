@@ -39,18 +39,7 @@ jobs:
         run: uv run pytest -q
 
       - name: Validate workflow YAML
-        run: |
-          python3 -m pip install pyyaml -q
-          python3 -c "
-import yaml, sys
-with open('.github/workflows/quality.yml') as f:
-    data = yaml.safe_load(f)
-jobs = data.get('jobs', {})
-required = ['kagent-python', 'kagent-kubernetes', 'kagent-security', 'evaluation']
-for j in required:
-    assert j in jobs, f'Expected job {j!r} not found in workflow'
-print('Workflow YAML structurally valid, jobs:', list(jobs.keys()))
-"
+        run: uv run python -c 'import yaml,sys; d=yaml.safe_load(open(sys.argv[1])); assert all(j in d.get("jobs",{}) for j in ["kagent-python","kagent-kubernetes","kagent-security","evaluation"]); print("Workflow valid, jobs:", list(d["jobs"]))' .github/workflows/quality.yml
 
   kagent-kubernetes:
     name: Deterministic kagent Kubernetes validation
