@@ -13,6 +13,7 @@ placement; `REPO_MANIFEST.yaml` remains the machine-readable artifact map.
 | `docs/reference/` | Stable definitions, matrices, and contracts | Yes, when explicitly designated canonical |
 | `docs/architecture/` | Decisions, boundaries, and design rationale | No transient runtime counts |
 | `evidence/<lane>/` | Dated observations and command results | Yes; this is the authority for observed runtime state |
+| `reports/` | Dated, non-authoritative cross-cutting review snapshots | Only dated observations that link to canonical owners |
 | `docs/archive/` | Superseded plans and historical material | No current claims or TODO ownership |
 
 Educational lane boundaries and promotion rules are defined in
@@ -106,6 +107,7 @@ Choose a file's owner before choosing its name. Use the first matching row:
 | Learner/sample deployment | `deploy/samples/<runtime>/` | Mark `lab`, never authoritative for production |
 | Environment-specific assembly | `deploy/overlays/<environment>/` | List maintained overlays |
 | Dated observed result | `evidence/<lane>/` | Index canonical summaries; individual records are non-authoritative |
+| Dated cross-cutting review snapshot | `reports/` | List deliberately retained snapshots as non-authoritative; never use them as a status owner |
 | Generated output or cache | ignored results/cache directory | Never add to manifest or commit |
 | Disposable planning/staging note | ignored root/local temp path such as `PRECOMMIT-DRAFT.md` | Never add to manifest or commit |
 
