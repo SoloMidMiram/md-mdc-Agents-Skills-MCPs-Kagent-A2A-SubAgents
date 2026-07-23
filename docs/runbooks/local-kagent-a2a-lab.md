@@ -350,6 +350,10 @@ python scripts/kagent/mcp_session_smoke.py --url http://127.0.0.1:8000/mcp --out
 Expected: exit code `0`, `sessionId` reported as `present` (never print the raw
 value), `toolCallSucceeded: true`, and a `cleanup` status such as `deleted`.
 
+If cleanup fails (e.g. DELETE returns a server error), the script exits 1 to
+prevent silent session leaks. HTTP 405 (Method Not Allowed) on cleanup is benign
+and does not cause a failure.
+
 Problem context: `evidence/kagent/problems/2026-07-17-mcp-session-reuse.md`.
 
 ## Known Limitations

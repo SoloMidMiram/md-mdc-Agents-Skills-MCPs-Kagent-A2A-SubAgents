@@ -421,6 +421,113 @@ def test_close_delete_after_failure_when_session_issued() -> None:
     assert result.cleanup == "deleted"
 
 
+def test_cleanup_http_500_after_success() -> None:
+    """Main succeeded, DELETE returns 500 -- exit code promoted to failure."""
+    transport = FakeTransport(_scripted_success_handler(delete_status=500))
+    result = smoke.McpSessionClient(
+        smoke.SessionConfig(arguments={"resource_type": "pod"}), transport
+    ).run()
+    assert result.exit_code == smoke.ExitCode.PROTOCOL_OR_TOOL
+    assert result.cleanup == "failed"
+    assert result.error is not None
+
+
+def test_cleanup_transport_error_after_success() -> None:
+    """Main succeeded, DELETE raises TransportError -- exit code promoted to failure."""
+    base = _scripted_success_handler()
+
+    def handler(method, url, headers, body, timeout):
+        if method == "DELETE":
+            raise smoke.TransportError("cleanup connection refused")
+        return base(method, url, headers, body, timeout)
+
+    transport = FakeTransport(handler)
+    result = smoke.McpSessionClient(
+        smoke.SessionConfig(arguments={"resource_type": "pod"}), transport
+    ).run()
+    assert result.exit_code == smoke.ExitCode.PROTOCOL_OR_TOOL
+    assert result.cleanup == "failed"
+
+
+def test_cleanup_timeout_after_success() -> None:
+    """Main succeeded, DELETE raises timeout -- exit code promoted to failure."""
+    base = _scripted_success_handler()
+
+    def handler(method, url, headers, body, timeout):
+        if method == "DELETE":
+            raise smoke.TransportError("timeout: timed out")
+        return base(method, url, headers, body, timeout)
+
+    transport = FakeTransport(handler)
+    result = smoke.McpSessionClient(
+        smoke.SessionConfig(arguments={"resource_type": "pod"}), transport
+    ).run()
+    assert result.exit_code == smoke.ExitCode.PROTOCOL_OR_TOOL
+    assert result.cleanup == "failed"
+
+
+def test_cleanup_failure_preserves_primary_failure() -> None:
+    """Main operation fails AND cleanup fails -- preserve original exit code and error."""
+    base = _scripted_success_handler()
+
+    def handler(method, url, headers, body, timeout):
+        if method == "DELETE":
+            return smoke.HttpResponse(status=500, headers={}, body=b"")
+        payload = json.loads(body.decode())
+        if payload.get("method") == "tools/list":
+            return smoke.HttpResponse(status=500, headers={}, body=b"x", content_type="text/plain")
+        return base(method, url, headers, body, timeout)
+
+    transport = FakeTransport(handler)
+    result = smoke.McpSessionClient(smoke.SessionConfig(), transport).run()
+    # Primary failure was PROTOCOL_OR_TOOL, cleanup failure does not overwrite
+    assert result.exit_code == smoke.ExitCode.PROTOCOL_OR_TOOL
+    assert result.cleanup == "failed"
+    # Error should be the primary error, not "session cleanup failed"
+    assert result.error is not None
+    assert "cleanup" not in (result.error or "").lower()
+
+
+def test_cleanup_no_session_no_failure() -> None:
+    """No session established -- cleanup is no-op, no manufactured failure."""
+
+    def handler(method, url, headers, body, timeout):
+        raise smoke.TransportError("network unreachable")
+
+    cfg = smoke.SessionConfig(arguments={"resource_type": "pod"}, timeout=1)
+    result = smoke.McpSessionClient(cfg, FakeTransport(handler)).run()
+    assert result.cleanup == "not-applicable"
+    # Should preserve the primary error (transport failure), not manufacture one
+    assert result.error is not None
+
+
+def test_main_cleanup_failure_exit_code() -> None:
+    """CLI entry point returns non-zero when cleanup fails after success."""
+    handler = _scripted_success_handler(delete_status=500)
+
+    class Patched(smoke.DirectUrlTransport):
+        def request(self, method, url, *, headers, body=None, timeout=5):
+            return handler(method, url, headers, body, timeout)
+
+    original = smoke.DirectUrlTransport
+    smoke.DirectUrlTransport = Patched  # type: ignore[misc, assignment]
+    try:
+        code = smoke.main(
+            [
+                "--url",
+                "http://127.0.0.1:8000/mcp",
+                "--arguments-json",
+                '{"resource_type":"pod"}',
+                "--output",
+                "json",
+                "--quiet",
+            ]
+        )
+        assert code == smoke.ExitCode.PROTOCOL_OR_TOOL
+    finally:
+        smoke.DirectUrlTransport = original  # type: ignore[misc]
+
+
 def test_quiet_and_json_cli(capsys: pytest.CaptureFixture[str]) -> None:
     transport = FakeTransport(_scripted_success_handler())
     cfg = smoke.SessionConfig(arguments={"resource_type": "pod"}, output="json", quiet=True)

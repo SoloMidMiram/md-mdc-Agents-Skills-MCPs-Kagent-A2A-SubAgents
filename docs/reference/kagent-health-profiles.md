@@ -77,6 +77,12 @@ The current schema does not bind the JSON to a target cluster, URL, namespace,
 or freshness window. Produce it in the same validation run and retain the dated
 source record; schema-level provenance is a tracked follow-up.
 
+**Session cleanup semantics:** The smoke script exits non-zero when session
+cleanup fails (e.g. DELETE returns 500 or a transport error). This prevents
+silent session leaks. HTTP 405 (Method Not Allowed) is a declared compatibility
+policy -- the server explicitly signals it does not support DELETE, which is
+benign and does not fail the gate.
+
 **Non-claim:** Direct MCP success does not prove L4 or L6.
 
 ### Agent-mediated (`FullMcpExecution`)

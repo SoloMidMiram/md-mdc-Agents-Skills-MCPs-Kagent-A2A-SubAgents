@@ -483,8 +483,17 @@ class McpSessionClient:
             self.result.exit_code = ExitCode.PROTOCOL_OR_TOOL
             self.result.error = str(exc)
         finally:
-            self.result.cleanup = self.close()
+            cleanup = self.close()
+            self.result.cleanup = cleanup
             self.result.session_id_present = self._session_id is not None
+            # Promote cleanup failure only when the main operation succeeded.
+            # HTTP 405 (Method Not Allowed) is a declared compatibility policy —
+            # the server explicitly does not support DELETE, which is benign.
+            # Any other non-2xx, transport error, or timeout returns "failed".
+            if cleanup == "failed" and self.result.exit_code == ExitCode.SUCCESS:
+                self.result.exit_code = ExitCode.PROTOCOL_OR_TOOL
+                if self.result.error is None:
+                    self.result.error = "session cleanup failed"
         return self.result
 
     def _initialize(self) -> None:
