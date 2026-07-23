@@ -79,6 +79,27 @@ class UsageFailure(Exception):
     """Invalid CLI input."""
 
 
+@dataclass
+class CardSkillDisplay:
+    """Allowlisted skill fields from an agent card. Never retains full skill metadata."""
+
+    name: str | None
+    display_name: str | None
+    description: str | None
+
+
+@dataclass
+class CardDisplayData:
+    """Allowlisted card presentation fields. Never stores the raw card response."""
+
+    agent_name: str | None
+    accepted: bool | None
+    deployment_ready: bool | None
+    model: str | None
+    model_provider: str | None
+    skills: list[CardSkillDisplay]
+
+
 @dataclass(frozen=True)
 class HttpResponse:
     status: int
@@ -111,6 +132,7 @@ class EvidenceReport:
     probe_results: dict[str, Any] = field(default_factory=dict)
     card_accepted: bool | None = None
     card_deployment_ready: bool | None = None
+    card_display: CardDisplayData | None = None
     decision_passed: bool = False
     exit_code: int = ExitCode.GATE
     reason: str = ""
@@ -385,12 +407,7 @@ def _extract_dispatch_shape(result: Any) -> tuple[str, str | None, str]:
     task_id = result.get("id")
     status = result.get("status")
     kind = result.get("kind")
-    if (
-        isinstance(task_id, str)
-        and task_id.strip()
-        and isinstance(status, dict)
-        and kind == "task"
-    ):
+    if isinstance(task_id, str) and task_id.strip() and isinstance(status, dict) and kind == "task":
         state = status.get("state")
         if not isinstance(state, str) or not state.strip():
             raise GateError("task status.state missing")
@@ -444,9 +461,7 @@ def select_dispatch_from_events(
         # One malformed, mismatched, or error envelope invalidates the response.
         result, err, _matched = validate_jsonrpc_response(request_id, obj)
         if err is not None:
-            raise GateError(
-                f"JSON-RPC error code={err.get('code')}: {err.get('message', '')}"
-            )
+            raise GateError(f"JSON-RPC error code={err.get('code')}: {err.get('message', '')}")
         assert result is not None
         dispatch_id, state, response_kind = _extract_dispatch_shape(result)
         seen_ids.append(dispatch_id)
@@ -476,9 +491,7 @@ def select_dispatch_event(request_id: str, events: list[dict[str, Any]]) -> dict
     for obj in events:
         result, err, _matched = validate_jsonrpc_response(request_id, obj)
         if err is not None:
-            raise GateError(
-                f"JSON-RPC error code={err.get('code')}: {err.get('message', '')}"
-            )
+            raise GateError(f"JSON-RPC error code={err.get('code')}: {err.get('message', '')}")
         assert result is not None
         try:
             candidate = extract_dispatch_result(result)
@@ -585,6 +598,56 @@ def evaluate_card(card_data: dict[str, Any]) -> tuple[bool, bool]:
     return accepted, ready
 
 
+def _extract_card_display(card_data: dict[str, Any]) -> CardDisplayData:
+    """Extract only allowlisted display fields. Never crashes on missing or malformed data."""
+    data = card_data.get("data") or {}
+    if not isinstance(data, dict):
+        data = {}
+    agent = data.get("agent") or {} if isinstance(data.get("agent"), dict) else {}
+    meta = agent.get("metadata") or {} if isinstance(agent.get("metadata"), dict) else {}
+    spec = agent.get("spec") or {} if isinstance(agent.get("spec"), dict) else {}
+    declarative = spec.get("declarative") or {} if isinstance(spec.get("declarative"), dict) else {}
+    a2a_config = (
+        declarative.get("a2aConfig") or {} if isinstance(declarative.get("a2aConfig"), dict) else {}
+    )
+    raw_skills = a2a_config.get("skills", [])
+    if not isinstance(raw_skills, list):
+        raw_skills = []
+
+    ns = meta.get("namespace") if isinstance(meta, dict) else None
+    name = meta.get("name") if isinstance(meta, dict) else None
+    if ns and name and isinstance(ns, str) and isinstance(name, str):
+        agent_name = f"{ns}/{name}"
+    elif isinstance(name, str):
+        agent_name = name
+    elif isinstance(ns, str):
+        agent_name = ns
+    else:
+        agent_name = None
+
+    skills: list[CardSkillDisplay] = []
+    for s in raw_skills:
+        if isinstance(s, dict):
+            skills.append(
+                CardSkillDisplay(
+                    name=s.get("id") or s.get("name"),
+                    display_name=s.get("name"),
+                    description=s.get("description"),
+                )
+            )
+        elif isinstance(s, str):
+            skills.append(CardSkillDisplay(name=s, display_name=s, description=None))
+
+    return CardDisplayData(
+        agent_name=agent_name,
+        accepted=data.get("accepted"),
+        deployment_ready=data.get("deploymentReady"),
+        model=data.get("model"),
+        model_provider=data.get("modelProvider"),
+        skills=skills,
+    )
+
+
 def probe_methods(
     transport: Transport,
     url: str,
@@ -666,6 +729,7 @@ def run_card(
         accepted, ready = evaluate_card(card)
         report.card_accepted = accepted
         report.card_deployment_ready = ready
+        report.card_display = _extract_card_display(card)
         if accepted and ready:
             report.decision_passed = True
             report.exit_code = ExitCode.SUCCESS
@@ -804,6 +868,23 @@ def emit_human(report: EvidenceReport, *, quiet: bool) -> None:
         print("\n--- Probe ---")
         for method, status in report.probe_results.items():
             print(f"  {method}: {status}")
+    if report.action == "card" and report.card_display is not None:
+        d = report.card_display
+        print(f"Agent: {d.agent_name or 'unavailable'}")
+        print(f"Accepted: {d.accepted if d.accepted is not None else 'unavailable'}")
+        _ready = d.deployment_ready
+        ready_str = "unavailable" if _ready is None else str(_ready)
+        print(f"DeploymentReady: {ready_str}")
+        model_label = d.model or "unavailable"
+        provider_label = d.model_provider or "unavailable"
+        print(f"Model: {model_label} ({provider_label})")
+        count = len(d.skills)
+        print(f"Skills ({count}): {'none' if count == 0 else ''}")
+        for s in d.skills:
+            sid = s.name or "?"
+            label = s.display_name or sid
+            desc = s.description or "(no description)"
+            print(f"  - {sid}: {label} - {desc}")
     if report.action in ("task", "both") and report.task_or_message_id:
         print(f"  taskOrMessageId: {report.task_or_message_id}")
         print(f"  state: {report.dispatch_state}")
@@ -887,6 +968,7 @@ def run(
     combined = EvidenceReport(action="both", **base_fields)
     combined.card_accepted = card_report.card_accepted
     combined.card_deployment_ready = card_report.card_deployment_ready
+    combined.card_display = card_report.card_display
     combined.endpoint = task_report.endpoint
     combined.method = task_report.method
     combined.jsonrpc = task_report.jsonrpc

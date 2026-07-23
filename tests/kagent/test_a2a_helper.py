@@ -92,6 +92,34 @@ def _card_not_ready() -> dict[str, Any]:
     return data
 
 
+def _card_with_skills() -> dict[str, Any]:
+    return {
+        "error": False,
+        "data": {
+            "accepted": True,
+            "deploymentReady": True,
+            "model": "gpt-4.1-mini",
+            "modelProvider": "OpenAI",
+            "agent": {
+                "metadata": {"namespace": "kagent", "name": "k8s-a2a-agent"},
+                "spec": {
+                    "declarative": {
+                        "a2aConfig": {
+                            "skills": [
+                                {
+                                    "id": "get-resources-skill",
+                                    "name": "Get Resources",
+                                    "description": "Get resources in the Kubernetes cluster",
+                                }
+                            ]
+                        }
+                    }
+                },
+            },
+        },
+    }
+
+
 def _task_result(
     request_id: str, *, task_id: str = "task-abc", state: str = "submitted"
 ) -> dict[str, Any]:
@@ -212,9 +240,7 @@ def test_extract_task_and_message():
 
 def test_extract_rejects_failed_state():
     with pytest.raises(a2a.GateError, match="not accepted"):
-        a2a.extract_dispatch_result(
-            {"kind": "task", "id": "t1", "status": {"state": "failed"}}
-        )
+        a2a.extract_dispatch_result({"kind": "task", "id": "t1", "status": {"state": "failed"}})
 
 
 @pytest.mark.parametrize(
@@ -257,6 +283,10 @@ def test_card_accepted_and_ready():
     assert report.decision_passed is True
     assert report.card_accepted is True
     assert report.card_deployment_ready is True
+    assert report.card_display is not None
+    assert report.card_display.agent_name == "kagent/k8s-a2a-agent"
+    assert report.card_display.model == "test"
+    assert report.card_display.skills == []
 
 
 def test_card_rejected_not_ready():
@@ -264,6 +294,10 @@ def test_card_rejected_not_ready():
     report = a2a.run(_ns(action="card"), transport=transport)
     assert report.exit_code == 1
     assert report.decision_passed is False
+    assert report.card_display is not None
+    assert report.card_display.deployment_ready is False
+    # card_display accepted is still True (reflects actual data, not gate decision)
+    assert report.card_display.accepted is True
 
 
 def test_card_transport_failure():
@@ -275,6 +309,93 @@ def test_card_transport_failure():
     transport = FakeTransport(handler)
     report = a2a.run(_ns(action="card"), transport=transport)
     assert report.exit_code == 3
+    assert report.card_display is None
+
+
+def test_emit_human_card_action(capsys):
+    transport = FakeTransport(_router({"card": _card_ok()}))
+    report = a2a.run(_ns(action="card"), transport=transport)
+    a2a.emit_human(report, quiet=True)
+    out = capsys.readouterr().out
+    assert "kagent/k8s-a2a-agent" in out
+    assert "Accepted: True" in out
+    assert "DeploymentReady: True" in out
+    assert "Model: test (test)" in out
+    assert "Skills (0): none" in out
+
+
+def test_emit_human_card_rejected(capsys):
+    transport = FakeTransport(_router({"card": _card_not_ready()}))
+    report = a2a.run(_ns(action="card"), transport=transport)
+    a2a.emit_human(report, quiet=True)
+    out = capsys.readouterr().out
+    assert "Accepted: True" in out
+    assert "DeploymentReady: False" in out
+    assert "[FAIL]" in out
+
+
+def test_emit_human_card_missing_metadata(capsys):
+    """Card without model, empty skills, wrong-type skills — never crashes."""
+    card = {
+        "error": False,
+        "data": {
+            "accepted": True,
+            "deploymentReady": True,
+            "agent": {
+                "metadata": {"namespace": "kagent", "name": "k8s-a2a-agent"},
+                "spec": {"declarative": {"a2aConfig": {"skills": "not-a-list"}}},
+            },
+        },
+    }
+    transport = FakeTransport(_router({"card": card}))
+    report = a2a.run(_ns(action="card"), transport=transport)
+    a2a.emit_human(report, quiet=True)
+    out = capsys.readouterr().out
+    assert "Model: unavailable (unavailable)" in out
+    assert "Skills (0): none" in out
+
+
+def test_emit_human_card_no_agent_name(capsys):
+    """Card without agent metadata — renders Agent: unavailable."""
+    card = {
+        "error": False,
+        "data": {
+            "accepted": True,
+            "deploymentReady": True,
+            "model": "gpt-4",
+            "modelProvider": "openai",
+            "agent": {},
+        },
+    }
+    transport = FakeTransport(_router({"card": card}))
+    report = a2a.run(_ns(action="card"), transport=transport)
+    a2a.emit_human(report, quiet=True)
+    out = capsys.readouterr().out
+    assert "Agent: unavailable" in out
+    assert "Model: gpt-4 (openai)" in out
+    assert "Skills (0): none" in out
+
+
+def test_emit_human_card_with_skills(capsys):
+    """Card with one skill — renders skill name, display name, and description."""
+    transport = FakeTransport(_router({"card": _card_with_skills()}))
+    report = a2a.run(_ns(action="card"), transport=transport)
+    a2a.emit_human(report, quiet=True)
+    out = capsys.readouterr().out
+    assert "Skills (1):" in out
+    assert "get-resources-skill" in out
+    assert "Get Resources" in out
+    assert "Get resources in the Kubernetes cluster" in out
+
+
+def test_main_card_human_exit_code(monkeypatch, capsys):
+    """CLI main() returns 0 for card action with --output human."""
+    transport = FakeTransport(_router({"card": _card_ok()}))
+    monkeypatch.setattr(a2a, "DirectUrlTransport", lambda: transport)
+    code = a2a.main(["card"])
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "kagent/k8s-a2a-agent" in out
 
 
 # --- Probe ---
