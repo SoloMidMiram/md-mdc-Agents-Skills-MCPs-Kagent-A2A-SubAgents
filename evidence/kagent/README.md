@@ -61,6 +61,21 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   the same Phase 5E task. Live attempt failed closed (no tool marker). L4
   remains Proven; L6 Not proven. Problem:
   [2026-07-17 agent MCP correlation](problems/2026-07-17-agent-mcp-correlation.md).
+- The quality workflow now defines a separate locked kagent Python job
+  (`uv sync --frozen --group dev`, Ruff, and pytest), pins the suite-compatible
+  Pester 3.4.0 baseline, and
+  explicitly runs the deterministic kagent PowerShell suite. This is repository
+  configuration only until a green hosted run is recorded; it does not change
+  any L0-L7 decision.
+- Kubernetes manifest validation (`scripts/kubernetes/validate.ps1 -Strict`)
+  and Trivy policy scanning (`scripts/security/scan.ps1 -Required`) now fail
+  closed when required tools are missing or return nonzero exits. Pinned
+  validator versions (kubeconform v0.6.7, kube-linter v0.7.1, Trivy v0.61.1)
+  are installed by separate hosted CI jobs. Deterministic Pester tests cover
+  missing-tool and simulated-failure paths in
+  `tests/kagent/KagentToolingValidation.Tests.ps1`. This is repository
+  configuration only until a green hosted run is recorded; it does not change
+  any L0-L7 decision.
 
 ## Major Open Flaws
 
@@ -68,7 +83,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 |----------|------|--------|------------------------------|
 | P0 | No live correlated agent-mediated MCP result | Core L6 objective remains unproved; deterministic gates cannot promote it | One fresh `agent_mcp_trace.py` exit 0 binding a taskId to `kagent-tool-server` / `k8s_get_resources`, same-task returned names, bounded source proof, and kubectl match |
 | P1 | MCP image advertises write tools | RBAC is the only write barrier and tool discovery is misleading | Native read-only image plus retained restrictive RBAC |
-| P1 | Manifest validators may silently skip | A green script run can lack schema/security validation | CI installs validators and fails if unavailable |
+| P1 | Manifest validators may silently skip | A green script run can lack schema/security validation | CI installs validators and fails if unavailable (configured; green hosted run pending) |
 | P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
 | P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
 

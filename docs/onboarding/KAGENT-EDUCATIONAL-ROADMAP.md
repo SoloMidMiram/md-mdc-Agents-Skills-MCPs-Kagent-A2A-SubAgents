@@ -286,9 +286,20 @@ Correlated agent-mediated MCP attempt (L6 Not proven) is recorded in
    validation, exact tool arguments, recomputed result arrays, and exit
    consistency (`agent_mcp_trace.py`, FullMcpExecution). Evidence: phase 5e
    (live L6 Not proven; hardened positive path deterministic-only).
-8. Capture one live task -> agent -> MCP tool -> kubectl-matched result loop
+8. (DONE locally; hosted confirmation pending) Add deterministic kagent CI:
+   locked `uv` synchronization, Ruff over `scripts/kagent` and `tests/kagent`,
+   full pytest, the suite-compatible pinned Pester 3.4.0 baseline, and an explicit
+   `KagentHealth.Tests.ps1` invocation. Record a green GitHub Actions run
+   against the committed workflow before treating the hosted gate as proven.
+9. (DONE locally; hosted confirmation pending) Make Kubernetes manifest and
+   Trivy policy validation fail closed in CI (`scripts/kubernetes/validate.ps1
+   -Strict`, `scripts/security/scan.ps1 -Required`), including pinned validator
+   installation (kubeconform v0.6.7, kube-linter v0.7.1, Trivy v0.61.1) and
+   deterministic missing-tool / native-exit failure coverage in
+   `tests/kagent/KagentToolingValidation.Tests.ps1`.
+10. Capture one live task -> agent -> MCP tool -> kubectl-matched result loop
    (`agent_mcp_trace.py` exit 0) to promote L6.
-9. Build a repeatable workshop/bootstrap path only after the real execution path is proven.
+11. Build a repeatable workshop/bootstrap path only after the real execution path is proven.
 
 ## Major Flaws To Close
 
@@ -299,6 +310,8 @@ ownership is:
    (helper/schema already fail closed).
 2. **P1 runtime safety:** move to a native read-only MCP image while retaining
    restrictive RBAC.
-3. **P1 validation:** make missing Kubernetes validators a CI failure.
+3. **P1 validation:** fail-closed Kubernetes and Trivy policy gates are
+   configured with pinned validators and deterministic tests; a green hosted
+   CI run against the committed workflow is still pending.
 4. **P2 documentation drift:** continue replacing repeated runtime snapshots
    with links to `evidence/kagent/README.md`.

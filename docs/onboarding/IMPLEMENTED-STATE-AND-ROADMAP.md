@@ -122,6 +122,17 @@ Implemented and validated:
 - Phase 5E single-task agent-mediated producer and `FullMcpExecution` consumer
   with deterministic transport/protocol/dispatch, freshness, target, source,
   tool, result, and exit-consistency tests
+- quality workflow configuration for a separate locked kagent Python job
+  (`uv sync --frozen --group dev`, Ruff, and full pytest), the suite-compatible
+  pinned Pester 3.4.0 baseline, and an explicit deterministic kagent PowerShell
+  test invocation; a green
+  hosted run against the committed workflow is still pending
+- fail-closed Kubernetes manifest validation (`scripts/kubernetes/validate.ps1
+  -Strict`) and Trivy policy scanning (`scripts/security/scan.ps1 -Required`)
+  with pinned validator installation (kubeconform v0.6.7, kube-linter v0.7.1,
+  Trivy v0.61.1) and deterministic Pester failure-path tests
+  (`KagentToolingValidation.Tests.ps1`); a green hosted run against the
+  committed workflow is still pending
 - `kagent-controller` REST API exposes agent card on port 8083
 
 Current capability decisions, dated observations, corrections, and major flaws
@@ -182,7 +193,7 @@ Use this when you are changing configuration or docs:
 
 ```powershell
 .\scripts\verify-global-playwright-mcp.ps1
-pwsh -ExecutionPolicy Bypass -File scripts\kubernetes\validate.ps1
+pwsh -ExecutionPolicy Bypass -File scripts\kubernetes\validate.ps1 -Strict
 pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 ```
 
@@ -341,11 +352,17 @@ Jobs:
 3. (DONE) Create `evidence/kagent/README.md` as the current status and ranked flaw ledger.
 4. (DONE) Define stable-core isolation and promotion rules for both educational lanes in `docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md`.
 5. (DONE) Add a shared problem manual, reflection template, and educational-project entry map.
-6. Keep `README.md` short and current-state oriented.
-7. Update or demote stale architecture docs so authoritative files describe current structure or clearly mark target-only content.
-8. Add automated validation for `REPO_MANIFEST.yaml`: path existence, allowed purpose/status values, authority consistency, and historical files not marked authoritative.
-9. Continue replacing duplicated runtime snapshots with canonical evidence links.
-10. Retire root compatibility stubs only after consumers update bookmarks.
+6. (DONE locally; hosted confirmation pending) Add locked deterministic kagent
+   Python checks, pin Pester, and explicitly run the kagent PowerShell suite in
+   the quality workflow.
+7. (DONE locally; hosted confirmation pending) Add fail-closed, pinned
+   Kubernetes manifest and Trivy policy validation to hosted CI, with
+   deterministic failure-path tests.
+8. Keep `README.md` short and current-state oriented.
+9. Update or demote stale architecture docs so authoritative files describe current structure or clearly mark target-only content.
+10. Add automated validation for `REPO_MANIFEST.yaml`: path existence, allowed purpose/status values, authority consistency, and historical files not marked authoritative.
+11. Continue replacing duplicated runtime snapshots with canonical evidence links.
+12. Retire root compatibility stubs only after consumers update bookmarks.
 
 Exit evidence:
 
