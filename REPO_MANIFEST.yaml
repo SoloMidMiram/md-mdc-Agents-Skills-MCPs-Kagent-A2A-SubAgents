@@ -21,6 +21,62 @@ entries:
     status: stable
     authority: true
 
+  # — Agent governance pilot —
+  - path: .cursor/rules/*
+    purpose: constraint
+    status: lab
+    authority: false
+
+  - path: .cursor/hooks.json
+    purpose: config
+    status: lab
+    authority: false
+
+  - path: .cursor/hooks/*
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: .agents/skills/*/SKILL.md
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: .agents/skills/*/scripts/*
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: scripts/benchmark/README.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: scripts/benchmark/scoring.json
+    purpose: config
+    status: lab
+    authority: true
+
+  - path: scripts/benchmark/cases/*
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: scripts/benchmark/run-benchmark.ps1
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: scripts/benchmark/compare-benchmark.ps1
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: tests/benchmark/*
+    purpose: test
+    status: lab
+    authority: false
+
   # — Project constraints —
   - path: constraints.md
     purpose: constraint
@@ -48,6 +104,22 @@ entries:
     purpose: onboarding
     status: stable
     authority: true
+
+  - path: docs/onboarding/AGENT-GOVERNANCE-ROADMAP.md
+    purpose: onboarding
+    status: lab
+    authority: true
+
+  # — Dated non-authoritative reviews —
+  - path: reports/2026-07-23-evaluation-report.md
+    purpose: reference
+    status: historical
+    authority: false
+
+  - path: reports/2026-07-23-segments-and-strategic-layout.md
+    purpose: architecture
+    status: historical
+    authority: false
 
   - path: .github/prompts/implement-next-educational-stage.prompt.md
     purpose: reference
