@@ -604,6 +604,9 @@ def _bound_capture_payload(
 ) -> tuple[dict[str, Any], bool]:
     """Return a shallow-bounded copy of *payload* and a truncation flag.
 
+    The second return value is ``True`` when at least one field was trimmed,
+    ``False`` when the payload fits within the given limits unchanged.
+
     List fields longer than *max_list* are trimmed; original counts are recorded
     under ``_original_<key>_count``.  Top-level string fields longer than
     *max_str* are trimmed; original lengths are recorded under
@@ -635,7 +638,9 @@ def write_source_capture(path: Path, payload: dict[str, Any]) -> str:
         text = json.dumps(bounded, indent=2, sort_keys=True)
         if len(text) > MAX_SOURCE_CHARS:
             # Last resort: emit a minimal valid document preserving the
-            # correlation fields the consumer requires.
+            # correlation fields the consumer requires.  Fields absent from
+            # the original payload serialise as JSON null; the consumer
+            # checks each field independently and treats null as unset.
             minimal: dict[str, Any] = {
                 "schemaVersion": payload.get("schemaVersion"),
                 "evidenceKind": payload.get("evidenceKind"),
