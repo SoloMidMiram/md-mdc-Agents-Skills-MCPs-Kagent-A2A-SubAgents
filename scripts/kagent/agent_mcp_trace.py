@@ -359,9 +359,7 @@ def _normalize_tool_marker(part: Any) -> dict[str, str] | None:
     if not isinstance(args, dict):
         args = data
     resource_type = (
-        args.get("resourceType")
-        or args.get("resource_type")
-        or args.get("resource-type")
+        args.get("resourceType") or args.get("resource_type") or args.get("resource-type")
     )
     namespace = args.get("namespace") or args.get("resourceNamespace")
     if not all(isinstance(v, str) and v.strip() for v in (tool, server, resource_type, namespace)):
@@ -398,9 +396,7 @@ def _extract_names_after_protocol_marker(
     return sorted(set(names))
 
 
-def _extract_terminal_agent_names(
-    events: list[dict[str, Any]], task_id: str
-) -> list[str]:
+def _extract_terminal_agent_names(events: list[dict[str, Any]], task_id: str) -> list[str]:
     names: list[str] = []
     for obj in events:
         result = obj.get("result") if isinstance(obj, dict) else None
@@ -600,11 +596,55 @@ def names_match(tool_names: list[str], kubectl_names: list[str]) -> bool:
     return len(tool_set & kube_set) > 0
 
 
+def _bound_capture_payload(
+    payload: dict[str, Any],
+    *,
+    max_list: int = 20,
+    max_str: int = 4_000,
+) -> tuple[dict[str, Any], bool]:
+    """Return a shallow-bounded copy of *payload* and a truncation flag.
+
+    List fields longer than *max_list* are trimmed; original counts are recorded
+    under ``_original_<key>_count``.  Top-level string fields longer than
+    *max_str* are trimmed; original lengths are recorded under
+    ``_original_<key>_length``.  Nested structures are not recursed — this is
+    intentionally a single-pass, fail-safe bound.
+    """
+    result: dict[str, Any] = {}
+    truncated = False
+    for key, val in payload.items():
+        if isinstance(val, list) and len(val) > max_list:
+            result[f"_original_{key}_count"] = len(val)
+            result[key] = val[:max_list]
+            truncated = True
+        elif isinstance(val, str) and len(val) > max_str:
+            result[f"_original_{key}_length"] = len(val)
+            result[key] = val[:max_str]
+            truncated = True
+        else:
+            result[key] = val
+    return result, truncated
+
+
 def write_source_capture(path: Path, payload: dict[str, Any]) -> str:
     path.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(payload, indent=2, sort_keys=True)
     if len(text) > MAX_SOURCE_CHARS:
-        text = text[:MAX_SOURCE_CHARS] + "\n…truncated…\n"
+        bounded, _ = _bound_capture_payload(payload)
+        bounded["truncated"] = True
+        text = json.dumps(bounded, indent=2, sort_keys=True)
+        if len(text) > MAX_SOURCE_CHARS:
+            # Last resort: emit a minimal valid document preserving the
+            # correlation fields the consumer requires.
+            minimal: dict[str, Any] = {
+                "schemaVersion": payload.get("schemaVersion"),
+                "evidenceKind": payload.get("evidenceKind"),
+                "observedAt": payload.get("observedAt"),
+                "taskOrMessageId": payload.get("taskOrMessageId"),
+                "truncated": True,
+                "_reason": "payload exceeded MAX_SOURCE_CHARS after bounding",
+            }
+            text = json.dumps(minimal, indent=2, sort_keys=True)
     path.write_text(text, encoding="utf-8")
     try:
         rel = path.resolve().relative_to(ROOT.resolve()).as_posix()
@@ -732,9 +772,7 @@ def run_trace(
         report.source_proof = proof
         report.tool_name = str(proof.get("tool")) if observed and proof else None
         report.tool_server = str(proof.get("server")) if observed and proof else None
-        report.correlated_id = (
-            str(proof.get("taskOrMessageId")) if observed and proof else None
-        )
+        report.correlated_id = str(proof.get("taskOrMessageId")) if observed and proof else None
         report.source_kind = source_kind
         report.source_reference = ref
         report.task_trace_correlated = bool(

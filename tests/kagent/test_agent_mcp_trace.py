@@ -614,3 +614,53 @@ def test_actual_kubernetes_context_must_be_docker_desktop(tmp_path: Path):
     assert report.exit_code == 1
     assert report.target_bound is False
     assert "target binding" in report.reason
+
+
+def test_oversized_source_capture_is_valid_json(tmp_path: Path):
+    """A payload that serializes beyond MAX_SOURCE_CHARS must still produce valid JSON."""
+    large_payload: dict[str, Any] = {
+        "schemaVersion": "1.0",
+        "evidenceKind": "agent-mediated-mcp",
+        "observedAt": "2026-07-17T12:00:00Z",
+        "taskOrMessageId": "task-overflow",
+        "logSearches": [
+            {
+                "source": f"log-search-{i}",
+                "succeeded": True,
+                "lineCount": 200,
+                "taskMatches": 1,
+                "toolMatches": 1,
+                "correlatedMatches": 1,
+                "sampleLines": ["a" * 300] * 10,
+            }
+            for i in range(60)
+        ],
+        "eventSummaries": [
+            {"kind": "status-update", "state": "working", "taskId": f"t-{i}"} for i in range(80)
+        ],
+    }
+    dest = tmp_path / "oversize.json"
+    trace.write_source_capture(dest, large_payload)
+
+    text = dest.read_text(encoding="utf-8")
+    parsed = json.loads(text)  # must be valid JSON
+
+    assert parsed.get("truncated") is True
+    assert parsed.get("schemaVersion") == "1.0"
+    assert parsed.get("evidenceKind") == "agent-mediated-mcp"
+    assert parsed.get("taskOrMessageId") == "task-overflow"
+
+
+def test_small_source_capture_is_not_marked_truncated(tmp_path: Path):
+    """A payload within MAX_SOURCE_CHARS must not receive a truncated flag."""
+    small_payload: dict[str, Any] = {
+        "schemaVersion": "1.0",
+        "evidenceKind": "agent-mediated-mcp",
+        "observedAt": "2026-07-17T12:00:00Z",
+        "taskOrMessageId": "task-small",
+    }
+    dest = tmp_path / "small.json"
+    trace.write_source_capture(dest, small_payload)
+
+    parsed = json.loads(dest.read_text(encoding="utf-8"))
+    assert "truncated" not in parsed
