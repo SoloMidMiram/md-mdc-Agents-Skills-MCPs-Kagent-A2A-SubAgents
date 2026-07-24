@@ -23,7 +23,9 @@ if (-not (Get-Command kubeconform -ErrorAction SilentlyContinue)) {
     }
 } else {
     Write-Output "=== kubeconform ==="
-    kubeconform -strict -summary deploy/
+    # --ignore-missing-schemas avoids failures on CRDs (RemoteMCPServer, Agent, etc.)
+    # that kubeconform cannot validate without their CRD schemas.
+    kubeconform -strict -ignore-missing-schemas -summary deploy/
     $lastExit = $LASTEXITCODE
     if ($lastExit -ne 0) {
         Write-Error "[FAIL] kubeconform exited with code $lastExit"

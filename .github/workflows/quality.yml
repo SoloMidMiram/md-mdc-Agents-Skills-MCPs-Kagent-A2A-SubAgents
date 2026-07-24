@@ -80,11 +80,11 @@ jobs:
       - name: Install Trivy
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq wget apt-transport-https gnupg lsb-release
+          sudo apt-get install -y -qq wget apt-transport-https gnupg
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee /etc/apt/sources.list.d/trivy.list
           sudo apt-get update -qq
-          sudo apt-get install -y -qq trivy=0.61.1
+          sudo apt-get install -y -qq trivy
           trivy --version
 
       - name: Run Trivy required-policy scan
@@ -158,12 +158,14 @@ jobs:
       - name: Run deterministic kagent PowerShell tests
         shell: pwsh
         run: |
+          Import-Module Pester -RequiredVersion 3.4.0 -Force
           $result = Invoke-Pester -Path .\tests\kagent\KagentHealth.Tests.ps1 -PassThru
           if ($result.FailedCount -gt 0) { exit 1 }
 
       - name: Run kagent tooling validation tests
         shell: pwsh
         run: |
+          Import-Module Pester -RequiredVersion 3.4.0 -Force
           $result = Invoke-Pester -Path .\tests\kagent\KagentToolingValidation.Tests.ps1 -PassThru
           if ($result.FailedCount -gt 0) { exit 1 }
 
