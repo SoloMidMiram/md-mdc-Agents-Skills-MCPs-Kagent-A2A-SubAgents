@@ -77,14 +77,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Trivy
+      - name: Install Trivy v0.61.1
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq wget apt-transport-https gnupg
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq trivy
+          wget -q https://github.com/aquasecurity/trivy/releases/download/v0.61.1/trivy_0.61.1_Linux-64bit.deb
+          echo "0a9ea23c0dfb5ab5f6afb613c41a3eabe44c8b3861cb60cc18fac4a079c6c577  trivy_0.61.1_Linux-64bit.deb" | sha256sum --check
+          sudo dpkg -i trivy_0.61.1_Linux-64bit.deb
+          # dpkg may warn about missing deps; install them if needed
+          sudo apt-get install -y -qq -f 2>&1 | tail -2
           trivy --version
 
       - name: Run Trivy required-policy scan
@@ -113,11 +112,12 @@ jobs:
         shell: pwsh
         run: npm install -g @openai/codex@0.141.0
 
-      - name: Install Pester
+      - name: Install Pester (3.4.0 + 6.0.1)
         shell: pwsh
         run: |
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Install-Module Pester -RequiredVersion 3.4.0 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          Install-Module Pester -RequiredVersion 6.0.1 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
 
       - name: Install PSScriptAnalyzer
         shell: pwsh
@@ -151,9 +151,11 @@ jobs:
         shell: pwsh
         run: .\scripts\integrations\verify-integration-scaffold.ps1
 
-      - name: Run evaluation suite
+      - name: Run evaluation suite (Pester 6.0.1)
         shell: pwsh
-        run: .\scripts\evaluation\run-evaluation.ps1 -CI
+        run: |
+          Import-Module Pester -RequiredVersion 6.0.1 -Force
+          .\scripts\evaluation\run-evaluation.ps1 -CI
 
       - name: Run deterministic kagent PowerShell tests
         shell: pwsh

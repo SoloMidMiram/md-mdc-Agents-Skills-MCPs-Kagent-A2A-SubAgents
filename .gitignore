@@ -50,6 +50,7 @@ Thumbs.db
 
 # Disposable local planning notes
 PRECOMMIT-DRAFT.md
+.cursor/plans/
 
 # Local ephemeral kagent lab captures (never commit)
 evidence/kagent/tmp/
