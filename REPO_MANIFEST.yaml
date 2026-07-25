@@ -413,6 +413,11 @@ entries:
     status: lab
     authority: false
 
+  - path: .trivyignore
+    purpose: config
+    status: stable
+    authority: true
+
   - path: uv.lock
     purpose: config
     status: stable

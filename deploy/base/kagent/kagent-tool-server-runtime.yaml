@@ -118,6 +118,8 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mcp-server
           image: ghcr.io/kagent-dev/kagent/tools:0.0.13

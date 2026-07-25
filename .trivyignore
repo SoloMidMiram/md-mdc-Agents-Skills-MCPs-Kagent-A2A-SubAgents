@@ -1,0 +1,20 @@
+# Kubernetes: container runs with UID <= 10000
+# Lab environment: runAsUser=1000 matches the kagent base image.
+# Changing to >10000 would require rebuilding the upstream image.
+# Owner: kagent-dev-team
+# Expiry: 2027-01-01
+KSV-0020
+
+# Kubernetes: container runs with GID <= 10000
+# Lab environment: fsGroup=1000 matches the kagent base image.
+# Changing to >10000 would require rebuilding the upstream image.
+# Owner: kagent-dev-team
+# Expiry: 2027-01-01
+KSV-0021
+
+# Kubernetes: image from untrusted registry
+# Image ghcr.io/kagent-dev/kagent/tools:0.0.13 is the official kagent registry.
+# This is a Trivy allowlist-based policy; the registry IS trusted for this project.
+# Owner: kagent-dev-team
+# Expiry: 2027-01-01
+KSV-0125

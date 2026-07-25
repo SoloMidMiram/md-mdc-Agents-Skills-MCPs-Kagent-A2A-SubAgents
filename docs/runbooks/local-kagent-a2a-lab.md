@@ -67,7 +67,7 @@ helm upgrade --install kagent-crds oci://ghcr.io/kagent-dev/kagent/helm/kagent-c
 ### 3. Set the API key
 
 ```powershell
-$env:OPENAI_API_KEY = "your-api-key-here"
+$env:OPENAI_API_KEY = "<your-api-key>"
 ```
 
 ### 4. Install kagent core
