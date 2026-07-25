@@ -1,6 +1,6 @@
 # Agent Rules, Skills, and Hooks Roadmap
 
-**Status:** R1-R3 and S1-S2 implemented; S1/S2 pilot evidence is not yet receipt-backed; H1-H3 in non-blocking shadow; baseline and candidate remain unscored; Phase 4 CI jobs configured; kagent-python and kagent-kubernetes pass on HEAD 3762994; kagent-security and Repository Evaluation still fail
+**Status:** R1-R3 and S1-S2 implemented; S1/S2 pilot evidence is not yet receipt-backed; H1-H3 in non-blocking shadow; baseline and candidate remain unscored; Phase 4 CI jobs configured; kagent-python passes on HEAD fe88530; kagent-kubernetes passes independently; kagent-security still fails; evaluation runner Pester 5.7.1 proven locally but not yet deployed to CI
 **Owner:** Repository maintainers
 **Last reviewed:** 2026-07-24
 **Next review:** After complete independent baseline and candidate assessments
@@ -304,11 +304,12 @@ Candidate checks:
 - [ ] Manifest schema, paths, duplicate mappings, and authority consistency.
 - [ ] Cross-lane dependency boundaries.
 - [ ] JSON evidence validity.
-- [x] Kubernetes and security validator availability and exit behavior. (run 30097962225 on HEAD 3762994: kagent-kubernetes PASS after securityContext hardening — kagent-security still FAIL)
+- [x] Kubernetes validator availability and exit behavior. (run 30097962225 on HEAD 3762994: kagent-kubernetes PASS after securityContext hardening)
+- [ ] Security validator availability and exit behavior. (kagent-security still FAIL on HEAD fe88530)
 
 Hosted run 30076055251 on HEAD 2c40edb (2026-07-24): kagent-python PASS, kagent-kubernetes FAIL, kagent-security FAIL, Repository Evaluation FAIL.
 Hosted run 30097962225 on HEAD 3762994 (2026-07-24): kagent-python PASS, kagent-kubernetes PASS (fixed), kagent-security FAIL, Repository Evaluation FAIL.
-Phase 4 remains incomplete: 2/9 candidate checks now passing (Python/Ruff, Kubernetes/security validator); remaining 7 are not yet implemented or not yet green.
+Phase 4 remains incomplete: 1/10 candidate checks passing (Python/Ruff); kagent-kubernetes passes independently, kagent-security fails; evaluation runner Pester 5.7.1 proven locally but not yet deployed to CI.
 
 Hook promotion tasks:
 
@@ -445,6 +446,7 @@ record rather than embedding large logs here.
 | 2026-07-23 | Skills and shadow hooks review | Unscored | Deterministic contract tests only | Bundled skill validators and H1-H3 shadow telemetry exist | No real-use sample; H3 correlation is best effort when Cursor supplies no session ID | Keep skills Implemented and hooks Shadow; do not block | `tests/benchmark/` |
 | 2026-07-24 | Organisation closure | Not run | Not evaluated | .cursor/plans/ ignored; canonical vocabulary verified; Phase 4 still red | No measurable change | Keep Phases 0-4 incomplete per observed evidence | `https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30076055251` |
 | 2026-07-24 | Phase 4 CI repair | Not run | Not evaluated | Pester 3.4+6.0.1 pinned; Trivy v0.61.1 pinned with SHA256; K8s securityContext hardened | kagent-kubernetes fixed; kagent-security and Evaluation still red | Phase 4 remains incomplete (2/9 checks passing). Fixes: 4 files, +35/-13 | `https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30097962225` |
+| 2026-07-25 | Phase 4 CI repair v3 | Not run | Bugbot: no bugs found | Trivy v0.72.0 tar.gz with SHA-256; Pester 5.7.1 for evaluation suite (+80/80 pass locally); KagentToolingValidation tests fixed (child pwsh processes, 9/9 pass locally); K8s/security split into independent checks | kagent-security and Repository Evaluation still red; Phase 4 still incomplete | Phase 4 still incomplete: 1/10 candidate checks passing (Python/Ruff). Fixes: 3 files, +69/-97 | Not yet pushed |
 
 ## Decision Log
 

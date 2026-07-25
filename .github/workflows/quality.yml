@@ -77,13 +77,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Trivy v0.61.1
+      - name: Install Trivy v0.72.0
         run: |
-          wget -q https://github.com/aquasecurity/trivy/releases/download/v0.61.1/trivy_0.61.1_Linux-64bit.deb
-          echo "0a9ea23c0dfb5ab5f6afb613c41a3eabe44c8b3861cb60cc18fac4a079c6c577  trivy_0.61.1_Linux-64bit.deb" | sha256sum --check
-          sudo dpkg -i trivy_0.61.1_Linux-64bit.deb
-          # dpkg may warn about missing deps; install them if needed
-          sudo apt-get install -y -qq -f 2>&1 | tail -2
+          wget -q https://github.com/aquasecurity/trivy/releases/download/v0.72.0/trivy_0.72.0_Linux-64bit.tar.gz
+          echo "bbb64b9695866ce4a7a8f5c9592002c5961cab378577fa3f8a040df362b9b2ea  trivy_0.72.0_Linux-64bit.tar.gz" | sha256sum --check
+          tar xzf trivy_0.72.0_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin/
           trivy --version
 
       - name: Run Trivy required-policy scan
@@ -112,12 +111,12 @@ jobs:
         shell: pwsh
         run: npm install -g @openai/codex@0.141.0
 
-      - name: Install Pester (3.4.0 + 6.0.1)
+      - name: Install Pester (3.4.0 + 5.7.1)
         shell: pwsh
         run: |
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Install-Module Pester -RequiredVersion 3.4.0 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
-          Install-Module Pester -RequiredVersion 6.0.1 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
 
       - name: Install PSScriptAnalyzer
         shell: pwsh
@@ -151,11 +150,12 @@ jobs:
         shell: pwsh
         run: .\scripts\integrations\verify-integration-scaffold.ps1
 
-      - name: Run evaluation suite (Pester 6.0.1)
+      - name: Run evaluation suite (Pester 5.7.1)
         shell: pwsh
         run: |
-          Import-Module Pester -RequiredVersion 6.0.1 -Force
-          .\scripts\evaluation\run-evaluation.ps1 -CI
+          Import-Module Pester -RequiredVersion 5.7.1 -Force
+          $result = .\scripts\evaluation\run-evaluation.ps1 -CI
+          if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Run deterministic kagent PowerShell tests
         shell: pwsh
