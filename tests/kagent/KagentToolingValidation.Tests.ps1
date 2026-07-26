@@ -7,6 +7,23 @@ $pwshExe = (Get-Command pwsh).Source
 
 $validateScript = Join-Path $repoRoot 'scripts\kubernetes\validate.ps1'
 $scanScript = Join-Path $repoRoot 'scripts\security\scan.ps1'
+$logPath = Join-Path $repoRoot 'debug-81484d.log'
+
+function Write-DebugLog {
+    param([string]$Message, [hashtable]$Data = @{})
+    try {
+        $entry = @{
+            sessionId = '81484d'
+            timestamp = [DateTime]::UtcNow
+            location  = 'KagentToolingValidation.Tests.ps1'
+            message   = $Message
+            data      = $Data
+        } | ConvertTo-Json -Compress
+        Add-Content -LiteralPath $logPath -Value $entry -Encoding UTF8
+    } catch {
+        # Silently ignore logging failures
+    }
+}
 
 function New-TempDir {
     $path = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString())
@@ -195,9 +212,25 @@ function Invoke-HealthCheckViaChildProcess {
     try {
         New-KubectlStub -Path (Join-Path $tempDir 'kubectl.ps1')
         $cmd = "`$env:PATH='$tempDir'; `$env:KUBECTL_STUB_BEHAVIOR='$KubectlBehavior'; & '$healthCheckScript' -Profile $Profile 2>&1"
+        Write-DebugLog -Message "Invoke-HealthCheckViaChildProcess" -Data @{
+            tempDir = $tempDir
+            cmd = $cmd
+            pwshExe = $pwshExe
+            healthCheckScript = $healthCheckScript
+            kubectlBehavior = $KubectlBehavior
+            profile = $Profile
+        }
         $output = & $pwshExe -NoProfile -Command $cmd 2>&1
         $ec = $LASTEXITCODE
+        Write-DebugLog -Message "Invoke-HealthCheckViaChildProcess result" -Data @{
+            exitCode = $ec
+            outputLines = @($output).Count
+        }
         $joined = ($output | Out-String).Trim()
+        Write-DebugLog -Message "Invoke-HealthCheckViaChildProcess joined output" -Data @{
+            exitCode = $ec
+            output = $joined
+        }
         return @{
             ExitCode = $ec
             Output   = $joined
@@ -210,18 +243,30 @@ function Invoke-HealthCheckViaChildProcess {
 Describe 'Check-kagent-health CRD behavior' {
     It 'CardLab + missing CRD + healthy pods/agents exits 0' {
         $result = Invoke-HealthCheckViaChildProcess -KubectlBehavior 'crd-missing' -Profile 'CardLab'
+        Write-DebugLog -Message "Test: CardLab crd-missing" -Data @{
+            actualExitCode = $result.ExitCode
+            outputPreview = ($result.Output).Substring(0, [Math]::Min(200, $result.Output.Length))
+        }
         $result.ExitCode | Should Be 0
         $result.Output | Should Match 'CRD not found'
     }
 
     It 'CardLab + auth error exits 3' {
         $result = Invoke-HealthCheckViaChildProcess -KubectlBehavior 'auth-error' -Profile 'CardLab'
+        Write-DebugLog -Message "Test: CardLab auth-error" -Data @{
+            actualExitCode = $result.ExitCode
+            outputPreview = ($result.Output).Substring(0, [Math]::Min(200, $result.Output.Length))
+        }
         $result.ExitCode | Should Not Be 0
         $result.Output | Should Match 'FAIL'
     }
 
     It 'DirectMcpServer + missing CRD exits 3 (not silently accepted)' {
         $result = Invoke-HealthCheckViaChildProcess -KubectlBehavior 'crd-missing' -Profile 'DirectMcpServer'
+        Write-DebugLog -Message "Test: DirectMcpServer crd-missing" -Data @{
+            actualExitCode = $result.ExitCode
+            outputPreview = ($result.Output).Substring(0, [Math]::Min(200, $result.Output.Length))
+        }
         $result.ExitCode | Should Not Be 0
         $result.Output | Should Match 'FAIL'
     }
