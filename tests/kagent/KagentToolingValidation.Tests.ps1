@@ -178,7 +178,7 @@ if ($allArgs -match 'get pods') {
     exit 0
 }
 if ($allArgs -match 'get agent') {
-    Write-Output "k8s-a2a-agent   Available   3   5m"
+    Write-Output "k8s-a2a-agent   A2A   v1   True   True"
     exit 0
 }
 exit 0
