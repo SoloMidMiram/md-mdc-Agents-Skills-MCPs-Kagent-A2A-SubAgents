@@ -151,3 +151,78 @@ Describe 'Kubernetes validation non-strict mode' {
         }
     }
 }
+
+# --- kubectl stub helpers for check-kagent-health.ps1 ---
+
+$healthCheckScript = Join-Path $repoRoot 'scripts\kagent\check-kagent-health.ps1'
+
+function New-KubectlStub {
+    param([string]$Path)
+    $content = @'
+param()
+$allArgs = $args -join ' '
+if ($allArgs -match 'get remotemcpserver') {
+    $behavior = [Environment]::GetEnvironmentVariable("KUBECTL_STUB_BEHAVIOR", "Process")
+    if ($behavior -eq 'crd-missing') {
+        Write-Error "error: the server doesn't have a resource type ""remotemcpserver"""
+        exit 1
+    } elseif ($behavior -eq 'auth-error') {
+        Write-Error "Error from server (Forbidden)"
+        exit 1
+    }
+    exit 0
+}
+if ($allArgs -match 'get pods') {
+    Write-Output "kagent-controller-5d8f7c9b6f-abcde   1/1   Running   0   5m"
+    Write-Output "kagent-ui-7f9c8b6a5d-fghij            1/1   Running   0   5m"
+    exit 0
+}
+if ($allArgs -match 'get agent') {
+    Write-Output "k8s-a2a-agent   Available   3   5m"
+    exit 0
+}
+exit 0
+'@
+    Set-Content -LiteralPath $Path -Value $content -Encoding ASCII
+}
+
+function Invoke-HealthCheckViaChildProcess {
+    param(
+        [string]$KubectlBehavior = 'present',
+        [string]$Profile = 'CardLab'
+    )
+    $tempDir = New-TempDir
+    try {
+        New-KubectlStub -Path (Join-Path $tempDir 'kubectl.ps1')
+        $cmd = "`$env:PATH='$tempDir'; `$env:KUBECTL_STUB_BEHAVIOR='$KubectlBehavior'; & '$healthCheckScript' -Profile $Profile 2>&1"
+        $output = & $pwshExe -NoProfile -Command $cmd 2>&1
+        $ec = $LASTEXITCODE
+        $joined = ($output | Out-String).Trim()
+        return @{
+            ExitCode = $ec
+            Output   = $joined
+        }
+    } finally {
+        Remove-TempDir -Path $tempDir
+    }
+}
+
+Describe 'Check-kagent-health CRD behavior' {
+    It 'CardLab + missing CRD + healthy pods/agents exits 0' {
+        $result = Invoke-HealthCheckViaChildProcess -KubectlBehavior 'crd-missing' -Profile 'CardLab'
+        $result.ExitCode | Should Be 0
+        $result.Output | Should Match 'CRD not found'
+    }
+
+    It 'CardLab + auth error exits 3' {
+        $result = Invoke-HealthCheckViaChildProcess -KubectlBehavior 'auth-error' -Profile 'CardLab'
+        $result.ExitCode | Should Not Be 0
+        $result.Output | Should Match 'FAIL'
+    }
+
+    It 'DirectMcpServer + missing CRD exits 3 (not silently accepted)' {
+        $result = Invoke-HealthCheckViaChildProcess -KubectlBehavior 'crd-missing' -Profile 'DirectMcpServer'
+        $result.ExitCode | Should Not Be 0
+        $result.Output | Should Match 'FAIL'
+    }
+}

@@ -259,7 +259,21 @@ def sanitize_controller_origin(controller: str) -> str:
     parsed = urlparse(controller)
     if not parsed.scheme or not parsed.netloc:
         return controller.rstrip("/")
-    return f"{parsed.scheme}://{parsed.netloc}"
+    hostname = parsed.hostname or ""
+    if not hostname:
+        return controller.rstrip("/")
+    port = None
+    try:
+        port = parsed.port
+    except ValueError:
+        port = None
+    if port is not None:
+        if ":" in hostname:
+            return f"{parsed.scheme}://[{hostname}]:{port}"
+        return f"{parsed.scheme}://{hostname}:{port}"
+    if ":" in hostname:
+        return f"{parsed.scheme}://[{hostname}]"
+    return f"{parsed.scheme}://{hostname}"
 
 
 def sanitize_request_id(request_id: str | None) -> str | None:
@@ -868,7 +882,7 @@ def emit_human(report: EvidenceReport, *, quiet: bool) -> None:
         print("\n--- Probe ---")
         for method, status in report.probe_results.items():
             print(f"  {method}: {status}")
-    if report.action == "card" and report.card_display is not None:
+    if report.action in ("card", "both") and report.card_display is not None:
         d = report.card_display
         print(f"Agent: {d.agent_name or 'unavailable'}")
         print(f"Accepted: {d.accepted if d.accepted is not None else 'unavailable'}")

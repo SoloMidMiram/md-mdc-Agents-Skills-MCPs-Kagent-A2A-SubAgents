@@ -788,3 +788,82 @@ def test_no_secrets_in_sanitized_dict():
     data = report.to_sanitized_dict()
     assert data["transport"]["error"] == "[redacted]"
     assert data["protocol"]["requestId"].endswith("…")
+
+
+# --- sanitize_controller_origin ---
+
+
+def test_sanitize_controller_origin_no_userinfo():
+    """URL with userinfo strips credentials, keeps host and port."""
+    result = a2a.sanitize_controller_origin("https://user:pass@host:8083/path")
+    assert result == "https://host:8083"
+    assert "user" not in result
+    assert "pass" not in result
+
+
+def test_sanitize_controller_origin_ipv6():
+    """IPv6 with userinfo and port is correctly formatted."""
+    result = a2a.sanitize_controller_origin("https://user:pass@[::1]:8083/x")
+    assert result == "https://[::1]:8083"
+
+
+def test_sanitize_controller_origin_malformed_port():
+    """Malformed port must not raise and must not leak userinfo."""
+    result = a2a.sanitize_controller_origin("https://user:pass@host:bad/x")
+    assert "user" not in result
+    assert "pass" not in result
+
+
+def test_sanitize_controller_origin_simple():
+    """Clean URL without userinfo is preserved as-is."""
+    assert a2a.sanitize_controller_origin("http://localhost:8083") == "http://localhost:8083"
+
+
+def test_sanitize_controller_origin_empty():
+    """Empty string returns empty string."""
+    assert a2a.sanitize_controller_origin("") == ""
+
+
+def test_sanitize_controller_origin_ipv6_no_port():
+    """IPv6 without explicit port retains brackets."""
+    result = a2a.sanitize_controller_origin("https://user@[::1]/path")
+    assert result == "https://[::1]"
+
+
+def test_sanitize_controller_origin_no_scheme():
+    """URL without scheme is returned as-is with trailing slash stripped."""
+    assert a2a.sanitize_controller_origin("localhost:8083/") == "localhost:8083"
+
+
+# --- emit_human both action ---
+
+
+def test_emit_human_both_shows_card_metadata(capsys):
+    """both action human output must include agent name, model, and skills."""
+    def _a2a_handler(method, url, headers, body, timeout):
+        return _json_resp(
+            {"jsonrpc": "2.0", "id": 1, "error": {"code": -32601, "message": "Method not found"}}
+        )
+    transport = FakeTransport(_router({"card": _card_ok(), "a2a": _a2a_handler}))
+    report = a2a.run(_ns(action="both"), transport=transport)
+    assert report.action == "both"
+    assert report.card_display is not None
+    a2a.emit_human(report, quiet=True)
+    out = capsys.readouterr().out
+    assert "kagent/k8s-a2a-agent" in out
+    assert "Model: test (test)" in out
+
+
+def test_emit_human_both_shows_card_even_when_task_fails(capsys):
+    """both action renders card metadata even when task dispatch fails."""
+    def _a2a_handler(method, url, headers, body, timeout):
+        return _json_resp({})
+    transport = FakeTransport(
+        _router({"card": _card_with_skills(), "a2a": _a2a_handler})
+    )
+    report = a2a.run(_ns(action="both"), transport=transport)
+    assert report.card_display is not None
+    a2a.emit_human(report, quiet=True)
+    out = capsys.readouterr().out
+    assert "Skills (1):" in out
+    assert "Get Resources" in out

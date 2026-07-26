@@ -67,22 +67,42 @@ function Get-KubectlLines {
     $prev = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        $output = & kubectl @Arguments 2>$null
+        $stderr = $null
+        $output = & kubectl @Arguments 2>&1
+        $stdout = @($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] })
+        $errRecords = @($output | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] })
+        if ($errRecords.Count -gt 0) {
+            $stderr = ($errRecords | ForEach-Object { "$_" }) -join "`n"
+        }
         if ($LASTEXITCODE -ne 0) {
-            return @{ Ok = $false; Lines = @(); Error = ("kubectl failed (exit {0}): {1}" -f $LASTEXITCODE, ($Arguments -join ' ')) }
+            return @{ Ok = $false; Lines = @(); Stderr = $stderr; Error = ("kubectl failed (exit {0}): {1}" -f $LASTEXITCODE, ($Arguments -join ' ')) }
         }
         $lines = @()
-        if ($null -ne $output) {
-            $lines = @($output | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+        if ($null -ne $stdout) {
+            $lines = @($stdout | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
         }
-        return @{ Ok = $true; Lines = $lines; Error = $null }
+        return @{ Ok = $true; Lines = $lines; Stderr = $stderr; Error = $null }
     }
     catch {
-        return @{ Ok = $false; Lines = @(); Error = $_.Exception.Message }
+        return @{ Ok = $false; Lines = @(); Stderr = $null; Error = $_.Exception.Message }
     }
     finally {
         $ErrorActionPreference = $prev
     }
+}
+
+function Test-CrdMissingError {
+    param([string]$Stderr)
+    if ([string]::IsNullOrWhiteSpace($Stderr)) { return $false }
+    $patterns = @(
+        "doesn't have a resource type",
+        "could not find the requested resource",
+        "the server could not find"
+    )
+    foreach ($p in $patterns) {
+        if ($Stderr -match $p) { return $true }
+    }
+    return $false
 }
 
 function Read-JsonEvidenceFile {
@@ -245,11 +265,17 @@ if (-not $agentResult.Ok) {
     exit 3
 }
 $serverResult = Get-KubectlLines -Arguments @('get', 'remotemcpserver', '-n', $Namespace, '--no-headers')
-# RemoteMCPServer CRD may be absent on a fresh install; treat empty ok, real kubectl errors as transport.
-if (-not $serverResult.Ok -and $serverResult.Error -match 'exit [^0]') {
-    # Still allow empty list when resource type missing? Prefer fail-closed on kubectl errors.
-    Write-Diag ("[FAIL] {0}" -f $serverResult.Error)
-    exit 3
+# RemoteMCPServer CRD may be absent on a fresh install; distinguish from real failures.
+if (-not $serverResult.Ok) {
+    $isCrdMissing = Test-CrdMissingError -Stderr $serverResult.Stderr
+    if ($isCrdMissing -and $Profile -eq 'CardLab') {
+        # Informational — CRD absent on fresh install, pods/agents may still be healthy
+        Write-Diag "[INFO] RemoteMCPServer CRD not found (expected on fresh install with CardLab profile)"
+    } elseif (-not $isCrdMissing) {
+        Write-Diag ("[FAIL] {0}" -f $serverResult.Error)
+        exit 3
+    }
+    # If CRD missing but profile is DirectMcpServer or stricter, still exit 3
 }
 
 $pods = @($podResult.Lines | ForEach-Object { ConvertFrom-KubectlPodLine -Line $_ } | Where-Object { $null -ne $_ })
