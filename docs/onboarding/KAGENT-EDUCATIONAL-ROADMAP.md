@@ -183,7 +183,10 @@ When this becomes unacceptable:
 | `phase_5c_truthful_health_profiles` | Teach that “healthy” depends on the capability under test via named profiles. | Run `.\scripts\kagent\check-kagent-health.ps1 -Profile <Profile>` separately for `CardLab`, `DirectMcpServer`, `A2ADispatch`, and `FullMcpExecution` | distinct pass/fail decisions from the same cluster | CardLab/DirectMcpServer pass; A2ADispatch/FullMcpExecution fail truthfully ([phase 5c](../../evidence/kagent/educational-practice-phase-5c-health-profiles.md)) | L4 or L6 becoming proven |
 | `phase_5d_trustworthy_a2a` | Prove L4 with pinned `message/stream` and strict JSON evidence. | `python scripts/kagent/test-a2a-agent.py task --output json`; `.\scripts\kagent\check-kagent-health.ps1 -Profile A2ADispatch` | SSE status-update with non-empty taskId; health JSON gate | L4 proven ([phase 5d](../../evidence/kagent/educational-practice-phase-5d-trustworthy-a2a.md)); A2ADispatch exit 0 | L6 agent-mediated MCP |
 | `phase_5e_agent_mediated_mcp` | Correlate one A2A task → MCP `k8s_get_resources` → same-task returned names → kubectl match under nested schema 1.0. | `python scripts/kagent/agent_mcp_trace.py --output json`; FullMcpExecution profile | agreeing transport/protocol/dispatch; exact task/server/tool/arguments; bounded source proof; computed freshness; recomputed name match | Hardened helper/schema/tests shipped; retained live exit 1 — L6 Not proven ([phase 5e](../../evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md)) | Live L6 without one fresh exit 0 |
-| `phase_6_repeatable_workshop` | Make the educational lab repeatable for a new learner. | future bootstrap/check commands | pinned versions, install path, cleanup path, evidence capture | fresh Docker Desktop Kubernetes setup reaches the documented phase target | production readiness |
+| `phase_5f_integrity_and_protocol_hardening` | Close reproducible fail-closed defects before relying on stricter health or A2A evidence gates. | Targeted Pester and pytest cases for missing CRDs and multiline SSE; repository hygiene checks | strict health profiles reject a missing `RemoteMCPServer` CRD; multi-line SSE `data:` fields form one JSON payload; local debug captures are not tracked | fixes and deterministic regression tests are merged; hosted CI status is recorded only for the exact committed head | L6, IDE discovery, or a green run at an unverified SHA |
+| `phase_6_l6_closure_and_runtime_safety` | Make the discovered MCP surface genuinely read-only, then obtain live L6 evidence. | Native read-only runtime discovery test; `agent_mcp_trace.py --output json`; `FullMcpExecution` profile | mutation tools absent from `tools/list`; same task ID across A2A and tool evidence; returned pod names match `kubectl` | read-only schema plus one fresh `agent_mcp_trace.py` exit 0; three consecutive successes recommended for operational confidence | IDE client acceptance or L7 repeatability |
+| `phase_7_ide_mcp_acceptance` | Verify the controller's native MCP agent surface, then make kagent a bounded Cursor/Codex subagent. | Controller MCP initialize/`tools/list`; project-scoped client configuration; `list_agents` and `invoke_agent` acceptance prompts | actual controller tool schema; agent discovery; a minimal read-only dispatch; same-task IDE-to-tool correlation after L6 | basic discovery/dispatch record may run after phase 5F and in parallel with phase 6; full IDE-to-Kubernetes record requires phase 6 | reverse delegation, autonomous mutation, or L7 repeatability |
+| `phase_8_repeatable_workshop` | Make the proven read-only IDE path reproducible for a fresh learner. | bootstrap, port-forward, configuration-template, acceptance, and cleanup commands | pinned prerequisites; Cursor and Codex acceptance; cleanup without orphaned port-forwards or lab resources | clean Docker Desktop run reaches the documented phase target and records L7 evidence | production readiness or a write-enabled agent profile |
 
 ## Strategic Upper-Layer Grid
 
@@ -286,20 +289,31 @@ Correlated agent-mediated MCP attempt (L6 Not proven) is recorded in
    validation, exact tool arguments, recomputed result arrays, and exit
    consistency (`agent_mcp_trace.py`, FullMcpExecution). Evidence: phase 5e
    (live L6 Not proven; hardened positive path deterministic-only).
-8. (DONE locally; hosted confirmation pending) Add deterministic kagent CI:
-   locked `uv` synchronization, Ruff over `scripts/kagent` and `tests/kagent`,
-   full pytest, the suite-compatible pinned Pester 3.4.0 baseline, and an explicit
-   `KagentHealth.Tests.ps1` invocation. Record a green GitHub Actions run
-   against the committed workflow before treating the hosted gate as proven.
-9. (DONE locally; hosted confirmation pending) Make Kubernetes manifest and
-   Trivy policy validation fail closed in CI (`scripts/kubernetes/validate.ps1
-   -Strict`, `scripts/security/scan.ps1 -Required`), including pinned validator
-   installation (kubeconform v0.6.7, kube-linter v0.7.1, Trivy v0.61.1) and
-   deterministic missing-tool / native-exit failure coverage in
-   `tests/kagent/KagentToolingValidation.Tests.ps1`.
-10. Capture one live task -> agent -> MCP tool -> kubectl-matched result loop
-   (`agent_mcp_trace.py` exit 0) to promote L6.
-11. Build a repeatable workshop/bootstrap path only after the real execution path is proven.
+8. (DONE) Fix strict health-profile handling of a missing `RemoteMCPServer` CRD: allow
+   it only for `CardLab`; make `DirectMcpServer`, `A2ADispatch`, and
+   `FullMcpExecution` exit 3 with deterministic Pester coverage.
+9. (DONE) Make `parse_sse_jsonrpc_events()` compliant with multi-line SSE `data:`
+   fields: normalize CRLF, join each event's data lines, ignore comments and
+   `[DONE]`, and test malformed combined payloads.
+10. Reconcile repository hygiene and hosted CI truth for the current committed
+    head: retain only local debug captures under ignore rules, and update current
+    status prose only after the exact workflow run is observed. Do not use an
+    earlier SHA or dated report as a merge gate.
+11. Make the MCP runtime natively read-only: retain restrictive RBAC, but also
+    require mutation tools to be absent from discovered schemas before an agent
+    is asked to use the server.
+12. Diagnose and capture one live task -> agent -> MCP tool -> kubectl-matched
+    result loop (`agent_mcp_trace.py` exit 0) to promote L6. Investigate model
+    credentials, quota, tool-calling support, resolved skills, schema validity,
+    log correlation, and timeout only as hypotheses until observed.
+13. Verify the controller's MCP endpoint by recording its live `initialize` and
+    `tools/list` result. If it exposes the expected agent tools, use that native
+    surface rather than creating a custom Cursor/Codex-to-A2A bridge.
+14. Add project-scoped Cursor and Codex acceptance configurations and a runbook.
+    Basic discovery and minimal read-only dispatch may proceed after item 10;
+    full IDE -> agent -> MCP -> Kubernetes correlation depends on item 12.
+15. Build the repeatable workshop/bootstrap and cleanup path only after the full
+    read-only IDE correlation succeeds.
 
 ## Major Flaws To Close
 
@@ -310,8 +324,10 @@ ownership is:
    (helper/schema already fail closed).
 2. **P1 runtime safety:** move to a native read-only MCP image while retaining
    restrictive RBAC.
-3. **P1 validation:** fail-closed Kubernetes and Trivy policy gates are
-   configured with pinned validators and deterministic tests; a green hosted
-   CI run against the committed workflow is still pending.
-4. **P2 documentation drift:** continue replacing repeated runtime snapshots
+3. **P1 validation truth:** record hosted CI only for the exact current head;
+   do not carry a prior workflow result or dated report forward.
+4. **P2 IDE integration:** first verify the deployed controller's MCP discovery
+   surface. A native `list_agents` / `invoke_agent` surface removes the need for
+   a custom bridge, but its current runtime schema is not yet recorded here.
+5. **P2 documentation drift:** continue replacing repeated runtime snapshots
    with links to `evidence/kagent/README.md`.

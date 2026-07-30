@@ -76,6 +76,13 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   `tests/kagent/KagentToolingValidation.Tests.ps1`. This is repository
   configuration only until a green hosted run is recorded; it does not change
   any L0-L7 decision.
+- 2026-07-30 CRD exit-3: `check-kagent-health.ps1` now exits 3 when
+  RemoteMCPServer CRD is absent for `DirectMcpServer`, `A2ADispatch`, or
+  `FullMcpExecution`. Covered by child-process stubs in
+  `KagentToolingValidation.Tests.ps1`.
+- 2026-07-30 SSE coalescing: `parse_sse_jsonrpc_events` in
+  `test-a2a-agent.py` now joins multi-line `data:` fields before JSON
+  decoding. Covered by deterministic pytest in `test_a2a_helper.py`.
 
 ## Major Open Flaws
 
@@ -83,7 +90,8 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 |----------|------|--------|------------------------------|
 | P0 | No live correlated agent-mediated MCP result | Core L6 objective remains unproved; deterministic gates cannot promote it | One fresh `agent_mcp_trace.py` exit 0 binding a taskId to `kagent-tool-server` / `k8s_get_resources`, same-task returned names, bounded source proof, and kubectl match |
 | P1 | MCP image advertises write tools | RBAC is the only write barrier and tool discovery is misleading | Native read-only image plus retained restrictive RBAC |
-| P1 | Manifest validators may silently skip | A green script run can lack schema/security validation | CI installs validators and fails if unavailable (configured; green hosted run pending) |
+| P1 | Hosted validation status must be tied to the exact committed head | A green script run can lack schema/security validation, or a previous workflow run can be carried forward incorrectly | CI installs validators and fails if unavailable; record the exact successful workflow SHA before changing current-status prose |
+| P2 | Controller MCP agent discovery is not yet recorded | A custom IDE bridge could be built unnecessarily, or a native endpoint could be assumed without evidence | Record live `initialize` and `tools/list`; if suitable agent tools are present, use that native surface for the Cursor/Codex acceptance phase |
 | P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
 | P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
 

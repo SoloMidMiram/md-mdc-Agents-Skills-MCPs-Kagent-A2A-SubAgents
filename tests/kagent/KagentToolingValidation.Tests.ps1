@@ -192,13 +192,22 @@ exit 0
 function Invoke-HealthCheckViaChildProcess {
     param(
         [string]$KubectlBehavior = 'present',
-        [string]$Profile = 'CardLab'
+        [string]$Profile = 'CardLab',
+        [string]$ExtraArgs = ''
     )
     $tempDir = New-TempDir
     try {
         New-KubectlStub -Path (Join-Path $tempDir 'kubectl.ps1')
-        $cmd = "`$env:PATH='$tempDir'; `$env:KUBECTL_STUB_BEHAVIOR='$KubectlBehavior'; & '$healthCheckScript' -Profile $Profile 2>&1"
-        $output = & $pwshExe -NoProfile -Command $cmd 2>&1
+        # Write a wrapper script to avoid -Command exit-code issues with [Console]::Error
+        $wrapper = Join-Path $tempDir 'runner.ps1'
+        $wrapperContent = @"
+`$env:PATH='$tempDir'
+`$env:KUBECTL_STUB_BEHAVIOR='$KubectlBehavior'
+& '$healthCheckScript' -Profile $Profile $ExtraArgs
+exit `$LASTEXITCODE
+"@
+        Set-Content -LiteralPath $wrapper -Value $wrapperContent -Encoding ASCII
+        $output = & $pwshExe -NoProfile -File $wrapper 2>&1
         $ec = $LASTEXITCODE
         # Reset LASTEXITCODE so stale child-process exit codes do not propagate
         # to the outer Pester/CI script that checks $result.FailedCount.
@@ -226,9 +235,27 @@ Describe 'Check-kagent-health CRD behavior' {
         $result.Output | Should Match 'FAIL'
     }
 
-    It 'DirectMcpServer + missing CRD exits 3 (not silently accepted)' {
-        $result = Invoke-HealthCheckViaChildProcess -KubectlBehavior 'crd-missing' -Profile 'DirectMcpServer'
-        $result.ExitCode | Should Not Be 0
-        $result.Output | Should Match 'FAIL'
+    It 'DirectMcpServer + missing CRD exits 3 with CRD-required message' {
+        $dummyPath = Join-Path $env:TEMP "kagent_test_direct_$([System.Guid]::NewGuid().ToString()).json"
+        try {
+            Set-Content -LiteralPath $dummyPath -Value '{}' -Encoding ASCII
+            $result = Invoke-HealthCheckViaChildProcess -KubectlBehavior 'crd-missing' -Profile 'DirectMcpServer' -ExtraArgs "-DirectMcpResultPath '$dummyPath'"
+            $result.ExitCode | Should Be 3
+            $result.Output | Should Match 'RemoteMCPServer CRD is required'
+        } finally {
+            Remove-Item -LiteralPath $dummyPath -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    It 'A2ADispatch + missing CRD exits 3 with CRD-required message' {
+        $result = Invoke-HealthCheckViaChildProcess -KubectlBehavior 'crd-missing' -Profile 'A2ADispatch'
+        $result.ExitCode | Should Be 3
+        $result.Output | Should Match 'RemoteMCPServer CRD is required'
+    }
+
+    It 'FullMcpExecution + missing CRD exits 3 with CRD-required message' {
+        $result = Invoke-HealthCheckViaChildProcess -KubectlBehavior 'crd-missing' -Profile 'FullMcpExecution'
+        $result.ExitCode | Should Be 3
+        $result.Output | Should Match 'RemoteMCPServer CRD is required'
     }
 }

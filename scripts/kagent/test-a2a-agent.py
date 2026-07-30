@@ -329,22 +329,36 @@ def build_dispatch_envelope(request_id: str, prompt: str) -> dict[str, Any]:
 
 def parse_sse_jsonrpc_events(body_text: str) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
-    for block in body_text.split("\n\n"):
-        for line in block.splitlines():
-            if not line.startswith("data:"):
-                continue
-            payload = line[5:].strip()
-            if not payload or payload == "[DONE]":
-                continue
-            try:
-                obj = json.loads(payload)
-            except json.JSONDecodeError as exc:
-                raise GateError(f"invalid JSON in SSE data: {exc}") from exc
-            if not isinstance(obj, dict):
-                raise GateError("SSE data must be a JSON object")
-            events.append(obj)
-            if len(events) > MAX_SSE_EVENTS:
-                raise GateError(f"SSE event count exceeds {MAX_SSE_EVENTS}")
+    normalized = body_text.replace("\r\n", "\n").replace("\r", "\n")
+
+    for block in normalized.split("\n\n"):
+        data_lines = [
+            line[5:].lstrip()
+            for line in block.splitlines()
+            if line.startswith("data:")
+        ]
+
+        if not data_lines:
+            continue
+
+        payload = "\n".join(data_lines).strip()
+
+        if not payload or payload == "[DONE]":
+            continue
+
+        try:
+            obj = json.loads(payload)
+        except json.JSONDecodeError as exc:
+            raise GateError(f"invalid JSON in SSE data: {exc}") from exc
+
+        if not isinstance(obj, dict):
+            raise GateError("SSE data must be a JSON object")
+
+        events.append(obj)
+
+        if len(events) > MAX_SSE_EVENTS:
+            raise GateError(f"SSE event count exceeds {MAX_SSE_EVENTS}")
+
     return events
 
 

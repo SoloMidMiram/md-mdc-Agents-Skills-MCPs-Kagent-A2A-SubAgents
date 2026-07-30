@@ -263,6 +263,92 @@ def test_parse_sse_events():
     assert events[0]["id"] == "1"
 
 
+def test_parse_sse_multiline_data():
+    """JSON split across two data: lines is joined and decodes correctly."""
+    body = (
+        'data: {"jsonrpc":"2.0","id":"1","result":{"content":[{"type":"text",\n'
+        'data: "text":"this text continues on the next line"}]}}\n\n'
+    )
+    events = a2a.parse_sse_jsonrpc_events(body)
+    assert len(events) == 1
+    assert events[0]["id"] == "1"
+    assert events[0]["result"]["content"][0]["text"] == "this text continues on the next line"
+
+
+def test_parse_sse_crlf_normalized():
+    """CRLF line endings must be normalized to LF before splitting."""
+    body = 'data: {"jsonrpc":"2.0","id":"1","result":{"ok":true}}\r\n\r\n'
+    events = a2a.parse_sse_jsonrpc_events(body)
+    assert len(events) == 1
+
+
+def test_parse_sse_skips_comments_and_other_fields():
+    """SSE comments (:) and non-data fields (event:, id:, retry:) are ignored."""
+    body = (
+        ": this is a comment\n"
+        "event: status\n"
+        'data: {"jsonrpc":"2.0","id":"1","result":{"ok":true}}\n'
+        "retry: 3000\n"
+        "\n"
+    )
+    events = a2a.parse_sse_jsonrpc_events(body)
+    assert len(events) == 1
+    assert events[0]["id"] == "1"
+
+
+def test_parse_sse_done_marker():
+    """[DONE] marker must be skipped without raising."""
+    body = 'data: {"jsonrpc":"2.0","id":"1","result":{"ok":true}}\n\ndata: [DONE]\n\n'
+    events = a2a.parse_sse_jsonrpc_events(body)
+    assert len(events) == 1
+
+
+def test_parse_sse_multiple_events():
+    """Multiple SSE events separated by blank lines must all be returned."""
+    body = (
+        'data: {"jsonrpc":"2.0","id":"1","result":{"step":"first"}}\n\n'
+        'data: {"jsonrpc":"2.0","id":"2","result":{"step":"second"}}\n\n'
+    )
+    events = a2a.parse_sse_jsonrpc_events(body)
+    assert len(events) == 2
+    assert events[0]["id"] == "1"
+    assert events[1]["id"] == "2"
+
+
+def test_parse_sse_malformed_json_single_line():
+    """Single data: line with invalid JSON must raise GateError."""
+    body = 'data: {invalid json}\n\n'
+    with pytest.raises(a2a.GateError, match="invalid JSON"):
+        a2a.parse_sse_jsonrpc_events(body)
+
+
+def test_parse_sse_malformed_json_multiline():
+    """Multi-line data: fields that join into invalid JSON must raise GateError."""
+    body = (
+        'data: {"jsonrpc":"2.0","id":"1","result":\n'
+        'data: {invalid}\n\n'
+    )
+    with pytest.raises(a2a.GateError, match="invalid JSON"):
+        a2a.parse_sse_jsonrpc_events(body)
+
+
+def test_parse_sse_non_dict_json_raises():
+    """A JSON array in data: must raise GateError."""
+    body = 'data: [1, 2, 3]\n\n'
+    with pytest.raises(a2a.GateError, match="must be a JSON object"):
+        a2a.parse_sse_jsonrpc_events(body)
+
+
+def test_parse_sse_event_limit_exceeded():
+    """Exceeding MAX_SSE_EVENTS must raise GateError."""
+    events_payload = "".join(
+        f'data: {{"jsonrpc":"2.0","id":"{i}","result":{{"ok":true}}}}\n\n'
+        for i in range(a2a.MAX_SSE_EVENTS + 5)
+    )
+    with pytest.raises(a2a.GateError, match="exceeds"):
+        a2a.parse_sse_jsonrpc_events(events_payload)
+
+
 def test_sanitize_redacts_authorization():
     assert a2a.sanitize_text("Authorization: Bearer secret") == "[redacted]"
 

@@ -271,11 +271,13 @@ if (-not $serverResult.Ok) {
     if ($isCrdMissing -and $Profile -eq 'CardLab') {
         # Informational — CRD absent on fresh install, pods/agents may still be healthy
         Write-Diag "[INFO] RemoteMCPServer CRD not found (expected on fresh install with CardLab profile)"
-    } elseif (-not $isCrdMissing) {
+    } elseif ($isCrdMissing) {
+        Write-Diag "[FAIL] RemoteMCPServer CRD is required for profile $Profile"
+        exit 3
+    } else {
         Write-Diag ("[FAIL] {0}" -f $serverResult.Error)
         exit 3
     }
-    # If CRD missing but profile is DirectMcpServer or stricter, still exit 3
 }
 
 $pods = @($podResult.Lines | ForEach-Object { ConvertFrom-KubectlPodLine -Line $_ } | Where-Object { $null -ne $_ })
