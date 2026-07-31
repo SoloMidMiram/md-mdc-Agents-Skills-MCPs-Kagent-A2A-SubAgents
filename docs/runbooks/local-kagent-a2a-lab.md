@@ -263,16 +263,82 @@ remain protocol and evidence diagnostics.
 
 ```powershell
 kubectl port-forward -n kagent svc/kagent-controller 8083:8083
+# First discover refs (non-strict), then re-run with every discovered ref approved.
 python scripts/kagent/controller_mcp_smoke.py --output json
+python scripts/kagent/controller_mcp_smoke.py --output json `
+  --strict-agent-inventory `
+  --approved-agent kagent/k8s-a2a-agent `
+  --approved-agent kagent/observability-agent
+  # ...repeat --approved-agent for EVERY ref returned by list_agents
 ```
 
+Strict mode fails closed unless the approved set covers the full `list_agents`
+ref set and includes the target. Do not delete or modify unrelated agents to
+make the inventory pass. Default (non-strict) mode only checks target presence
+and is intended for shared educational environments. IDE acceptance
+documentation must use strict mode. The Python helper default HTTP timeout
+remains 30s; it is a prerequisite diagnostic, not an I3 proof.
+
 Expected success behavior: the helper exits `0` after `initialize`,
-`tools/list`, `list_agents`, a bounded `invoke_agent` response, and a
-same-session continuation. It records only whether the MCP session was present,
-never its value. Exit `1` means the controller contract or bounded agent result
-did not qualify; exit `3` means the endpoint was unavailable. Neither result
-proves L6. The recorded Phase 6 observation currently proves I0-I2 and marks I3
-Blocked because the configured provider rejects the local region.
+`tools/list`, `list_agents`, a bounded `invoke_agent` response, a second
+`invoke_agent` with the returned `context_id` (agent-context continuation), and
+MCP-session reuse via a later `list_agents` on the same session. It records
+session and context identifiers only as `present`/`missing`, never raw values.
+`cleanup: method-not-allowed` means explicit client-triggered MCP session
+termination was attempted but is unsupported by the pinned controller; it does
+not prove the session was deleted. Phase 8 owns lab resource cleanup separately.
+Exit `1` means the controller contract or bounded agent result did not qualify;
+exit `3` means the endpoint was unavailable. Neither result proves I3 or L6.
+Canonical status: [evidence/kagent/README.md](../../evidence/kagent/README.md).
+
+### Cursor I3 acceptance gate (lead client)
+
+Genuine I3-Cursor requires a real Cursor client run. The Python helper above is
+necessary preparation, not sufficient evidence. Local inspection of Cursor 3.13
+CLI help on this host showed `cursor.exe` options including `--add-mcp` and an
+`agent` subcommand, but no dedicated `cursor-agent mcp` / `cursor mcp` tool-call
+surface with stable documented syntax for `list_agents` / `invoke_agent`. Do not
+invent CLI syntax. Use the Cursor UI path below unless a future dated inspection
+records a verified MCP invocation command.
+
+1. Start the controller port-forward:
+   `kubectl port-forward -n kagent svc/kagent-controller 8083:8083`
+2. Open this repository in Cursor so project `.cursor/mcp.json` loads
+   `kagent-controller` at `http://127.0.0.1:8083/mcp`.
+3. Confirm the MCP server is visible in Cursor MCP settings/tools UI.
+4. Confirm exactly the tools `list_agents` and `invoke_agent` are exposed (no
+   unreviewed privileged controller tool).
+5. From Cursor, call `list_agents` and record the returned agent refs.
+6. Inventory check: every discovered ref must be on the approved list used for
+   the acceptance run; the target `kagent/k8s-a2a-agent` must be present. Fail
+   closed on any unexpected agent. Do not delete or modify unrelated agents.
+7. Bounded first `invoke_agent` for `kagent/k8s-a2a-agent` with a no-tool task
+   whose exact reply is known. Do not request Kubernetes, MCP, shell, or other
+   tools during I3.
+8. Follow-up `invoke_agent` with the returned `context_id` and a second bounded
+   no-tool task; require the exact expected follow-up string.
+9. Record dated evidence with the template fields below. Never store secrets,
+   raw MCP session ids, or raw `context_id` values.
+
+Evidence template fields (sanitized only):
+
+- date, timezone, environment, controller version
+- client: Cursor (version if shown)
+- port-forward command and local URL
+- MCP server name visible in Cursor
+- tools observed (`list_agents`, `invoke_agent` only)
+- discovered agent refs (names only)
+- approved inventory used for the run
+- inventory decision: pass/fail; unexpected refs if any
+- first invoke: HTTP/tool success, exact expected response matched true/false
+- `agentContextId`: `present` or `missing` (never the raw value)
+- second invoke / agent-context continuation: succeeded true/false
+- MCP session reuse observed true/false (separate from context continuation)
+- provider/agent error observed true/false
+- explicit non-claims: not L6; not I4; Python helper alone is not I3
+
+Codex may be recorded as I3-Codex after I3-Cursor. I5 requires both clients.
+I3 never implies L6.
 
 ## How to Observe Failures
 

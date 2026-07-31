@@ -246,6 +246,9 @@ Describe "Workspace Duplicate Detection" -Tag "Infrastructure", "Duplicates" {
             $v | Should -Match '(?m)^url = "http://127\.0\.0\.1:8083/mcp"$'
             $v | Should -Match '(?m)^enabled_tools = \["list_agents", "invoke_agent"\]$'
             $v | Should -Match '(?m)^default_tools_approval_mode = "prompt"$'
+            $v | Should -Match '(?m)^startup_timeout_sec = 30$'
+            $v | Should -Match '(?m)^tool_timeout_sec = 90$'
+            $v | Should -Not -Match '(?m)^required\s*='
             $v | Should -Not -Match '(?i)(authorization|token|secret|password|api[_-]?key)'
         }
     }

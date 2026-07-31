@@ -30,9 +30,9 @@ agent discovery cannot be mistaken for agent-mediated Kubernetes execution.
 | I0 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): controller `/mcp` initialized |
 | I1 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `tools/list` returned the pinned agent tools |
 | I2 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `list_agents` returned `kagent/k8s-a2a-agent` |
-| I3 | Blocked | [phase 6](educational-practice-phase-6-native-mcp-federation.md): provider region policy prevented the bounded response |
+| I3 | Blocked | [phase 6](educational-practice-phase-6-native-mcp-federation.md): provider region policy blocks the bounded response; no genuine Cursor I3-Cursor acceptance record yet. Python helper success alone is insufficient. |
 | I4 | Not proven | No same-invocation controller, tool, and `kubectl` correlation |
-| I5 | Not attempted | No fresh setup, restart, and cleanup record |
+| I5 | Not attempted | No fresh setup, restart, both-client acceptance, and cleanup record |
 
 The phase 5 MCP `initialize` handshake succeeded. The subsequent direct
 `tools/call` failed because its session identifier was not reused
@@ -113,6 +113,11 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   The live controller exposes `list_agents` and `invoke_agent`; I0-I2 are
   proven, while I3 is blocked by the provider region policy. Native MCP is the
   preferred client seam, so a custom A2A-to-MCP gateway remains deferred.
+- 2026-07-31 correction cycle: MCP-session reuse is named separately from
+  agent-context continuation; strict approved-agent inventory is available for
+  IDE acceptance; Codex `tool_timeout_sec` is 90 with startup still 30; Cursor
+  I3 acceptance is documented as a UI gate because local CLI help did not expose
+  a verified MCP invoke command. I3 remains Blocked.
 
 ## Major Open Flaws
 
@@ -120,7 +125,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 |----------|------|--------|------------------------------|
 | P0 | No live correlated agent-mediated MCP result | Core L6 objective remains unproved; deterministic gates cannot promote it | One fresh `agent_mcp_trace.py` exit 0 binding a taskId to `kagent-tool-server` / `k8s_get_resources`, same-task returned names, bounded source proof, and kubectl match |
 | P1 | MCP image advertises write tools | RBAC is the only write barrier and tool discovery is misleading | Native read-only image plus retained restrictive RBAC |
-| P1 | Native `invoke_agent` is blocked by the provider region policy | Cursor/Codex delegation cannot complete its bounded acceptance task | Restore supported provider connectivity, then capture one bounded no-tool `invoke_agent` response without treating it as L6 |
+| P1 | Native `invoke_agent` is blocked by the provider region policy | Cursor/Codex delegation cannot complete its bounded acceptance task | Restore a region-allowed OpenAI key or supported ModelConfig provider replacement, then capture dated I3-Cursor evidence (bounded response + agent-context continuation) without treating it as L6 |
 | P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
 | P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
 

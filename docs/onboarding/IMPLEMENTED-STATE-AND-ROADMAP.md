@@ -246,7 +246,7 @@ kept in the [kagent educational roadmap](KAGENT-EDUCATIONAL-ROADMAP.md).
 | Order | Kagent outcome | Depends on | Completion evidence |
 |-------|----------------|------------|---------------------|
 | 1 | **Integrity and protocol hardening** — repair strict missing-CRD exit semantics, multiline SSE parsing, local-debug-log hygiene, and current-head CI truthfulness. | Existing deterministic test suites | Regression cases pass and any hosted status is recorded for the exact head. |
-| 2 | **Native IDE federation** — use the recorded controller `/mcp` contract and project-scoped clients; restore provider access for the blocked bounded response. | 1 | I3 bounded `invoke_agent` response and same-session continuation; this does not prove L6. |
+| 2 | **Native IDE federation** — use the recorded controller `/mcp` contract and project-scoped clients; restore provider access for the blocked bounded response. | 1 | Dated I3-Cursor evidence: bounded `invoke_agent` response plus agent-context continuation; Python diagnostics are prerequisites only; this does not prove L6. |
 | 3 | **Read-only surface and L6/I4 closure** — make mutation tools absent from discovery, then correlate one IDE invocation with the agent-mediated Kubernetes read. | 2 | Native read-only schema, same invocation/task identity, fresh `agent_mcp_trace.py` exit 0, and a `kubectl` match. |
 | 4 | **Repeatable native workshop (I5/L7)** — provide bootstrap, port-forward, project configuration, acceptance, cleanup, and fresh-install proof for both clients. | 3 | A clean Docker Desktop run completes without undocumented repair and cleanup is verified. |
 
@@ -274,7 +274,8 @@ L6 or L7.
 
 ## Recommended Next Steps
 
-1. Restore supported provider access and capture the bounded no-tool I3 response.
+1. Restore supported provider access and capture dated I3-Cursor evidence
+   (bounded no-tool response plus agent-context continuation).
 2. Replace the mutation-advertising runtime before requesting an agent to use
    Kubernetes tools.
 3. Capture one same-invocation I4/L6 Kubernetes record with a `kubectl` match.

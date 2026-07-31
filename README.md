@@ -54,7 +54,8 @@ Two paths matter today:
   `laptop-stable-v0.1` is tagged at `cdb7dc0`; this tree targets patch `laptop-stable-v0.1.1` (UTF-8 onboarding, narrative sync, bridge manifests).
 - **Active lab path**: local `kagent` on `docker-desktop` uses the controller's
   native `/mcp` surface (`list_agents` and `invoke_agent`). L4/L5 are Proven;
-  I0-I2 are Proven; I3 is Blocked by provider region policy; L6/L7 remain Not
+  I0-I2 are Proven; I3 is Blocked (provider region policy; no Cursor I3 gate yet);
+  L6/L7 remain Not
   proven. See the [canonical evidence index](evidence/kagent/README.md) for
   dated status and capability decisions.
 
