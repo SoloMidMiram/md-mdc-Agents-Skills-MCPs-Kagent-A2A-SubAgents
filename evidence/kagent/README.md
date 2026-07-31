@@ -63,10 +63,10 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   [2026-07-17 agent MCP correlation](problems/2026-07-17-agent-mcp-correlation.md).
 - The quality workflow now defines a separate locked kagent Python job
   (`uv sync --frozen --group dev`, Ruff, and pytest), pins the suite-compatible
-  Pester 3.4.0 baseline, and
-  explicitly runs the deterministic kagent PowerShell suite. Hosted Quality run
-  [30547297255](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30547297255)
-  passed all jobs at commit `3e8ceaf` on 2026-07-30. This proves deterministic
+  Pester 3.4.0 baseline, and explicitly runs the deterministic kagent
+  PowerShell suite. Post-correction Hosted Quality run
+  [30621076867](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30621076867)
+  passed all jobs at commit `f18b906` on 2026-07-31. This proves deterministic
   CI at that revision but does not change any L0-L7 decision.
 - Kubernetes manifest validation (`scripts/kubernetes/validate.ps1 -Strict`)
   and Trivy policy scanning (`scripts/security/scan.ps1 -Required`) now fail
@@ -75,7 +75,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   are installed by separate hosted CI jobs. Deterministic Pester tests cover
   missing-tool and simulated-failure paths in
   `tests/kagent/KagentToolingValidation.Tests.ps1`. Those jobs passed in hosted
-  Quality run 30547297255 at `3e8ceaf`; this does not change any L0-L7 decision.
+  Quality run 30621076867 at `f18b906`; this does not change any L0-L7 decision.
 - 2026-07-30 CRD exit-3: `check-kagent-health.ps1` now exits 3 when
   RemoteMCPServer CRD is absent for `DirectMcpServer`, `A2ADispatch`, or
   `FullMcpExecution`. Covered by child-process stubs in
@@ -90,11 +90,9 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 |----------|------|--------|------------------------------|
 | P0 | No live correlated agent-mediated MCP result | Core L6 objective remains unproved; deterministic gates cannot promote it | One fresh `agent_mcp_trace.py` exit 0 binding a taskId to `kagent-tool-server` / `k8s_get_resources`, same-task returned names, bounded source proof, and kubectl match |
 | P1 | MCP image advertises write tools | RBAC is the only write barrier and tool discovery is misleading | Native read-only image plus retained restrictive RBAC |
-| P1 | Hosted validation status must be tied to the exact committed head | A green script run can lack schema/security validation, or a previous workflow run can be carried forward incorrectly | CI installs validators and fails if unavailable; record the exact successful workflow SHA before changing current-status prose |
 | P2 | Controller MCP agent discovery is not yet recorded | A custom IDE bridge could be built unnecessarily, or a native endpoint could be assumed without evidence | Record live `initialize` and `tools/list`; if suitable agent tools are present, use that native surface for the Cursor/Codex acceptance phase |
 | P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
 | P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
-| P2 | Post-correction hosted validation is not yet recorded | Local correction checks do not establish a hosted result for the corrected revision | Record the exact successful workflow run and commit after this correction is pushed |
 
 ## Record Index
 
