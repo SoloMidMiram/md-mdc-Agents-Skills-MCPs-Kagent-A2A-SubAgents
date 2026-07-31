@@ -238,12 +238,16 @@ Describe "Workspace Duplicate Detection" -Tag "Infrastructure", "Duplicates" {
 
         $codexPath | Should -Exist
         $codexText = Get-Content $codexPath -Raw
-        $codexText | Should -Match '(?m)^\[mcp_servers\.kagent-controller\]$'
-        $codexText | Should -Not -Match '(?m)^\[mcp_servers\.(?!kagent-controller\])'
-        $codexText | Should -Match '(?m)^url = "http://127\.0\.0\.1:8083/mcp"$'
-        $codexText | Should -Match '(?m)^enabled_tools = \["list_agents", "invoke_agent"\]$'
-        $codexText | Should -Match '(?m)^default_tools_approval_mode = "prompt"$'
-        $codexText | Should -Not -Match '(?i)(authorization|token|secret|password|api[_-]?key)'
+        $codexText = $codexText -replace "`r`n", "`n"
+        foreach ($variant in @($codexText, ($codexText -replace "`n", "`r`n"))) {
+            $v = $variant -replace "`r`n", "`n"
+            $v | Should -Match '(?m)^\[mcp_servers\.kagent-controller\]$'
+            $v | Should -Not -Match '(?m)^\[mcp_servers\.(?!kagent-controller\])'
+            $v | Should -Match '(?m)^url = "http://127\.0\.0\.1:8083/mcp"$'
+            $v | Should -Match '(?m)^enabled_tools = \["list_agents", "invoke_agent"\]$'
+            $v | Should -Match '(?m)^default_tools_approval_mode = "prompt"$'
+            $v | Should -Not -Match '(?i)(authorization|token|secret|password|api[_-]?key)'
+        }
     }
 }
 
