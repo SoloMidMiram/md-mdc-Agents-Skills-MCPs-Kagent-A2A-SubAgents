@@ -5,9 +5,14 @@ This helper verifies the client-facing controller contract only:
 initialize -> notifications/initialized -> tools/list -> list_agents ->
 invoke_agent -> list_agents on the same MCP session -> DELETE.
 
+HTTP 405 on DELETE means explicit client-triggered session termination is
+unsupported by the pinned controller; it does not mean the session was
+deleted. Phase 8 owns lab resource cleanup separately from this MCP DELETE.
+
 It does not prove that an invoked agent used a Kubernetes MCP tool. In
-particular, a successful ``invoke_agent`` response is I3 evidence only; L6
-requires the separate same-task agent/tool/kubectl correlation gate.
+particular, a successful ``invoke_agent`` response is a diagnostic
+prerequisite for I3, not I3 itself. L6 requires the separate same-task
+agent/tool/kubectl correlation gate.
 """
 
 from __future__ import annotations
@@ -77,8 +82,8 @@ class ControllerMcpResult:
     invoke_http_status: int | None = None
     invoke_agent_succeeded: bool = False
     agent_response: str = ""
-    same_session_continuation_http_status: int | None = None
-    continuation_target_present: bool = False
+    same_mcp_session_reuse_http_status: int | None = None
+    mcp_session_reuse_target_present: bool = False
     cleanup: str = "not-attempted"
     error: str | None = None
 
@@ -97,8 +102,8 @@ class ControllerMcpResult:
             "invokeHttpStatus": self.invoke_http_status,
             "invokeAgentSucceeded": self.invoke_agent_succeeded,
             "agentResponse": self.agent_response,
-            "sameSessionContinuationHttpStatus": self.same_session_continuation_http_status,
-            "continuationTargetPresent": self.continuation_target_present,
+            "sameMcpSessionReuseHttpStatus": self.same_mcp_session_reuse_http_status,
+            "mcpSessionReuseTargetPresent": self.mcp_session_reuse_target_present,
             "cleanup": self.cleanup,
             "error": self.error,
             "exitCode": self.exit_code,
@@ -337,13 +342,13 @@ class ControllerMcpClient:
             refs.add(item["ref"])
         return refs
 
-    def _list_target_agent(self, *, continuation: bool) -> None:
+    def _list_target_agent(self, *, session_reuse: bool) -> None:
         response, result = self._call_tool("list_agents", {})
         refs = self._agent_refs(result)
         present = self.config.agent in refs
-        if continuation:
-            self.result.same_session_continuation_http_status = response.status
-            self.result.continuation_target_present = present
+        if session_reuse:
+            self.result.same_mcp_session_reuse_http_status = response.status
+            self.result.mcp_session_reuse_target_present = present
         else:
             self.result.target_agent_found = present
         if not present:
@@ -384,6 +389,7 @@ class ControllerMcpClient:
         if 200 <= response.status < 300:
             return "deleted"
         if response.status == 405:
+            # Explicit client-triggered termination unsupported; session not proven deleted.
             return "method-not-allowed"
         return "failed"
 
@@ -397,9 +403,9 @@ class ControllerMcpClient:
             self._initialize()
             self._send_initialized()
             self._list_tools()
-            self._list_target_agent(continuation=False)
+            self._list_target_agent(session_reuse=False)
             self._invoke_agent()
-            self._list_target_agent(continuation=True)
+            self._list_target_agent(session_reuse=True)
             self.result.exit_code = ExitCode.SUCCESS
         except UsageError as exc:
             self.result.exit_code = ExitCode.USAGE

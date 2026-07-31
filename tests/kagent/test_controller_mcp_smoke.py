@@ -157,7 +157,7 @@ def _run(transport: FakeTransport, **kwargs: Any) -> controller.ControllerMcpRes
     return controller.ControllerMcpClient(controller.ControllerMcpConfig(**kwargs), transport).run()
 
 
-def test_success_requires_exact_tools_target_response_and_session_continuation() -> None:
+def test_success_requires_exact_tools_target_response_and_mcp_session_reuse() -> None:
     transport = FakeTransport(_handler())
     result = _run(transport)
 
@@ -166,12 +166,16 @@ def test_success_requires_exact_tools_target_response_and_session_continuation()
     assert result.controller_tools == ["invoke_agent", "list_agents"]
     assert result.target_agent_found
     assert result.invoke_agent_succeeded
-    assert result.same_session_continuation_http_status == 200
-    assert result.continuation_target_present
+    assert result.same_mcp_session_reuse_http_status == 200
+    assert result.mcp_session_reuse_target_present
     assert result.cleanup == "method-not-allowed"
     rendered = json.dumps(result.to_sanitized_dict())
     assert "session-secret" not in rendered
     assert "must-not-appear-in-output" not in rendered
+    assert "sameSessionContinuationHttpStatus" not in rendered
+    assert "continuationTargetPresent" not in rendered
+    assert "sameMcpSessionReuseHttpStatus" in rendered
+    assert "mcpSessionReuseTargetPresent" in rendered
     calls_with_session = [
         request for request in transport.requests[1:] if request["method"] == "POST"
     ]
