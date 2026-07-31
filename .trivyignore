@@ -1,2 +1,2 @@
-# Repository-wide Trivy suppressions are forbidden. Resource-scoped exceptions
-# belong beside the exact Kubernetes object after review.
+# Bare repository-wide Trivy suppressions are forbidden. Path-scoped
+# Kubernetes exceptions, after review, belong in .trivyignore.yaml.

@@ -1,0 +1,18 @@
+# Path-scoped Trivy misconfiguration exceptions for the upstream kagent image.
+# Every exception must name an exact manifest, have an owner rationale, and expire.
+misconfigurations:
+  - id: KSV-0020
+    paths:
+      - deploy/base/kagent/kagent-tool-server-runtime.yaml
+    expired_at: 2027-01-01
+    statement: "UID 1000 is required by the upstream kagent tools image (owner: kagent-dev-team)."
+  - id: KSV-0021
+    paths:
+      - deploy/base/kagent/kagent-tool-server-runtime.yaml
+    expired_at: 2027-01-01
+    statement: "fsGroup 1000 is required by the upstream kagent tools image (owner: kagent-dev-team)."
+  - id: KSV-0125
+    paths:
+      - deploy/base/kagent/kagent-tool-server-runtime.yaml
+    expired_at: 2027-01-01
+    statement: "ghcr.io/kagent-dev is the trusted upstream kagent registry (owner: kagent-dev-team)."

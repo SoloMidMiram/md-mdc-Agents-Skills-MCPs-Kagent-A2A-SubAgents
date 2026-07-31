@@ -49,6 +49,18 @@ function New-ExitCodeStub {
     return $stubPath
 }
 
+function New-ArgumentCaptureStub {
+    param([string]$ToolName, [string]$CapturePath, [string]$TempDir)
+    $stubPath = Join-Path $TempDir "$ToolName.ps1"
+    $escapedCapturePath = $CapturePath.Replace("'", "''")
+    $stubContent = @"
+`$args | Set-Content -LiteralPath '$escapedCapturePath' -Encoding UTF8
+exit 0
+"@
+    Set-Content -LiteralPath $stubPath -Value $stubContent -Encoding ASCII
+    return $stubPath
+}
+
 Describe 'Kubernetes validation strict mode' {
     It 'fails when kubeconform is missing and -Strict is set' {
         $tempDir = New-TempDir
@@ -115,19 +127,37 @@ Describe 'Security scan required mode' {
         $globalIgnore = Get-Content -Raw (Join-Path $repoRoot '.trivyignore')
         $globalIgnore | Should Not Match 'KSV-0020|KSV-0021|KSV-0125'
 
-        $allowedManifest = (Resolve-Path (Join-Path $repoRoot 'deploy\base\kagent\kagent-tool-server-runtime.yaml')).Path
+        $scopedIgnore = Get-Content -Raw (Join-Path $repoRoot '.trivyignore.yaml')
+        $expectedPath = 'deploy/base/kagent/kagent-tool-server-runtime.yaml'
+        $scopedIgnore | Should Match '(?m)^misconfigurations:$'
+        foreach ($id in @('KSV-0020', 'KSV-0021', 'KSV-0125')) {
+            $rulePattern = "(?ms)^  - id: $([regex]::Escape($id))\s*\r?\n    paths:\s*\r?\n      - $([regex]::Escape($expectedPath))\s*\r?\n    expired_at: 2027-01-01\s*\r?\n    statement:"
+            $scopedIgnore | Should Match $rulePattern
+        }
+        @([regex]::Matches($scopedIgnore, '(?m)^  - id: (KSV-0020|KSV-0021|KSV-0125)$') | ForEach-Object { $_.Groups[1].Value }) |
+            Should Be @('KSV-0020', 'KSV-0021', 'KSV-0125')
+
         $manifestFiles = Get-ChildItem (Join-Path $repoRoot 'deploy') -Recurse -File |
             Where-Object { $_.Extension -in @('.yaml', '.yml') }
         $annotationMatches = foreach ($manifest in $manifestFiles) {
             Select-String -Path $manifest.FullName -Pattern 'trivy:ignore:(KSV-0020|KSV-0021|KSV-0125)'
         }
-        @($annotationMatches).Count | Should Be 3
-        @($annotationMatches | ForEach-Object { (Resolve-Path $_.Path).Path } | Select-Object -Unique) | Should Be @($allowedManifest)
-        @($annotationMatches | ForEach-Object { $_.Line.Trim() }) | Should Be @(
-            '# trivy:ignore:KSV-0020',
-            '# trivy:ignore:KSV-0021',
-            '# trivy:ignore:KSV-0125'
-        )
+        @($annotationMatches).Count | Should Be 0
+    }
+
+    It 'passes the path-scoped ignore configuration to Trivy' {
+        $tempDir = New-TempDir
+        try {
+            $capturePath = Join-Path $tempDir 'trivy-arguments.txt'
+            New-ArgumentCaptureStub -ToolName 'trivy' -CapturePath $capturePath -TempDir $tempDir
+            $result = Invoke-ScriptViaChildProcess -ScriptPath $scanScript -Arguments '-Required' -PathStub $tempDir
+            $result.ExitCode | Should Be 0
+            $argumentText = (Get-Content -LiteralPath $capturePath) -join "`n"
+            $argumentText | Should Match '(?m)^--ignorefile$'
+            $argumentText | Should Match "(?m)^$([regex]::Escape((Join-Path $repoRoot '.trivyignore.yaml')))$"
+        } finally {
+            Remove-TempDir -Path $tempDir
+        }
     }
 
     It 'fails when Trivy is missing and -Required is set' {

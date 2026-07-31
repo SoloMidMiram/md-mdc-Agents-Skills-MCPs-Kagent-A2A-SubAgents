@@ -12,6 +12,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$ignoreFile = Join-Path $repoRoot '.trivyignore.yaml'
+
 if (-not (Get-Command trivy -ErrorAction SilentlyContinue)) {
     if ($Required) {
         Write-Error "[FAIL] trivy is not installed (Required mode)"
@@ -21,13 +24,18 @@ if (-not (Get-Command trivy -ErrorAction SilentlyContinue)) {
     exit 0
 }
 
+if (-not (Test-Path -LiteralPath $ignoreFile -PathType Leaf)) {
+    Write-Error "[FAIL] Trivy scoped ignore configuration is missing: $ignoreFile"
+    exit 1
+}
+
 Write-Output "=== Trivy filesystem scan ==="
 $exitCode = 1
 if ($Required) {
-    trivy fs --scanners vuln,secret,misconfig --exit-code 1 .
+    trivy fs --scanners vuln,secret,misconfig --ignorefile $ignoreFile --exit-code 1 .
     $exitCode = $LASTEXITCODE
 } else {
-    trivy fs --scanners vuln,secret,misconfig --exit-code 0 .
+    trivy fs --scanners vuln,secret,misconfig --ignorefile $ignoreFile --exit-code 0 .
     $exitCode = $LASTEXITCODE
 }
 
