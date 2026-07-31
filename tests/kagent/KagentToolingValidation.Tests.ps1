@@ -127,7 +127,7 @@ Describe 'Security scan required mode' {
         $globalIgnore = Get-Content -Raw (Join-Path $repoRoot '.trivyignore')
         $globalIgnore | Should Not Match 'KSV-0020|KSV-0021|KSV-0125'
 
-        $scopedIgnore = Get-Content -Raw (Join-Path $repoRoot '.trivyignore.yaml')
+        $scopedIgnore = (Get-Content -Raw (Join-Path $repoRoot '.trivyignore.yaml')) -replace "`r`n", "`n"
         $expectedPath = 'deploy/base/kagent/kagent-tool-server-runtime.yaml'
         (($scopedIgnore -split '\r?\n') -contains 'misconfigurations:') | Should Be $true
         foreach ($id in @('KSV-0020', 'KSV-0021', 'KSV-0125')) {
