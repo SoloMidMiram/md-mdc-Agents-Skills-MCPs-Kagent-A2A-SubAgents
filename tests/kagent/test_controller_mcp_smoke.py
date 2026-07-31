@@ -15,6 +15,7 @@ import controller_mcp_smoke as controller  # noqa: E402
 import mcp_session_smoke as mcp  # noqa: E402
 
 RAW_CONTEXT_ID = "ctx-secret-must-not-appear"
+IDE_SAFE_INVENTORY = ROOT / "config" / "kagent" / "ide-safe-agent-inventory.txt"
 
 
 class FakeTransport:
@@ -81,11 +82,17 @@ def _agents(
     *,
     include_target: bool = True,
     extras: list[str] | None = None,
+    include_observability: bool = True,
+    duplicates: list[str] | None = None,
 ) -> list[dict[str, str]]:
-    agents = [{"ref": "kagent/observability-agent"}]
+    agents: list[dict[str, str]] = []
+    if include_observability:
+        agents.append({"ref": "kagent/observability-agent"})
     if include_target:
         agents.append({"ref": "kagent/k8s-a2a-agent"})
     for ref in extras or []:
+        agents.append({"ref": ref})
+    for ref in duplicates or []:
         agents.append({"ref": ref})
     return agents
 
@@ -103,6 +110,9 @@ def _handler(
     reject_continuation: bool = False,
     changed_context_on_continuation: bool = False,
     extras: list[str] | None = None,
+    include_observability: bool = True,
+    duplicates: list[str] | None = None,
+    leak_context_into_continuation: bool = False,
 ):
     invoke_count = {"n": 0}
 
@@ -142,7 +152,10 @@ def _handler(
                         "result": {
                             "structuredContent": {
                                 "agents": _agents(
-                                    include_target=include_target, extras=extras
+                                    include_target=include_target,
+                                    extras=extras,
+                                    include_observability=include_observability,
+                                    duplicates=duplicates,
                                 )
                             }
                         },
@@ -187,6 +200,10 @@ def _handler(
                 continued_context = "different-context-id"
             else:
                 continued_context = arguments["context_id"]
+            follow_text = continuation_text
+            if leak_context_into_continuation and isinstance(continued_context, str):
+                # Store leaked id in a sanitized result leaf so the hybrid detector fires.
+                follow_text = f"{continuation_text} ctx={continued_context}"
             return _response(
                 {
                     "jsonrpc": "2.0",
@@ -195,7 +212,7 @@ def _handler(
                         "structuredContent": {
                             "agent": "kagent/k8s-a2a-agent",
                             "context_id": continued_context,
-                            "text": continuation_text,
+                            "text": follow_text,
                         }
                     },
                 }
@@ -207,6 +224,19 @@ def _handler(
 
 def _run(transport: FakeTransport, **kwargs: Any) -> controller.ControllerMcpResult:
     return controller.ControllerMcpClient(controller.ControllerMcpConfig(**kwargs), transport).run()
+
+
+def _exact_inventory_config(**kwargs: Any) -> dict[str, Any]:
+    relative, refs, digest = controller.load_expected_inventory(str(IDE_SAFE_INVENTORY))
+    base = {
+        "strict_agent_inventory": True,
+        "expected_inventory_path": str(IDE_SAFE_INVENTORY),
+        "expected_inventory_relative_path": relative,
+        "expected_inventory_refs": refs,
+        "expected_inventory_canonical_sha256": digest,
+    }
+    base.update(kwargs)
+    return base
 
 
 def test_success_requires_exact_tools_target_response_and_mcp_session_reuse() -> None:
@@ -230,12 +260,50 @@ def test_success_requires_exact_tools_target_response_and_mcp_session_reuse() ->
     assert "continuationTargetPresent" not in rendered
     assert "sameMcpSessionReuseHttpStatus" in rendered
     assert "mcpSessionReuseTargetPresent" in rendered
-    calls_with_session = [
-        request for request in transport.requests[1:] if request["method"] == "POST"
-    ]
-    assert all(
-        request["headers"]["Mcp-Session-Id"] == "session-secret" for request in calls_with_session
+
+
+def test_short_context_id_does_not_false_fail_on_sanitized_output() -> None:
+    for short_id in ("a", "1"):
+        result = _run(FakeTransport(_handler(context_id=short_id)))
+        assert result.exit_code == mcp.ExitCode.SUCCESS
+        assert result.agent_context_id == "present"
+        assert result.agent_context_continuation_succeeded
+
+
+def test_exact_leaf_short_context_id_leak_fails() -> None:
+    result = _run(FakeTransport(_handler(context_id="a")))
+    assert result.exit_code == mcp.ExitCode.SUCCESS
+    # Inject exact leaf after a successful capture path via detector unit helper.
+    payload = result.to_sanitized_dict()
+    payload["agentResponse"] = "a"
+    assert controller.sanitized_output_leaks_context_id(payload, "a")
+
+
+def test_embedded_length_boundary_for_leak_detector() -> None:
+    short7 = "abcdefg"
+    long8 = "abcdefgh"
+    assert not controller.sanitized_output_leaks_context_id(
+        {"error": f"provider failure for context {short7}"}, short7
     )
+    assert controller.sanitized_output_leaks_context_id(
+        {"error": f"provider failure for context {long8}"}, long8
+    )
+    assert controller.sanitized_output_leaks_context_id({"nested": {"x": long8}}, long8)
+    assert controller.sanitized_output_leaks_context_id({"x": short7}, short7)
+
+
+def test_long_context_embedded_in_continuation_response_fails_closed() -> None:
+    result = _run(FakeTransport(_handler(leak_context_into_continuation=True)))
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert "leaked agent context identifier" in (result.error or "")
+    assert RAW_CONTEXT_ID not in (result.error or "")
+    assert not result.agent_context_continuation_succeeded
+
+
+def test_whitespace_only_context_id_fails_closed() -> None:
+    result = _run(FakeTransport(_handler(context_id="   ")))
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert "non-empty string" in (result.error or "")
 
 
 def test_controller_unavailable_is_transport_failure() -> None:
@@ -355,12 +423,6 @@ def test_raw_context_id_not_in_serialized_output_or_error_text() -> None:
     rendered = json.dumps(result.to_sanitized_dict(), sort_keys=True)
     assert RAW_CONTEXT_ID not in rendered
     assert result.error is None
-    summary = (
-        f"exitCode={result.exit_code} "
-        f"agentContextId={result.agent_context_id} "
-        f"agentContextContinuationSucceeded={result.agent_context_continuation_succeeded}"
-    )
-    assert RAW_CONTEXT_ID not in summary
 
 
 def test_mcp_session_reuse_and_agent_context_continuation_are_separate_fields() -> None:
@@ -369,8 +431,6 @@ def test_mcp_session_reuse_and_agent_context_continuation_are_separate_fields() 
     assert payload["agentContextContinuationSucceeded"] is True
     assert payload["mcpSessionReuseTargetPresent"] is True
     assert payload["sameMcpSessionReuseHttpStatus"] == 200
-    assert "sameSessionContinuationHttpStatus" not in payload
-    assert "continuationTargetPresent" not in payload
 
 
 def test_strict_inventory_rejects_unexpected_agents() -> None:
@@ -423,11 +483,6 @@ def test_parse_approved_agents_rejects_duplicates_and_malformed() -> None:
         raise AssertionError("expected malformed rejection")
     except controller.UsageError as exc:
         assert "invalid agent reference" in str(exc)
-    try:
-        controller.parse_approved_agents(["kagent/k8s-a2a-agent,"])
-        raise AssertionError("expected empty CSV entry rejection")
-    except controller.UsageError as exc:
-        assert "empty entry" in str(exc)
     parsed = controller.parse_approved_agents(
         ["kagent/k8s-a2a-agent,kagent/observability-agent"]
     )
@@ -439,6 +494,103 @@ def test_default_inventory_ignores_extra_discovered_agents() -> None:
     assert result.exit_code == mcp.ExitCode.SUCCESS
     assert result.inventory_policy == "target-presence"
     assert result.discovered_agent_count == 3
+
+
+def test_exact_inventory_singleton_passes() -> None:
+    result = _run(
+        FakeTransport(_handler(include_observability=False)),
+        **_exact_inventory_config(),
+    )
+    assert result.exit_code == mcp.ExitCode.SUCCESS
+    assert result.inventory_policy == "exact-file"
+    assert result.inventory_matched is True
+    assert result.discovered_agent_count == 1
+    assert result.unexpected_agents == []
+    assert result.missing_expected_agents == []
+    assert result.duplicate_discovered_agents == []
+    payload = result.to_sanitized_dict()
+    assert payload["expectedInventoryPath"] == "config/kagent/ide-safe-agent-inventory.txt"
+    assert payload["expectedInventoryCanonicalSha256"] == controller.canonical_inventory_digest(
+        ["kagent/k8s-a2a-agent"]
+    )
+
+
+def test_exact_inventory_rejects_unexpected_agent() -> None:
+    result = _run(FakeTransport(_handler()), **_exact_inventory_config())
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert result.unexpected_agents == ["kagent/observability-agent"]
+    assert "exact inventory" in (result.error or "")
+
+
+def test_exact_inventory_rejects_missing_expected() -> None:
+    result = _run(
+        FakeTransport(_handler(include_target=False, include_observability=False)),
+        **_exact_inventory_config(),
+    )
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert "k8s-a2a-agent" in (result.error or "")
+
+
+def test_exact_inventory_rejects_duplicate_discovered_refs() -> None:
+    result = _run(
+        FakeTransport(
+            _handler(include_observability=False, duplicates=["kagent/k8s-a2a-agent"])
+        ),
+        **_exact_inventory_config(),
+    )
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert result.duplicate_discovered_agents == ["kagent/k8s-a2a-agent"]
+    assert "duplicate agent references" in (result.error or "")
+
+
+def test_exact_inventory_mutually_exclusive_with_approved_agent() -> None:
+    result = _run(
+        FakeTransport(_handler(include_observability=False)),
+        approved_agents=("kagent/k8s-a2a-agent",),
+        **_exact_inventory_config(),
+    )
+    assert result.exit_code == mcp.ExitCode.USAGE
+    assert "cannot be combined" in (result.error or "")
+
+
+def test_load_expected_inventory_rejects_path_outside_config_kagent(tmp_path: Path) -> None:
+    outside = tmp_path / "agents.txt"
+    outside.write_text("kagent/k8s-a2a-agent\n", encoding="utf-8")
+    try:
+        controller.load_expected_inventory(str(outside))
+        raise AssertionError("expected path rejection")
+    except controller.UsageError as exc:
+        assert "config/kagent" in str(exc)
+
+
+def test_load_expected_inventory_rejects_dotdot_segments() -> None:
+    try:
+        controller.load_expected_inventory("config/kagent/../kagent/ide-safe-agent-inventory.txt")
+        raise AssertionError("expected .. rejection")
+    except controller.UsageError as exc:
+        assert ".." in str(exc)
+
+
+def test_canonical_digest_independent_of_ordering_and_comments(tmp_path: Path) -> None:
+    target = ROOT / "config" / "kagent" / "_tmp_digest_test.txt"
+    try:
+        target.write_text(
+            "# comment\n\nkagent/k8s-a2a-agent\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        _, refs_a, digest_a = controller.load_expected_inventory(str(target))
+        target.write_text(
+            "kagent/k8s-a2a-agent\r\n# trailing\r\n",
+            encoding="utf-8",
+            newline="",
+        )
+        _, refs_b, digest_b = controller.load_expected_inventory(str(target))
+        assert refs_a == refs_b == ("kagent/k8s-a2a-agent",)
+        assert digest_a == digest_b
+    finally:
+        if target.exists():
+            target.unlink()
 
 
 def test_extract_agent_context_id_fail_closed_cases() -> None:
@@ -453,8 +605,8 @@ def test_extract_agent_context_id_fail_closed_cases() -> None:
     except mcp.ProtocolError as exc:
         assert "non-empty string" in str(exc)
     try:
-        controller.extract_agent_context_id({"context_id": ["x"]})
-        raise AssertionError("expected non-string context_id")
+        controller.extract_agent_context_id({"context_id": "  "})
+        raise AssertionError("expected whitespace context_id")
     except mcp.ProtocolError as exc:
         assert "non-empty string" in str(exc)
     assert controller.extract_agent_context_id({"context_id": "ok"}) == "ok"

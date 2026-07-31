@@ -1,0 +1,3 @@
+# IDE-safe Cursor profile: exact discoverable agent set for controller /mcp.
+# Only reviewed read-only agents belong here.
+kagent/k8s-a2a-agent

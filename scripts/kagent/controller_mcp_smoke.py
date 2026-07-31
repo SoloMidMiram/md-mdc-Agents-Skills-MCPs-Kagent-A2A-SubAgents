@@ -20,9 +20,11 @@ agent/tool/kubectl correlation gate.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
@@ -58,6 +60,10 @@ DEFAULT_CONTINUATION_EXPECTED_RESPONSE = "kagent native MCP context continuation
 CLIENT_INFO = {"name": "kagent-native-mcp-federation", "version": "1.0.0"}
 EXPECTED_TOOLS = frozenset({"list_agents", "invoke_agent"})
 MAX_TOOLS_LIST_PAGES = 5
+MIN_EMBEDDED_SECRET_LENGTH = 8
+MAX_EXPECTED_INVENTORY_BYTES = 64 * 1024
+REPO_ROOT = Path(__file__).resolve().parents[2]
+ALLOWED_INVENTORY_DIR = (REPO_ROOT / "config" / "kagent").resolve()
 AGENT_REF_PATTERN = re.compile(
     r"^[A-Za-z0-9]([A-Za-z0-9._-]{0,61}[A-Za-z0-9])?/"
     r"[A-Za-z0-9]([A-Za-z0-9._-]{0,61}[A-Za-z0-9])?$"
@@ -78,6 +84,10 @@ class ControllerMcpConfig:
     quiet: bool = False
     strict_agent_inventory: bool = False
     approved_agents: tuple[str, ...] = ()
+    expected_inventory_path: str | None = None
+    expected_inventory_relative_path: str | None = None
+    expected_inventory_refs: tuple[str, ...] = ()
+    expected_inventory_canonical_sha256: str | None = None
 
 
 @dataclass
@@ -96,7 +106,12 @@ class ControllerMcpResult:
     target_agent_found: bool = False
     discovered_agent_count: int | None = None
     unexpected_agents: list[str] = field(default_factory=list)
+    missing_expected_agents: list[str] = field(default_factory=list)
+    duplicate_discovered_agents: list[str] = field(default_factory=list)
     inventory_policy: str = "target-presence"
+    expected_inventory_path: str | None = None
+    expected_inventory_canonical_sha256: str | None = None
+    inventory_matched: bool | None = None
     invoke_http_status: int | None = None
     invoke_agent_succeeded: bool = False
     agent_response: str = ""
@@ -123,7 +138,12 @@ class ControllerMcpResult:
             "targetAgentFound": self.target_agent_found,
             "discoveredAgentCount": self.discovered_agent_count,
             "unexpectedAgents": self.unexpected_agents,
+            "missingExpectedAgents": self.missing_expected_agents,
+            "duplicateDiscoveredAgents": self.duplicate_discovered_agents,
             "inventoryPolicy": self.inventory_policy,
+            "expectedInventoryPath": self.expected_inventory_path,
+            "expectedInventoryCanonicalSha256": self.expected_inventory_canonical_sha256,
+            "inventoryMatched": self.inventory_matched,
             "invokeHttpStatus": self.invoke_http_status,
             "invokeAgentSucceeded": self.invoke_agent_succeeded,
             "agentResponse": self.agent_response,
@@ -186,6 +206,64 @@ def parse_approved_agents(values: list[str] | None) -> tuple[str, ...]:
     return tuple(refs)
 
 
+def canonical_inventory_digest(refs: tuple[str, ...] | list[str] | set[str]) -> str:
+    canonical = "\n".join(sorted(refs)) + "\n"
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def load_expected_inventory(path_arg: str) -> tuple[str, tuple[str, ...], str]:
+    """Load an exact inventory file under config/kagent/.
+
+    Returns (repo_relative_path, refs, canonical_sha256).
+    """
+    raw_path = Path(path_arg)
+    candidate = raw_path if raw_path.is_absolute() else (Path.cwd() / raw_path)
+    if any(part == ".." for part in Path(path_arg).parts):
+        raise UsageError("expected inventory path must not contain '..' segments")
+    if candidate.exists() and candidate.is_symlink():
+        raise UsageError("expected inventory path must not be a symlink")
+    try:
+        resolved = candidate.resolve(strict=True)
+    except FileNotFoundError as exc:
+        raise UsageError(f"expected inventory file not found: {path_arg}") from exc
+    except OSError as exc:
+        raise UsageError(f"expected inventory path is not readable: {path_arg}") from exc
+
+    if not resolved.is_file():
+        raise UsageError("expected inventory path must be a regular file")
+
+    try:
+        resolved.relative_to(ALLOWED_INVENTORY_DIR)
+    except ValueError as exc:
+        raise UsageError(
+            "expected inventory path must resolve under config/kagent/"
+        ) from exc
+
+    size = resolved.stat().st_size
+    if size > MAX_EXPECTED_INVENTORY_BYTES:
+        raise UsageError(
+            f"expected inventory file exceeds {MAX_EXPECTED_INVENTORY_BYTES} bytes"
+        )
+
+    text = resolved.read_text(encoding="utf-8")
+    refs: list[str] = []
+    seen: set[str] = set()
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        ref = validate_agent_ref(stripped)
+        if ref in seen:
+            raise UsageError(f"duplicate expected inventory reference: {ref}")
+        seen.add(ref)
+        refs.append(ref)
+    if not refs:
+        raise UsageError("expected inventory file produced an empty agent set")
+
+    relative = resolved.relative_to(REPO_ROOT).as_posix()
+    return relative, tuple(refs), canonical_inventory_digest(refs)
+
+
 def extract_agent_context_id(structured: dict[str, Any]) -> str:
     """Return a non-empty context_id or raise without echoing the value."""
     if "context_id" not in structured:
@@ -193,9 +271,26 @@ def extract_agent_context_id(structured: dict[str, Any]) -> str:
     value = structured["context_id"]
     if not isinstance(value, str):
         raise ProtocolError("invoke_agent context_id must be a non-empty string")
-    if not value:
+    if not value.strip():
         raise ProtocolError("invoke_agent context_id must be a non-empty string")
     return value
+
+
+def sanitized_output_leaks_context_id(payload: dict[str, Any], raw: str) -> bool:
+    """Hybrid leak detector over sanitized result leaves only."""
+
+    def walk(node: Any) -> bool:
+        if isinstance(node, str):
+            return node == raw or (
+                len(raw) >= MIN_EMBEDDED_SECRET_LENGTH and raw in node
+            )
+        if isinstance(node, dict):
+            return any(walk(value) for value in node.values())
+        if isinstance(node, list):
+            return any(walk(item) for item in node)
+        return False
+
+    return walk(payload)
 
 
 def evaluate_agent_inventory(
@@ -205,7 +300,7 @@ def evaluate_agent_inventory(
     strict: bool,
     approved: set[str],
 ) -> tuple[bool, list[str]]:
-    """Return (target_present, unexpected_refs) under the selected policy."""
+    """Return (target_present, unexpected_refs) under allowlist policy."""
     target_present = target in discovered
     if not strict:
         return target_present, []
@@ -215,6 +310,20 @@ def evaluate_agent_inventory(
     return target_present, unexpected
 
 
+def evaluate_exact_inventory(
+    *,
+    discovered: set[str],
+    expected: set[str],
+    target: str,
+) -> tuple[bool, list[str], list[str], bool]:
+    """Return target_present, unexpected, missing, inventory_matched."""
+    unexpected = sorted(discovered - expected)
+    missing = sorted(expected - discovered)
+    target_present = target in discovered
+    matched = not unexpected and not missing and target_present
+    return target_present, unexpected, missing, matched
+
+
 class ControllerMcpClient:
     def __init__(self, config: ControllerMcpConfig, transport: Transport | None = None) -> None:
         self.config = config
@@ -222,13 +331,19 @@ class ControllerMcpClient:
         self._session_id: str | None = None
         self._agent_context_id: str | None = None
         self._next_id = 1
+        if config.expected_inventory_path:
+            policy = "exact-file"
+        elif config.strict_agent_inventory:
+            policy = "strict-approved"
+        else:
+            policy = "target-presence"
         self.result = ControllerMcpResult(
             controller=_sanitized_controller(config.url),
             requested_protocol_version=config.protocol_version,
             target_agent=config.agent,
-            inventory_policy=(
-                "strict-approved" if config.strict_agent_inventory else "target-presence"
-            ),
+            inventory_policy=policy,
+            expected_inventory_path=config.expected_inventory_relative_path,
+            expected_inventory_canonical_sha256=config.expected_inventory_canonical_sha256,
         )
 
     def _alloc_id(self) -> int:
@@ -414,11 +529,11 @@ class ControllerMcpClient:
         return response, result
 
     @staticmethod
-    def _agent_refs(result: dict[str, Any]) -> set[str]:
+    def _agent_ref_list(result: dict[str, Any]) -> list[str]:
         structured = result.get("structuredContent")
         if not isinstance(structured, dict) or not isinstance(structured.get("agents"), list):
             raise ProtocolError("list_agents must return structuredContent.agents")
-        refs: set[str] = set()
+        refs: list[str] = []
         for item in structured["agents"]:
             if (
                 not isinstance(item, dict)
@@ -426,35 +541,64 @@ class ControllerMcpClient:
                 or not item["ref"]
             ):
                 raise ProtocolError("list_agents contains an invalid agent reference")
-            refs.add(item["ref"])
+            refs.append(item["ref"])
         return refs
 
     def _list_target_agent(self, *, session_reuse: bool) -> None:
         response, result = self._call_tool("list_agents", {})
-        refs = self._agent_refs(result)
-        approved = set(self.config.approved_agents)
-        present, unexpected = evaluate_agent_inventory(
-            discovered=refs,
-            target=self.config.agent,
-            strict=self.config.strict_agent_inventory,
-            approved=approved,
+        ordered_refs = self._agent_ref_list(result)
+        duplicates = sorted(
+            {ref for ref in ordered_refs if ordered_refs.count(ref) > 1}
         )
+        refs = set(ordered_refs)
+        exact = bool(self.config.expected_inventory_refs)
+        if exact:
+            present, unexpected, missing, matched = evaluate_exact_inventory(
+                discovered=refs,
+                expected=set(self.config.expected_inventory_refs),
+                target=self.config.agent,
+            )
+        else:
+            present, unexpected = evaluate_agent_inventory(
+                discovered=refs,
+                target=self.config.agent,
+                strict=self.config.strict_agent_inventory,
+                approved=set(self.config.approved_agents),
+            )
+            missing = []
+            matched = present and not unexpected
+
         if session_reuse:
             self.result.same_mcp_session_reuse_http_status = response.status
             self.result.mcp_session_reuse_target_present = present
+            if exact:
+                self.result.inventory_matched = matched and not duplicates
         else:
             self.result.target_agent_found = present
-            self.result.discovered_agent_count = len(refs)
+            self.result.discovered_agent_count = len(ordered_refs)
             self.result.unexpected_agents = unexpected
+            self.result.missing_expected_agents = missing
+            self.result.duplicate_discovered_agents = duplicates
+            if exact:
+                self.result.inventory_matched = matched and not duplicates
+
+        if duplicates and (exact or self.config.strict_agent_inventory):
+            preview = ", ".join(duplicates[:5])
+            raise ProtocolError(f"list_agents returned duplicate agent references: {preview}")
         if not present:
             raise ProtocolError(
                 f"target agent {self.config.agent!r} was not returned by list_agents"
             )
-        if self.config.strict_agent_inventory and unexpected:
+        if exact and missing:
+            preview = ", ".join(missing[:5])
+            more = "" if len(missing) <= 5 else f" (+{len(missing) - 5} more)"
+            raise ProtocolError(f"exact inventory missing expected agents: {preview}{more}")
+        if (exact or self.config.strict_agent_inventory) and unexpected:
             preview = ", ".join(unexpected[:5])
             more = "" if len(unexpected) <= 5 else f" (+{len(unexpected) - 5} more)"
+            label = "exact" if exact else "strict"
             raise ProtocolError(
-                f"strict inventory rejected unexpected agents: {preview}{more}"
+                f"{label} inventory rejected unexpected agents: {preview}{more}"
             )
 
     def _invoke_structured(
@@ -496,12 +640,10 @@ class ControllerMcpClient:
         )
         self.result.continuation_http_status = response.status
         self.result.continuation_agent_response = _sanitize_text(text)
-        # Fail closed if the provider/agent returns an error-shaped success body.
         if text != self.config.continuation_expected_response:
             raise ProtocolError(
                 "invoke_agent context continuation did not return the required bounded response"
             )
-        # Re-validate context identity without echoing raw values.
         continued = extract_agent_context_id(structured)
         if continued != self._agent_context_id:
             raise ProtocolError("invoke_agent context continuation changed context_id")
@@ -522,7 +664,6 @@ class ControllerMcpClient:
         if 200 <= response.status < 300:
             return "deleted"
         if response.status == 405:
-            # Explicit client-triggered termination unsupported; session not proven deleted.
             return "method-not-allowed"
         return "failed"
 
@@ -534,7 +675,15 @@ class ControllerMcpClient:
             if self.config.timeout <= 0:
                 raise UsageError("timeout must be greater than zero")
             validate_agent_ref(self.config.agent)
-            if self.config.strict_agent_inventory and not self.config.approved_agents:
+            if self.config.expected_inventory_path and self.config.approved_agents:
+                raise UsageError(
+                    "--expected-inventory cannot be combined with --approved-agent"
+                )
+            if (
+                self.config.strict_agent_inventory
+                and not self.config.expected_inventory_path
+                and not self.config.approved_agents
+            ):
                 raise UsageError("strict inventory requires at least one --approved-agent")
             if (
                 self.config.strict_agent_inventory
@@ -542,6 +691,11 @@ class ControllerMcpClient:
                 and self.config.agent not in self.config.approved_agents
             ):
                 raise UsageError("strict inventory requires the target agent to be approved")
+            if (
+                self.config.expected_inventory_refs
+                and self.config.agent not in self.config.expected_inventory_refs
+            ):
+                raise UsageError("exact inventory requires the target agent to be listed")
             self._initialize()
             self._send_initialized()
             self._list_tools()
@@ -564,11 +718,10 @@ class ControllerMcpClient:
             if self.result.cleanup == "failed" and self.result.exit_code == ExitCode.SUCCESS:
                 self.result.exit_code = ExitCode.PROTOCOL_OR_TOOL
                 self.result.error = "MCP session cleanup failed"
-            # Never leak a captured context identifier into serialized output.
             if self._agent_context_id is not None:
                 raw = self._agent_context_id
-                rendered = json.dumps(self.result.to_sanitized_dict(), sort_keys=True)
-                if raw in rendered or (self.result.error and raw in self.result.error):
+                sanitized = self.result.to_sanitized_dict()
+                if sanitized_output_leaks_context_id(sanitized, raw):
                     self.result.exit_code = ExitCode.PROTOCOL_OR_TOOL
                     self.result.agent_context_continuation_succeeded = False
                     self.result.error = "sanitized output leaked agent context identifier"
@@ -610,13 +763,25 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=[],
         help="Approved agent ref (repeatable); also accepts comma-separated values",
     )
+    parser.add_argument(
+        "--expected-inventory",
+        default=None,
+        help="Exact inventory file under config/kagent/ (implies strict exact-set mode)",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
+        if args.expected_inventory and args.approved_agent:
+            raise UsageError("--expected-inventory cannot be combined with --approved-agent")
         approved = parse_approved_agents(args.approved_agent)
+        relative: str | None = None
+        refs: tuple[str, ...] = ()
+        digest: str | None = None
+        if args.expected_inventory:
+            relative, refs, digest = load_expected_inventory(args.expected_inventory)
     except UsageError as exc:
         if not args.quiet:
             print(f"error={exc}")
@@ -633,8 +798,12 @@ def main(argv: list[str] | None = None) -> int:
             protocol_version=args.protocol_version,
             output=args.output,
             quiet=args.quiet,
-            strict_agent_inventory=args.strict_agent_inventory,
+            strict_agent_inventory=bool(args.strict_agent_inventory or args.expected_inventory),
             approved_agents=approved,
+            expected_inventory_path=args.expected_inventory,
+            expected_inventory_relative_path=relative,
+            expected_inventory_refs=refs,
+            expected_inventory_canonical_sha256=digest,
         )
     ).run()
     if not args.quiet:
