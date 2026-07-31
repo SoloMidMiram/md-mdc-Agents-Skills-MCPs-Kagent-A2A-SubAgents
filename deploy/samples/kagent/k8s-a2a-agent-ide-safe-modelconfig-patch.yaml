@@ -1,0 +1,7 @@
+# Merge patch only — apply with:
+#   kubectl patch agent k8s-a2a-agent -n kagent --type merge \
+#     --patch-file deploy/samples/kagent/k8s-a2a-agent-ide-safe-modelconfig-patch.yaml
+# Do NOT kubectl apply this file; it is not a complete Agent manifest.
+spec:
+  declarative:
+    modelConfig: ide-safe-ollama-model-config
