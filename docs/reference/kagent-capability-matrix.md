@@ -31,7 +31,12 @@ surface. It does not renumber or replace L0-L7.
 `invoke_agent` is a dispatcher over agent identity. Codex/Cursor tool allowlisting
 constrains which controller tools the client may call; it does not constrain which
 agent refs `list_agents` can return or which agent `invoke_agent` may target.
-Strict approved-agent inventory policy is therefore required for IDE acceptance.
+IDE acceptance requires the committed exact inventory profile
+(`config/kagent/ide-safe-agent-inventory.txt` via `--expected-inventory`):
+`discovered == expected`, with a Cursor tool-call trace proving the second
+`invoke_agent` forwarded the first call’s `context_id`. Educational multi-agent
+labs may use `--strict-agent-inventory` with explicit `--approved-agent` flags;
+that allowlist mode is not the IDE-safe Cursor profile.
 
 ## Promotion Rules
 
