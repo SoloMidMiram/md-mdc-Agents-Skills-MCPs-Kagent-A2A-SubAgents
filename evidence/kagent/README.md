@@ -30,7 +30,7 @@ agent discovery cannot be mistaken for agent-mediated Kubernetes execution.
 | I0 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): controller `/mcp` initialized |
 | I1 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `tools/list` returned the pinned agent tools |
 | I2 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `list_agents` returned `kagent/k8s-a2a-agent` |
-| I3 | Blocked | [phase 6](educational-practice-phase-6-native-mcp-federation.md): provider region policy blocks the bounded response; no genuine Cursor I3-Cursor acceptance record yet. Python helper success alone is insufficient. |
+| I3 | Blocked | [phase 6](educational-practice-phase-6-native-mcp-federation.md) (OpenAI region 403) and [phase 6b–6d closure](educational-practice-phase-6b-6d-closure.md) (exact inventory not singleton; Ollama pinned-model pull/DNS and cluster probe incomplete; no Cursor tool-trace context proof). Python helper success alone is insufficient. |
 | I4 | Not proven | No same-invocation controller, tool, and `kubectl` correlation |
 | I5 | Not attempted | No fresh setup, restart, both-client acceptance, and cleanup record |
 
@@ -118,6 +118,11 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   IDE acceptance; Codex `tool_timeout_sec` is 90 with startup still 30; Cursor
   I3 acceptance is documented as a UI gate because local CLI help did not expose
   a verified MCP invoke command. I3 remains Blocked.
+- 2026-07-31 Phase 6B–6D: hybrid leak detection; exact
+  `--expected-inventory` profile; IDE-safe Ollama ModelConfig manifests; runbook
+  Minimal-profile + Cursor tool-trace requirements. Live closure attempt
+  recorded in [phase 6b–6d](educational-practice-phase-6b-6d-closure.md); I3
+  remains Blocked (draft stay).
 
 ## Major Open Flaws
 
@@ -125,7 +130,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 |----------|------|--------|------------------------------|
 | P0 | No live correlated agent-mediated MCP result | Core L6 objective remains unproved; deterministic gates cannot promote it | One fresh `agent_mcp_trace.py` exit 0 binding a taskId to `kagent-tool-server` / `k8s_get_resources`, same-task returned names, bounded source proof, and kubectl match |
 | P1 | MCP image advertises write tools | RBAC is the only write barrier and tool discovery is misleading | Native read-only image plus retained restrictive RBAC |
-| P1 | Native `invoke_agent` is blocked by the provider region policy | Cursor/Codex delegation cannot complete its bounded acceptance task | Restore a region-allowed OpenAI key or supported ModelConfig provider replacement, then capture dated I3-Cursor evidence (bounded response + agent-context continuation) without treating it as L6 |
+| P1 | I3-Cursor blocked: Demo agent inventory, Ollama pinned-model pull/reachability, and missing Cursor tool-trace context proof | Cursor cannot complete IDE-safe exact-inventory acceptance | Minimal-profile singleton inventory; pull `qwen2.5:7b-instruct` with in-cluster Ollama reachability; patch only `k8s-a2a-agent`; capture Cursor tool-trace proving second `invoke_agent` forwarded `context_id` ([6b–6d](educational-practice-phase-6b-6d-closure.md)) |
 | P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
 | P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
 
@@ -142,6 +147,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 - [Phase 5D trustworthy A2A dispatch](educational-practice-phase-5d-trustworthy-a2a.md)
 - [Phase 5E correlated agent-mediated MCP](educational-practice-phase-5e-agent-mediated-mcp.md)
 - [Phase 6 native MCP federation](educational-practice-phase-6-native-mcp-federation.md)
+- [Phase 6B–6D closure attempt](educational-practice-phase-6b-6d-closure.md)
 - [Problem: MCP session reuse](problems/2026-07-17-mcp-session-reuse.md)
 - [Problem: health profile overclaim](problems/2026-07-17-health-profile-overclaim.md)
 - [Problem: A2A dispatch compatibility](problems/2026-07-17-a2a-dispatch-compatibility.md)

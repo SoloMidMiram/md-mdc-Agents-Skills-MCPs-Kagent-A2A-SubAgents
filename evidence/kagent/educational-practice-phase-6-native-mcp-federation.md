@@ -45,6 +45,10 @@ with HTTP 200 before this helper was added.
 | I4 | Not proven | No IDE invocation has correlated with a tool-derived Kubernetes result. |
 | I5 | Not attempted | No fresh setup, restart, and cleanup acceptance record exists. |
 
+Later Phase 6B–6D closure attempts are recorded separately in
+[educational-practice-phase-6b-6d-closure.md](educational-practice-phase-6b-6d-closure.md)
+and do not rewrite this observation.
+
 ## Explicit non-claims
 
 - A controller MCP handshake, agent discovery, and an HTTP 200 tool result do
