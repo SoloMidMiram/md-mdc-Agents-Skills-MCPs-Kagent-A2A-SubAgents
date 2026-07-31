@@ -3,15 +3,17 @@
 
 This helper verifies the client-facing controller contract only:
 initialize -> notifications/initialized -> tools/list -> list_agents ->
-invoke_agent -> list_agents on the same MCP session -> DELETE.
+invoke_agent (bounded) -> invoke_agent (agent-context continuation) ->
+list_agents on the same MCP session -> DELETE.
 
 HTTP 405 on DELETE means explicit client-triggered session termination is
 unsupported by the pinned controller; it does not mean the session was
 deleted. Phase 8 owns lab resource cleanup separately from this MCP DELETE.
 
 It does not prove that an invoked agent used a Kubernetes MCP tool. In
-particular, a successful ``invoke_agent`` response is a diagnostic
-prerequisite for I3, not I3 itself. L6 requires the separate same-task
+particular, a successful helper path is a diagnostic prerequisite for I3,
+not I3 itself: genuine I3 requires a real IDE client plus bounded response
+and agent-context continuation. L6 requires the separate same-task
 agent/tool/kubectl correlation gate.
 """
 
@@ -48,6 +50,11 @@ DEFAULT_TASK = (
     "Do not call Kubernetes, MCP, shell, or any other tool."
 )
 DEFAULT_EXPECTED_RESPONSE = "kagent native MCP acceptance"
+DEFAULT_CONTINUATION_TASK = (
+    "Reply exactly: kagent native MCP context continuation. "
+    "Do not call Kubernetes, MCP, shell, or any other tool."
+)
+DEFAULT_CONTINUATION_EXPECTED_RESPONSE = "kagent native MCP context continuation"
 CLIENT_INFO = {"name": "kagent-native-mcp-federation", "version": "1.0.0"}
 EXPECTED_TOOLS = frozenset({"list_agents", "invoke_agent"})
 MAX_TOOLS_LIST_PAGES = 5
@@ -59,6 +66,8 @@ class ControllerMcpConfig:
     agent: str = DEFAULT_AGENT
     task: str = DEFAULT_TASK
     expected_response: str = DEFAULT_EXPECTED_RESPONSE
+    continuation_task: str = DEFAULT_CONTINUATION_TASK
+    continuation_expected_response: str = DEFAULT_CONTINUATION_EXPECTED_RESPONSE
     timeout: float = 30.0
     protocol_version: str = DEFAULT_PROTOCOL_VERSION
     output: str = "summary"
@@ -82,6 +91,10 @@ class ControllerMcpResult:
     invoke_http_status: int | None = None
     invoke_agent_succeeded: bool = False
     agent_response: str = ""
+    agent_context_id: str = "missing"
+    agent_context_continuation_succeeded: bool = False
+    continuation_http_status: int | None = None
+    continuation_agent_response: str = ""
     same_mcp_session_reuse_http_status: int | None = None
     mcp_session_reuse_target_present: bool = False
     cleanup: str = "not-attempted"
@@ -102,6 +115,10 @@ class ControllerMcpResult:
             "invokeHttpStatus": self.invoke_http_status,
             "invokeAgentSucceeded": self.invoke_agent_succeeded,
             "agentResponse": self.agent_response,
+            "agentContextId": self.agent_context_id,
+            "agentContextContinuationSucceeded": self.agent_context_continuation_succeeded,
+            "continuationHttpStatus": self.continuation_http_status,
+            "continuationAgentResponse": self.continuation_agent_response,
             "sameMcpSessionReuseHttpStatus": self.same_mcp_session_reuse_http_status,
             "mcpSessionReuseTargetPresent": self.mcp_session_reuse_target_present,
             "cleanup": self.cleanup,
@@ -132,11 +149,24 @@ def validate_controller_url(url: str) -> None:
         raise UsageError("controller URL must be a bare loopback /mcp endpoint")
 
 
+def extract_agent_context_id(structured: dict[str, Any]) -> str:
+    """Return a non-empty context_id or raise without echoing the value."""
+    if "context_id" not in structured:
+        raise ProtocolError("invoke_agent structuredContent is missing context_id")
+    value = structured["context_id"]
+    if not isinstance(value, str):
+        raise ProtocolError("invoke_agent context_id must be a non-empty string")
+    if not value:
+        raise ProtocolError("invoke_agent context_id must be a non-empty string")
+    return value
+
+
 class ControllerMcpClient:
     def __init__(self, config: ControllerMcpConfig, transport: Transport | None = None) -> None:
         self.config = config
         self.transport = transport or DirectUrlTransport()
         self._session_id: str | None = None
+        self._agent_context_id: str | None = None
         self._next_id = 1
         self.result = ControllerMcpResult(
             controller=_sanitized_controller(config.url),
@@ -356,11 +386,10 @@ class ControllerMcpClient:
                 f"target agent {self.config.agent!r} was not returned by list_agents"
             )
 
-    def _invoke_agent(self) -> None:
-        response, result = self._call_tool(
-            "invoke_agent", {"agent": self.config.agent, "task": self.config.task}
-        )
-        self.result.invoke_http_status = response.status
+    def _invoke_structured(
+        self, arguments: dict[str, Any]
+    ) -> tuple[HttpResponse, dict[str, Any], str]:
+        response, result = self._call_tool("invoke_agent", arguments)
         structured = result.get("structuredContent")
         if not isinstance(structured, dict) or structured.get("agent") != self.config.agent:
             raise ProtocolError(
@@ -369,10 +398,43 @@ class ControllerMcpClient:
         text = structured.get("text")
         if not isinstance(text, str):
             raise ProtocolError("invoke_agent structuredContent.text must be a string")
+        return response, structured, text
+
+    def _invoke_agent(self) -> None:
+        response, structured, text = self._invoke_structured(
+            {"agent": self.config.agent, "task": self.config.task}
+        )
+        self.result.invoke_http_status = response.status
         self.result.agent_response = _sanitize_text(text)
         if text != self.config.expected_response:
             raise ProtocolError("invoke_agent did not return the required bounded no-tool response")
+        context_id = extract_agent_context_id(structured)
+        self._agent_context_id = context_id
+        self.result.agent_context_id = "present"
         self.result.invoke_agent_succeeded = True
+
+    def _continue_agent_context(self) -> None:
+        if self._agent_context_id is None:
+            raise ProtocolError("agent context continuation requires a captured context_id")
+        response, structured, text = self._invoke_structured(
+            {
+                "agent": self.config.agent,
+                "task": self.config.continuation_task,
+                "context_id": self._agent_context_id,
+            }
+        )
+        self.result.continuation_http_status = response.status
+        self.result.continuation_agent_response = _sanitize_text(text)
+        # Fail closed if the provider/agent returns an error-shaped success body.
+        if text != self.config.continuation_expected_response:
+            raise ProtocolError(
+                "invoke_agent context continuation did not return the required bounded response"
+            )
+        # Re-validate context identity without echoing raw values.
+        continued = extract_agent_context_id(structured)
+        if continued != self._agent_context_id:
+            raise ProtocolError("invoke_agent context continuation changed context_id")
+        self.result.agent_context_continuation_succeeded = True
 
     def _close(self) -> str:
         if self._session_id is None:
@@ -405,6 +467,7 @@ class ControllerMcpClient:
             self._list_tools()
             self._list_target_agent(session_reuse=False)
             self._invoke_agent()
+            self._continue_agent_context()
             self._list_target_agent(session_reuse=True)
             self.result.exit_code = ExitCode.SUCCESS
         except UsageError as exc:
@@ -421,6 +484,14 @@ class ControllerMcpClient:
             if self.result.cleanup == "failed" and self.result.exit_code == ExitCode.SUCCESS:
                 self.result.exit_code = ExitCode.PROTOCOL_OR_TOOL
                 self.result.error = "MCP session cleanup failed"
+            # Never leak a captured context identifier into serialized output.
+            if self._agent_context_id is not None:
+                raw = self._agent_context_id
+                rendered = json.dumps(self.result.to_sanitized_dict(), sort_keys=True)
+                if raw in rendered or (self.result.error and raw in self.result.error):
+                    self.result.exit_code = ExitCode.PROTOCOL_OR_TOOL
+                    self.result.agent_context_continuation_succeeded = False
+                    self.result.error = "sanitized output leaked agent context identifier"
         return self.result
 
 
@@ -433,6 +504,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--task", default=DEFAULT_TASK, help="Bounded no-tool agent task")
     parser.add_argument(
         "--expected-response", default=DEFAULT_EXPECTED_RESPONSE, help="Exact expected agent text"
+    )
+    parser.add_argument(
+        "--continuation-task",
+        default=DEFAULT_CONTINUATION_TASK,
+        help="Bounded no-tool follow-up task for agent-context continuation",
+    )
+    parser.add_argument(
+        "--continuation-expected-response",
+        default=DEFAULT_CONTINUATION_EXPECTED_RESPONSE,
+        help="Exact expected follow-up agent text",
     )
     parser.add_argument("--timeout", type=float, default=30.0, help="HTTP timeout in seconds")
     parser.add_argument("--protocol-version", default=DEFAULT_PROTOCOL_VERSION)
@@ -449,6 +530,8 @@ def main(argv: list[str] | None = None) -> int:
             agent=args.agent,
             task=args.task,
             expected_response=args.expected_response,
+            continuation_task=args.continuation_task,
+            continuation_expected_response=args.continuation_expected_response,
             timeout=args.timeout,
             protocol_version=args.protocol_version,
             output=args.output,
@@ -466,6 +549,10 @@ def main(argv: list[str] | None = None) -> int:
                         f"server={result.server_name or 'unavailable'}",
                         f"targetAgentFound={result.target_agent_found}",
                         f"invokeAgentSucceeded={result.invoke_agent_succeeded}",
+                        f"agentContextContinuationSucceeded="
+                        f"{result.agent_context_continuation_succeeded}",
+                        f"mcpSessionReuseTargetPresent="
+                        f"{result.mcp_session_reuse_target_present}",
                         f"cleanup={result.cleanup}",
                     )
                 )
