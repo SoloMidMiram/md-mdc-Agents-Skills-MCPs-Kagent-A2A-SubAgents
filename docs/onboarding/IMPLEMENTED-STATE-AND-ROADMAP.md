@@ -129,9 +129,8 @@ Implemented and validated:
   `Register-PSRepository -Default` when absent before Pester installation on
   Windows Server 2025. Hosted Quality run 30621076867 passed at `f18b906` on
   2026-07-31, and follow-up Quality run 30621919672 passed all jobs at the
-  exact pre-merge head `94031ff`. The current pre-merge documentation update is
-  a docs-only delta from that verified head and remains subject to its hosted
-  final confirmation before merge.
+  exact pre-merge head `94031ff`. That revision is now part of merged PR #1
+  and remains historical CI context rather than an active merge gate.
 - fail-closed Kubernetes manifest validation (`scripts/kubernetes/validate.ps1
   -Strict`) and Trivy policy scanning (`scripts/security/scan.ps1 -Required`)
   with pinned validator installation (kubeconform v0.6.7, kube-linter v0.7.1,

@@ -52,7 +52,11 @@ Two paths matter today:
 
 - **Stable path**: user-level `playwright-global` registration across VS Code, Cursor, Codex, and Continue. Verified by repeatable install (`-WhatIf` first) / verify / rollback / verify round-trip, covered by 73+ Pester tests, and covered by CI configuration on push and pull_request.
   `laptop-stable-v0.1` is tagged at `cdb7dc0`; this tree targets patch `laptop-stable-v0.1.1` (UTF-8 onboarding, narrative sync, bridge manifests).
-- **Active lab path**: local `kagent` and A2A on `docker-desktop`; see the [canonical evidence index](evidence/kagent/README.md) for dated status and capability decisions.
+- **Active lab path**: local `kagent` on `docker-desktop` uses the controller's
+  native `/mcp` surface (`list_agents` and `invoke_agent`). L4/L5 are Proven;
+  I0-I2 are Proven; I3 is Blocked by provider region policy; L6/L7 remain Not
+  proven. See the [canonical evidence index](evidence/kagent/README.md) for
+  dated status and capability decisions.
 
 Use [docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
 for the learning path, [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/local-kagent-a2a-lab.md)
@@ -77,7 +81,7 @@ for the current repo-wide status.
 | Browser automation | `docs/runbooks/local-playwright-lab.md`, `docs/runbooks/remote-playwright-lab.md`, `server/` | Stable |
 | Host configuration portability | `config/templates/`, `docs/reference/portable-settings-bundle.md` | Stable |
 | AI tooling scaffold | `.vscode/settings.json`, `config/integrations/`, `docs/ai-tooling.md` | Implemented |
-| Local Kubernetes and `kagent` | `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`, `docs/runbooks/local-kagent-a2a-lab.md`, `deploy/base/kagent/`, `deploy/samples/kagent/` | A2A sample agent accepted and ready |
+| Local Kubernetes and `kagent` | `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`, `docs/runbooks/local-kagent-a2a-lab.md`, `deploy/base/kagent/`, `deploy/samples/kagent/` | Native controller `/mcp` federation: I0-I2 Proven; I3 Blocked |
 
 ### Scripts
 
@@ -91,19 +95,23 @@ for the current repo-wide status.
 | `scripts/kubernetes/validate.ps1` | Validate Kubernetes-related repo assets |
 | `scripts/kagent/check-kagent-health.ps1` | Inspect kagent pod/agent/RemoteMCPServer health |
 | `scripts/kagent/test-a2a-agent.py` | Fetch A2A agent card and test A2A dispatch |
+| `scripts/kagent/controller_mcp_smoke.py` | Verify the bounded native controller MCP contract |
 
-## Roadmap
+## kagent Roadmap
 
-The detailed roadmap lives in
-[docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md).
+The stable Playwright release lane remains separately tracked in
+[the implemented state and roadmap](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md).
+The detailed kagent learning path lives in the
+[kagent educational roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md).
 
-Current priority order:
+Current kagent priority order:
 
-1. **Release truthfulness** — fix CI/reporting gaps before tagging `laptop-stable-v0.1.1`.
-2. **A2A task dispatch** — prove real task delivery separately from card inspection and method probing.
-3. **Real MCP execution behind kagent** — deploy a lightweight MCP server and prove one tool invocation through the agent path.
-4. **Repeatable kagent install** — pin versions and automate the Docker Desktop lab setup.
-5. **Repository stabilization** — validate the manifest, update stale architecture docs, and retire compatibility stubs when safe.
+1. **Native delegation** — complete Phase 6 federation through the controller's
+   `/mcp` surface, without a custom A2A bridge.
+2. **Read-only I4/L6 evidence** — remove mutation-capable tools from discovery
+   and capture one same-invocation Kubernetes result with a `kubectl` match.
+3. **Repeatability** — automate a clean-install workshop with restart, cleanup,
+   I5, and L7 evidence.
 
 ## Repository Map
 
@@ -160,4 +168,4 @@ Current priority order:
 
 MIT - see [LICENSE](LICENSE).
 
-*Last updated: 2026-07-09*
+*Last updated: 2026-07-31*

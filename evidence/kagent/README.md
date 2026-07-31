@@ -6,7 +6,8 @@ to imply capabilities that were not observed.
 
 ## Latest Verified Status
 
-Environment observed through 2026-07-17: local Docker Desktop Kubernetes cluster.
+Environment observed through 2026-07-31: local Docker Desktop Kubernetes cluster,
+including the Phase 6 native-federation observation.
 
 | Level | Decision | Evidence |
 |-------|----------|----------|
@@ -104,8 +105,9 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   [30621076867](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30621076867)
   passed all jobs at `f18b906`; follow-up Quality run
   [30621919672](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30621919672)
-  passed all jobs at the exact pre-merge head `94031ff` on 2026-07-31. This
-  documentation-only delta does not change any L0-L7 decision.
+  passed all jobs at the exact pre-merge head `94031ff` on 2026-07-31. That
+  revision is now part of merged PR #1 and remains historical CI context, not
+  an active merge gate; it does not change any L0-L7 decision.
 - Phase 6 native federation now has a deterministic Streamable HTTP helper for
   the pinned controller contract and project-scoped Cursor/Codex configurations.
   The live controller exposes `list_agents` and `invoke_agent`; I0-I2 are

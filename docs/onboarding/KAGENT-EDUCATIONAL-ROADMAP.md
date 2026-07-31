@@ -301,9 +301,15 @@ Correlated agent-mediated MCP attempt (L6 Not proven) is recorded in
 10. (DONE) Reconcile repository hygiene and hosted CI truth for the current
     committed head: retain only local debug captures under ignore rules, and
     update current status prose only after the exact workflow run is observed.
-    Quality run `30621919672` passed at `94031ff` on 2026-07-31; this
-    pre-merge documentation update is a docs-only delta from that verified head
-    and does not change any capability decision.
+    Quality run `30621919672` passed at `94031ff` on 2026-07-31. That revision
+    is now part of merged PR #1 and remains historical CI context rather than
+    an active merge gate; capability decisions are unchanged.
+
+**Delivery sequence:** PR #3 delivers the Phase 6 native-federation foundation
+(I0-I2 Proven; I3 remains Blocked). A Phase 7 PR follows for read-only I4/L6
+proof, then a Phase 8 PR for repeatable I5/L7. These are dependency-ordered,
+not date-estimated. Items 11-13 below map one-to-one to these PRs.
+
 11. Native controller MCP federation: record the live `initialize`, `tools/list`,
     and `list_agents` contract; maintain project-scoped Cursor/Codex configs
     against that one endpoint. I0-I2 are proven for controller 0.9.11. I3 is
