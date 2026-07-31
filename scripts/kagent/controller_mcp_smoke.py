@@ -58,6 +58,10 @@ DEFAULT_CONTINUATION_EXPECTED_RESPONSE = "kagent native MCP context continuation
 CLIENT_INFO = {"name": "kagent-native-mcp-federation", "version": "1.0.0"}
 EXPECTED_TOOLS = frozenset({"list_agents", "invoke_agent"})
 MAX_TOOLS_LIST_PAGES = 5
+AGENT_REF_PATTERN = re.compile(
+    r"^[A-Za-z0-9]([A-Za-z0-9._-]{0,61}[A-Za-z0-9])?/"
+    r"[A-Za-z0-9]([A-Za-z0-9._-]{0,61}[A-Za-z0-9])?$"
+)
 
 
 @dataclass(frozen=True)
@@ -72,6 +76,8 @@ class ControllerMcpConfig:
     protocol_version: str = DEFAULT_PROTOCOL_VERSION
     output: str = "summary"
     quiet: bool = False
+    strict_agent_inventory: bool = False
+    approved_agents: tuple[str, ...] = ()
 
 
 @dataclass
@@ -88,6 +94,9 @@ class ControllerMcpResult:
     controller_tools: list[str] = field(default_factory=list)
     target_agent: str = ""
     target_agent_found: bool = False
+    discovered_agent_count: int | None = None
+    unexpected_agents: list[str] = field(default_factory=list)
+    inventory_policy: str = "target-presence"
     invoke_http_status: int | None = None
     invoke_agent_succeeded: bool = False
     agent_response: str = ""
@@ -112,6 +121,9 @@ class ControllerMcpResult:
             "controllerTools": self.controller_tools,
             "targetAgent": self.target_agent,
             "targetAgentFound": self.target_agent_found,
+            "discoveredAgentCount": self.discovered_agent_count,
+            "unexpectedAgents": self.unexpected_agents,
+            "inventoryPolicy": self.inventory_policy,
             "invokeHttpStatus": self.invoke_http_status,
             "invokeAgentSucceeded": self.invoke_agent_succeeded,
             "agentResponse": self.agent_response,
@@ -149,6 +161,31 @@ def validate_controller_url(url: str) -> None:
         raise UsageError("controller URL must be a bare loopback /mcp endpoint")
 
 
+def validate_agent_ref(ref: str) -> str:
+    if not isinstance(ref, str) or not AGENT_REF_PATTERN.fullmatch(ref):
+        raise UsageError(f"invalid agent reference: {ref!r}")
+    return ref
+
+
+def parse_approved_agents(values: list[str] | None) -> tuple[str, ...]:
+    """Parse repeatable --approved-agent values and optional CSV fragments."""
+    if not values:
+        return ()
+    refs: list[str] = []
+    seen: set[str] = set()
+    for raw in values:
+        parts = [part.strip() for part in raw.split(",")]
+        for part in parts:
+            if not part:
+                raise UsageError("approved agent list contains an empty entry")
+            ref = validate_agent_ref(part)
+            if ref in seen:
+                raise UsageError(f"duplicate approved agent reference: {ref}")
+            seen.add(ref)
+            refs.append(ref)
+    return tuple(refs)
+
+
 def extract_agent_context_id(structured: dict[str, Any]) -> str:
     """Return a non-empty context_id or raise without echoing the value."""
     if "context_id" not in structured:
@@ -159,6 +196,23 @@ def extract_agent_context_id(structured: dict[str, Any]) -> str:
     if not value:
         raise ProtocolError("invoke_agent context_id must be a non-empty string")
     return value
+
+
+def evaluate_agent_inventory(
+    *,
+    discovered: set[str],
+    target: str,
+    strict: bool,
+    approved: set[str],
+) -> tuple[bool, list[str]]:
+    """Return (target_present, unexpected_refs) under the selected policy."""
+    target_present = target in discovered
+    if not strict:
+        return target_present, []
+    if target not in approved:
+        raise UsageError("strict inventory requires the target agent to be approved")
+    unexpected = sorted(discovered - approved)
+    return target_present, unexpected
 
 
 class ControllerMcpClient:
@@ -172,6 +226,9 @@ class ControllerMcpClient:
             controller=_sanitized_controller(config.url),
             requested_protocol_version=config.protocol_version,
             target_agent=config.agent,
+            inventory_policy=(
+                "strict-approved" if config.strict_agent_inventory else "target-presence"
+            ),
         )
 
     def _alloc_id(self) -> int:
@@ -375,15 +432,29 @@ class ControllerMcpClient:
     def _list_target_agent(self, *, session_reuse: bool) -> None:
         response, result = self._call_tool("list_agents", {})
         refs = self._agent_refs(result)
-        present = self.config.agent in refs
+        approved = set(self.config.approved_agents)
+        present, unexpected = evaluate_agent_inventory(
+            discovered=refs,
+            target=self.config.agent,
+            strict=self.config.strict_agent_inventory,
+            approved=approved,
+        )
         if session_reuse:
             self.result.same_mcp_session_reuse_http_status = response.status
             self.result.mcp_session_reuse_target_present = present
         else:
             self.result.target_agent_found = present
+            self.result.discovered_agent_count = len(refs)
+            self.result.unexpected_agents = unexpected
         if not present:
             raise ProtocolError(
                 f"target agent {self.config.agent!r} was not returned by list_agents"
+            )
+        if self.config.strict_agent_inventory and unexpected:
+            preview = ", ".join(unexpected[:5])
+            more = "" if len(unexpected) <= 5 else f" (+{len(unexpected) - 5} more)"
+            raise ProtocolError(
+                f"strict inventory rejected unexpected agents: {preview}{more}"
             )
 
     def _invoke_structured(
@@ -462,6 +533,15 @@ class ControllerMcpClient:
                 raise UsageError("unsupported requested MCP protocol version")
             if self.config.timeout <= 0:
                 raise UsageError("timeout must be greater than zero")
+            validate_agent_ref(self.config.agent)
+            if self.config.strict_agent_inventory and not self.config.approved_agents:
+                raise UsageError("strict inventory requires at least one --approved-agent")
+            if (
+                self.config.strict_agent_inventory
+                and self.config.approved_agents
+                and self.config.agent not in self.config.approved_agents
+            ):
+                raise UsageError("strict inventory requires the target agent to be approved")
             self._initialize()
             self._send_initialized()
             self._list_tools()
@@ -519,11 +599,28 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--protocol-version", default=DEFAULT_PROTOCOL_VERSION)
     parser.add_argument("--output", choices=("summary", "json"), default="summary")
     parser.add_argument("--quiet", action="store_true")
+    parser.add_argument(
+        "--strict-agent-inventory",
+        action="store_true",
+        help="Require every list_agents ref to be explicitly approved",
+    )
+    parser.add_argument(
+        "--approved-agent",
+        action="append",
+        default=[],
+        help="Approved agent ref (repeatable); also accepts comma-separated values",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    try:
+        approved = parse_approved_agents(args.approved_agent)
+    except UsageError as exc:
+        if not args.quiet:
+            print(f"error={exc}")
+        return ExitCode.USAGE
     result = ControllerMcpClient(
         ControllerMcpConfig(
             url=args.url,
@@ -536,6 +633,8 @@ def main(argv: list[str] | None = None) -> int:
             protocol_version=args.protocol_version,
             output=args.output,
             quiet=args.quiet,
+            strict_agent_inventory=args.strict_agent_inventory,
+            approved_agents=approved,
         )
     ).run()
     if not args.quiet:

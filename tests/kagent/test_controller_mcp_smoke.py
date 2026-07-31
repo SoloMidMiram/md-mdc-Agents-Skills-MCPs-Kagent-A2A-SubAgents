@@ -80,10 +80,13 @@ def _tools(*, privileged: bool = False) -> list[dict[str, Any]]:
 def _agents(
     *,
     include_target: bool = True,
+    extras: list[str] | None = None,
 ) -> list[dict[str, str]]:
     agents = [{"ref": "kagent/observability-agent"}]
     if include_target:
         agents.append({"ref": "kagent/k8s-a2a-agent"})
+    for ref in extras or []:
+        agents.append({"ref": ref})
     return agents
 
 
@@ -99,6 +102,7 @@ def _handler(
     omit_context_id: bool = False,
     reject_continuation: bool = False,
     changed_context_on_continuation: bool = False,
+    extras: list[str] | None = None,
 ):
     invoke_count = {"n": 0}
 
@@ -138,7 +142,7 @@ def _handler(
                         "result": {
                             "structuredContent": {
                                 "agents": _agents(
-                                    include_target=include_target
+                                    include_target=include_target, extras=extras
                                 )
                             }
                         },
@@ -367,6 +371,74 @@ def test_mcp_session_reuse_and_agent_context_continuation_are_separate_fields() 
     assert payload["sameMcpSessionReuseHttpStatus"] == 200
     assert "sameSessionContinuationHttpStatus" not in payload
     assert "continuationTargetPresent" not in payload
+
+
+def test_strict_inventory_rejects_unexpected_agents() -> None:
+    result = _run(
+        FakeTransport(_handler()),
+        strict_agent_inventory=True,
+        approved_agents=("kagent/k8s-a2a-agent",),
+    )
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert result.unexpected_agents == ["kagent/observability-agent"]
+    assert "unexpected agents" in (result.error or "")
+
+
+def test_strict_inventory_accepts_approved_multi_agent_set() -> None:
+    result = _run(
+        FakeTransport(_handler()),
+        strict_agent_inventory=True,
+        approved_agents=("kagent/k8s-a2a-agent", "kagent/observability-agent"),
+    )
+    assert result.exit_code == mcp.ExitCode.SUCCESS
+    assert result.inventory_policy == "strict-approved"
+    assert result.discovered_agent_count == 2
+    assert result.unexpected_agents == []
+
+
+def test_strict_inventory_missing_target_fails_closed() -> None:
+    result = _run(
+        FakeTransport(_handler(include_target=False)),
+        strict_agent_inventory=True,
+        approved_agents=("kagent/k8s-a2a-agent", "kagent/observability-agent"),
+    )
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert "k8s-a2a-agent" in (result.error or "")
+
+
+def test_strict_inventory_requires_approved_agents() -> None:
+    result = _run(FakeTransport(_handler()), strict_agent_inventory=True, approved_agents=())
+    assert result.exit_code == mcp.ExitCode.USAGE
+    assert "approved-agent" in (result.error or "")
+
+
+def test_parse_approved_agents_rejects_duplicates_and_malformed() -> None:
+    try:
+        controller.parse_approved_agents(["kagent/k8s-a2a-agent", "kagent/k8s-a2a-agent"])
+        raise AssertionError("expected duplicate rejection")
+    except controller.UsageError as exc:
+        assert "duplicate" in str(exc)
+    try:
+        controller.parse_approved_agents(["not-a-valid-ref"])
+        raise AssertionError("expected malformed rejection")
+    except controller.UsageError as exc:
+        assert "invalid agent reference" in str(exc)
+    try:
+        controller.parse_approved_agents(["kagent/k8s-a2a-agent,"])
+        raise AssertionError("expected empty CSV entry rejection")
+    except controller.UsageError as exc:
+        assert "empty entry" in str(exc)
+    parsed = controller.parse_approved_agents(
+        ["kagent/k8s-a2a-agent,kagent/observability-agent"]
+    )
+    assert parsed == ("kagent/k8s-a2a-agent", "kagent/observability-agent")
+
+
+def test_default_inventory_ignores_extra_discovered_agents() -> None:
+    result = _run(FakeTransport(_handler(extras=["kagent/helm-agent"])))
+    assert result.exit_code == mcp.ExitCode.SUCCESS
+    assert result.inventory_policy == "target-presence"
+    assert result.discovered_agent_count == 3
 
 
 def test_extract_agent_context_id_fail_closed_cases() -> None:
