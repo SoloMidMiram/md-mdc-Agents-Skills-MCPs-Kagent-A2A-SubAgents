@@ -312,11 +312,14 @@ not date-estimated. Items 11-13 below map one-to-one to these PRs.
 
 11. Native controller MCP federation: record the live `initialize`, `tools/list`,
     and `list_agents` contract; maintain project-scoped Cursor/Codex configs
-    against that one endpoint. I0-I2 are proven for controller 0.9.11. I3 is
-    blocked until provider access permits a bounded no-tool response and a dated
-    Cursor lead-client acceptance records agent-context continuation. Python
-    diagnostics alone do not prove I3. Do not build a custom Cursor/Codex-to-A2A
-    bridge.
+    against that one endpoint. I0-I2 are proven for controller 0.9.11. I3 remains
+    Blocked pending Minimal-profile exact inventory, a usable provider (IDE-safe
+    Ollama ModelConfig with in-cluster reachability), and a dated Cursor
+    acceptance whose tool-call trace proves second `invoke_agent` forwarded
+    `context_id`. See
+    [phase 6b–6d closure](../../evidence/kagent/educational-practice-phase-6b-6d-closure.md).
+    Python diagnostics alone do not prove I3. Do not build a custom
+    Cursor/Codex-to-A2A bridge.
 12. Make the MCP runtime natively read-only and obtain one same-invocation
     IDE -> agent -> MCP tool -> kubectl-matched loop to promote I4 and L6.
     Retain restrictive RBAC. Treat model credentials, provider availability,
