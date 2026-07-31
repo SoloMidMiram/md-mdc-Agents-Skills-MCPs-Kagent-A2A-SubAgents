@@ -295,10 +295,12 @@ Correlated agent-mediated MCP attempt (L6 Not proven) is recorded in
 9. (DONE) Make `parse_sse_jsonrpc_events()` compliant with multi-line SSE `data:`
    fields: normalize CRLF, join each event's data lines, ignore comments and
    `[DONE]`, and test malformed combined payloads.
-10. Reconcile repository hygiene and hosted CI truth for the current committed
-    head: retain only local debug captures under ignore rules, and update current
-    status prose only after the exact workflow run is observed. Do not use an
-    earlier SHA or dated report as a merge gate.
+10. (DONE) Reconcile repository hygiene and hosted CI truth for the current
+    committed head: retain only local debug captures under ignore rules, and
+    update current status prose only after the exact workflow run is observed.
+    Quality run `30621919672` passed at `94031ff` on 2026-07-31; this
+    pre-merge documentation update is a docs-only delta from that verified head
+    and does not change any capability decision.
 11. Make the MCP runtime natively read-only: retain restrictive RBAC, but also
     require mutation tools to be absent from discovered schemas before an agent
     is asked to use the server.

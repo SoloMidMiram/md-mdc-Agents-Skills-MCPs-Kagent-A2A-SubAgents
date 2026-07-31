@@ -125,8 +125,13 @@ Implemented and validated:
 - quality workflow configuration for a separate locked kagent Python job
   (`uv sync --frozen --group dev`, Ruff, and full pytest), the suite-compatible
   pinned Pester 3.4.0 baseline, and an explicit deterministic kagent PowerShell
-  test invocation. Hosted Quality run 30621076867 passed at commit `f18b906` on
-  2026-07-31; that result applies only to that committed revision.
+  test invocation. `bc1ce58` restores PSGallery registration with
+  `Register-PSRepository -Default` when absent before Pester installation on
+  Windows Server 2025. Hosted Quality run 30621076867 passed at `f18b906` on
+  2026-07-31, and follow-up Quality run 30621919672 passed all jobs at the
+  exact pre-merge head `94031ff`. The current pre-merge documentation update is
+  a docs-only delta from that verified head and remains subject to its hosted
+  final confirmation before merge.
 - fail-closed Kubernetes manifest validation (`scripts/kubernetes/validate.ps1
   -Strict`) and Trivy policy scanning (`scripts/security/scan.ps1 -Required`)
   with pinned validator installation (kubeconform v0.6.7, kube-linter v0.7.1,

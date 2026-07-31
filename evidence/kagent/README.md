@@ -83,6 +83,15 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 - 2026-07-30 SSE coalescing: `parse_sse_jsonrpc_events` in
   `test-a2a-agent.py` now joins multi-line `data:` fields before JSON
   decoding. Covered by deterministic pytest in `test_a2a_helper.py`.
+- 2026-07-31 Windows runner CI repair: `bc1ce58` registers PSGallery with
+  `Register-PSRepository -Default` when it is absent before trusting it. This
+  restores Pester 3.4.0/5.7.1 installation on the Windows Server 2025 runner.
+  Hosted Quality run
+  [30621076867](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30621076867)
+  passed all jobs at `f18b906`; follow-up Quality run
+  [30621919672](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30621919672)
+  passed all jobs at the exact pre-merge head `94031ff` on 2026-07-31. This
+  documentation-only delta does not change any L0-L7 decision.
 
 ## Major Open Flaws
 
