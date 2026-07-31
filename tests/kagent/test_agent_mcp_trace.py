@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts" / "kagent" / "agent_mcp_trace.py"
 _spec = importlib.util.spec_from_file_location("agent_mcp_trace", SCRIPT)
@@ -271,9 +273,10 @@ def test_log_correlation_can_prove_tool(tmp_path: Path):
         if deploy == "k8s-a2a-agent":
             return [
                 (
-                    '{"msg":"tool call","taskID":"task-log-1",'
+                    '{"eventType":"mcp_tool_invocation","taskID":"task-log-1",'
                     '"tool":"k8s_get_resources","server":"kagent-tool-server",'
-                    '"resourceType":"pod","namespace":"kagent"}'
+                    '"arguments":{"resourceType":"pod","namespace":"kagent"},'
+                    '"status":"succeeded"}'
                 )
             ]
         return []
@@ -292,6 +295,54 @@ def test_log_correlation_can_prove_tool(tmp_path: Path):
     )
     assert report.tool_observed is True
     assert report.exit_code == 0
+
+
+def test_configuration_log_with_all_expected_strings_does_not_prove_tool(tmp_path: Path):
+    pods = ["k8s-a2a-agent-abc"]
+
+    def a2a_handler(method, url, headers, body, timeout):
+        req = json.loads(body.decode())
+        return _sse(
+            [
+                _status(req["id"], "task-config-1", "submitted"),
+                _status(
+                    req["id"],
+                    "task-config-1",
+                    "completed",
+                    role="agent",
+                    text="Pods:\nk8s-a2a-agent-abc",
+                ),
+            ]
+        )
+
+    def logs(ns, deploy, tail):
+        return [
+            json.dumps(
+                {
+                    "eventType": "agent_configuration",
+                    "taskId": "task-config-1",
+                    "server": "kagent-tool-server",
+                    "tool": "k8s_get_resources",
+                    "arguments": {"resourceType": "pod", "namespace": "kagent"},
+                    "status": "succeeded",
+                }
+            )
+        ]
+
+    report = trace.run_trace(
+        controller="http://127.0.0.1:8083",
+        namespace="kagent",
+        agent="k8s-a2a-agent",
+        prompt="list",
+        cluster_context="docker-desktop",
+        source_out=_source_out(tmp_path),
+        transport=FakeTransport(_router(a2a_handler)),
+        log_collector=logs,
+        kubectl_collector=lambda ns: pods,
+        skip_logs=False,
+    )
+    assert report.exit_code == 1
+    assert report.tool_observed is False
 
 
 def test_cross_check_mismatch_fails(tmp_path: Path):
@@ -664,3 +715,121 @@ def test_small_source_capture_is_not_marked_truncated(tmp_path: Path):
 
     parsed = json.loads(dest.read_text(encoding="utf-8"))
     assert "truncated" not in parsed
+
+
+# --- log-marker integrity ---
+
+
+def _scatter_log_line() -> str:
+    """A JSON log line where the five invocation-related values reside in three
+    unrelated dict nodes, with no invocation discriminator."""
+    import json
+
+    return json.dumps(
+        {
+            "request": {"id": "abc-123"},
+            "config": {"tool": "k8s_get_resources", "server": "kagent-tool-server"},
+            "metadata": {"resourceType": "pod", "namespace": "kagent"},
+        }
+    )
+
+
+def _valid_log_line(task_id: str) -> str:
+    """A well-structured log line with all fields in one record,
+    an explicit 'arguments' child, and an invocation discriminator."""
+    import json
+
+    return json.dumps(
+        {
+            "eventType": "mcp_tool_invocation",
+            "taskID": task_id,
+            "tool": "k8s_get_resources",
+            "server": "kagent-tool-server",
+            "arguments": {
+                "resourceType": "pod",
+                "namespace": "kagent",
+            },
+            "status": "completed",
+        }
+    )
+
+
+def test_log_marker_rejects_scattered_fields():
+    """scan_logs_for_tool() with scatter-shaped log returns no observation."""
+    ok, ref, proof, summary = trace.scan_logs_for_tool(
+        [_scatter_log_line()],
+        task_id="abc-123",
+        expected_tool="k8s_get_resources",
+        expected_server="kagent-tool-server",
+    )
+    assert ok is False
+    assert ref is None
+    assert proof is None
+    assert summary["correlatedMatches"] == 0
+
+
+def test_log_marker_accepts_contained_fields():
+    """scan_logs_for_tool() with well-structured log returns an observation."""
+    ok, ref, proof, summary = trace.scan_logs_for_tool(
+        [_valid_log_line("abc-123")],
+        task_id="abc-123",
+        expected_tool="k8s_get_resources",
+        expected_server="kagent-tool-server",
+    )
+    assert ok is True
+    assert ref is not None
+    assert proof is not None
+    assert proof["tool"] == "k8s_get_resources"
+    assert proof["argumentsSummary"]["resourceType"] == "pod"
+    assert summary["correlatedMatches"] == 1
+
+
+def test_normalize_log_marker_scattered_rejects():
+    """_normalize_log_marker with scatter-shaped input returns None."""
+    result = trace._normalize_log_marker(
+        _scatter_log_line(),
+        task_id="abc-123",
+        expected_tool="k8s_get_resources",
+        expected_server="kagent-tool-server",
+    )
+    assert result is None
+
+
+def test_log_marker_rejects_unsuccessful_status():
+    event = _valid_log_line("abc-123").replace('"completed"', '"failed"')
+    ok, reference, proof, summary = trace.scan_logs_for_tool(
+        [event],
+        task_id="abc-123",
+        expected_tool="k8s_get_resources",
+        expected_server="kagent-tool-server",
+    )
+    assert ok is False
+    assert reference is None
+    assert proof is None
+    assert summary["correlatedMatches"] == 0
+
+
+# --- controller URL validation ---
+
+
+def test_malformed_controller_url_main_exit_2(monkeypatch):
+    """main() with malformed URL returns exit 2, no transport calls."""
+    monkeypatch.setattr(
+        trace.a2a, "DirectUrlTransport",
+        lambda: (_ for _ in ()).throw(RuntimeError("must not be called")),
+    )
+    code = trace.main(["--controller", "not-a-url"])
+    assert code == 2
+
+
+def test_malformed_controller_url_run_trace_usage():
+    """run_trace() with invalid URL raises UsageFailure before context collection."""
+    with pytest.raises(trace.a2a.UsageFailure, match="scheme must be http or https"):
+        trace.run_trace(
+            controller="not-a-url",
+            namespace="kagent",
+            agent="k8s-a2a-agent",
+            prompt="list",
+            cluster_context="docker-desktop",
+            source_out=Path("nope.json"),
+        )

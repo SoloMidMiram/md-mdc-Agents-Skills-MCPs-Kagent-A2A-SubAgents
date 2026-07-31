@@ -297,6 +297,11 @@ capability claims explicit — see
 .\scripts\kagent\check-kagent-health.ps1 -Profile A2ADispatch -ControllerUrl http://127.0.0.1:8083
 .\scripts\kagent\check-kagent-health.ps1 -Profile FullMcpExecution -ControllerUrl http://127.0.0.1:8083
 .\scripts\kagent\check-kagent-health.ps1 -Profile FullMcpExecution -ControllerUrl http://127.0.0.1:8083 -AgentToolEvidencePath <agent-mediated-json>
+
+# FullMcpExecution uses the canonical target by default
+.\scripts\kagent\check-kagent-health.ps1 `
+  -Profile FullMcpExecution `
+  -ControllerUrl http://127.0.0.1:8083
 ```
 
 On the current lab, expect CardLab, DirectMcpServer, and A2ADispatch to pass

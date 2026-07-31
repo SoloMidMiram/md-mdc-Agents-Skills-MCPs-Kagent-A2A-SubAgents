@@ -54,3 +54,6 @@ PRECOMMIT-DRAFT.md
 
 # Local ephemeral kagent lab captures (never commit)
 evidence/kagent/tmp/
+
+# Debug transcripts (diagnostic output from test or CI instrumentation)
+debug-*.log

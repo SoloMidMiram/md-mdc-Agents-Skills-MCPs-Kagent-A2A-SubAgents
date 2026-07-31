@@ -95,6 +95,12 @@ subjects:
 ---
 # Deployment for the kagent tool MCP server. Image 0.0.13 does not support the
 # --read-only flag, so Kubernetes API write protection is enforced by RBAC.
+# These resource-local Trivy exceptions are constrained to this upstream image.
+# Owner: kagent-dev-team. Expiry: 2027-01-01.
+# UID/GID 1000 are required by the image; ghcr.io/kagent-dev is its trusted registry.
+# trivy:ignore:KSV-0020
+# trivy:ignore:KSV-0021
+# trivy:ignore:KSV-0125
 apiVersion: apps/v1
 kind: Deployment
 metadata:

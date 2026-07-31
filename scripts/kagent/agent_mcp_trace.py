@@ -491,20 +491,30 @@ def _normalize_log_marker(
         obj = json.loads(line)
     except json.JSONDecodeError:
         return None
-    scalar_values = {
-        value.strip()
-        for node in _walk(obj)
-        if isinstance(node, dict)
-        for value in node.values()
-        if isinstance(value, str) and value.strip()
-    }
-    if not {task_id, expected_tool, expected_server}.issubset(scalar_values):
-        return None
+    invocation_types = {"tool_invocation", "tool_call", "mcp_tool_invocation"}
+    successful_statuses = {"completed", "success", "succeeded"}
     for node in _walk(obj):
         if not isinstance(node, dict):
             continue
-        resource_type = node.get("resourceType") or node.get("resource_type")
-        namespace = node.get("namespace") or node.get("resourceNamespace")
+        event_type = node.get("eventType") or node.get("event_type") or node.get("type")
+        event_task_id = node.get("taskId") or node.get("taskID") or node.get("task_id")
+        server = node.get("server") or node.get("serverName")
+        tool = node.get("tool") or node.get("toolName")
+        status = node.get("status") or node.get("executionStatus") or node.get("resultStatus")
+        arguments = node.get("arguments") or node.get("args")
+        if not (
+            isinstance(event_type, str)
+            and event_type.strip().lower() in invocation_types
+            and event_task_id == task_id
+            and server == expected_server
+            and tool == expected_tool
+            and isinstance(status, str)
+            and status.strip().lower() in successful_statuses
+            and isinstance(arguments, dict)
+        ):
+            continue
+        resource_type = arguments.get("resourceType") or arguments.get("resource_type")
+        namespace = arguments.get("namespace") or arguments.get("resourceNamespace")
         if isinstance(resource_type, str) and isinstance(namespace, str):
             return {
                 "resourceType": resource_type.strip().lower(),
@@ -673,6 +683,7 @@ def run_trace(
     skip_logs: bool = False,
     timeout: float = 90.0,
 ) -> TraceReport:
+    controller = a2a.validate_controller_url(controller)
     report = TraceReport(
         observed_at=utc_now_iso(),
         cluster_context=cluster_context,
@@ -940,8 +951,6 @@ def emit_human(report: TraceReport) -> None:
 def main(argv: list[str] | None = None) -> int:
     try:
         args = parse_args(argv)
-        if not args.controller.strip():
-            raise a2a.UsageFailure("controller is required")
         report = run_trace(
             controller=args.controller,
             namespace=args.namespace,

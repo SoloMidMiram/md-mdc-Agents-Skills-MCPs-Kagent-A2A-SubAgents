@@ -187,6 +187,24 @@ def argparse_ns(**kwargs):
     return type("Args", (), defaults)()
 
 
+@pytest.mark.parametrize(
+    "controller",
+    [
+        "not-a-url",
+        "/relative",
+        "http://host",
+        "http://user:pass@host:8083",
+        "http://host:bad",
+        "http://host:8083/path",
+        "http://host:8083?query=true",
+        "http://host:8083#fragment",
+    ],
+)
+def test_run_rejects_invalid_controller_as_usage_error(controller):
+    with pytest.raises(a2a.UsageFailure, match="controller URL"):
+        a2a.run(_ns(controller=controller), transport=FakeTransport(lambda *args: None))
+
+
 # --- Unit helpers ---
 
 
@@ -953,3 +971,29 @@ def test_emit_human_both_shows_card_even_when_task_fails(capsys):
     out = capsys.readouterr().out
     assert "Skills (1):" in out
     assert "Get Resources" in out
+
+
+# --- controller URL validation ---
+
+
+def test_malformed_controller_url_raises_usage():
+    """run() with malformed URL raises UsageFailure (not exit code)."""
+    with pytest.raises(a2a.UsageFailure, match="scheme must be http or https"):
+        a2a.run(_ns(action="card", controller="not-a-url"))
+
+
+def test_missing_scheme_controller_url_raises_usage():
+    """run() without scheme raises UsageFailure."""
+    with pytest.raises(a2a.UsageFailure, match="scheme must be http or https"):
+        a2a.run(_ns(action="card", controller="localhost:8083"))
+
+
+def test_malformed_controller_url_main_exit_2(monkeypatch, capsys):
+    """main() with malformed URL returns exit 2 without traceback."""
+    transport = FakeTransport(_router({"card": _card_ok()}))
+    monkeypatch.setattr(a2a, "DirectUrlTransport", lambda: transport)
+    code = a2a.main(["card", "--controller", "not-a-url", "--output", "json"])
+    assert code == 2
+    result = capsys.readouterr()
+    assert "Traceback" not in result.err
+    assert "usage:" in result.err.lower()

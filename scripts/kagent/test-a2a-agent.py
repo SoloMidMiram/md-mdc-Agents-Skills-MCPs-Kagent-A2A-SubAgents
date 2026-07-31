@@ -294,6 +294,42 @@ def sanitize_protocol_error(err: dict[str, Any] | None) -> dict[str, Any] | None
     }
 
 
+def validate_controller_url(value: str) -> str:
+    """Return a validated controller origin or raise ``UsageFailure``."""
+    controller = value.strip()
+    if not controller:
+        raise UsageFailure("controller URL is required")
+    try:
+        parsed = urlparse(controller)
+    except ValueError as exc:
+        raise UsageFailure(f"controller URL could not be parsed: {exc}") from exc
+    if parsed.scheme not in {"http", "https"}:
+        raise UsageFailure(
+            f"controller URL scheme must be http or https, got {parsed.scheme!r}"
+        )
+    if not parsed.hostname:
+        raise UsageFailure(
+            f"controller URL must have a host, got {controller!r}"
+        )
+    if parsed.username is not None or parsed.password is not None:
+        raise UsageFailure("controller URL must not include userinfo")
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise UsageFailure(
+            f"controller URL has invalid port: {exc}"
+        ) from exc
+    if port is None:
+        raise UsageFailure("controller URL must include an explicit port")
+    if parsed.path not in {"", "/"} or parsed.params:
+        raise UsageFailure("controller URL must not include a path")
+    if parsed.query:
+        raise UsageFailure("controller URL must not include a query")
+    if parsed.fragment:
+        raise UsageFailure("controller URL must not include a fragment")
+    return controller.rstrip("/")
+
+
 def build_a2a_endpoint(base: str, namespace: str, agent: str) -> str:
     return f"/api/a2a/{namespace}/{agent}"
 
@@ -959,8 +995,7 @@ def run(
     *,
     transport: Transport | None = None,
 ) -> EvidenceReport:
-    if not args.controller or not str(args.controller).strip():
-        raise UsageFailure("controller URL is required")
+    controller = validate_controller_url(str(args.controller or ""))
     if not args.namespace or not args.agent:
         raise UsageFailure("namespace and agent are required")
 
@@ -970,7 +1005,7 @@ def run(
         "observed_at": observed,
         "namespace": args.namespace,
         "agent": args.agent,
-        "controller": args.controller.rstrip("/"),
+        "controller": controller,
     }
 
     if args.action == "card":

@@ -769,3 +769,123 @@ Describe 'Output and exit behavior' {
         $r.exitCode | Should Be 1
     }
 }
+
+Describe 'RequireCanonicalTarget gate' {
+    $pods = @((ConvertFrom-KubectlPodLine -Line 'p1 1/1 Running 0'))
+    $agents = @((ConvertFrom-KubectlAgentLine -Line 'a1 Declarative ADK True True'))
+    $servers = @((ConvertFrom-KubectlRemoteMcpServerLine -Line 'kagent-tool-server STREAMABLE_HTTP http://x True'))
+    $a2aOk = [pscustomobject]@{
+        schemaVersion   = '1.0'
+        accepted        = $true
+        taskState       = 'completed'
+        taskOrMessageId = 'task-1'
+    }
+    $evalTime = [datetime]'2026-07-17T12:00:01Z'
+    $agentOk = [pscustomobject]@{
+        schemaVersion  = '1.0'
+        evidenceKind   = 'agent-mediated-mcp'
+        success        = $true
+        observedAt     = '2026-07-17T12:00:00Z'
+        target         = [pscustomobject]@{
+            clusterContext = 'docker-desktop'
+            namespace       = 'kagent'
+            agent          = 'k8s-a2a-agent'
+            controller     = 'http://127.0.0.1:8083'
+            mcpServer      = 'kagent-tool-server'
+        }
+        a2a            = [pscustomobject]@{
+            method           = 'message/stream'
+            requestId        = 'req-1'
+            taskOrMessageId  = 'task-1'
+            acceptedState    = 'completed'
+            transport        = [pscustomobject]@{ succeeded = $true; httpStatus = 200 }
+            protocol         = [pscustomobject]@{
+                jsonRpc = '2.0'; requestId = 'req-1'; responseIdMatched = $true; error = $null
+            }
+            dispatch         = [pscustomobject]@{
+                accepted = $true; taskOrMessageId = 'task-1'; state = 'completed'
+            }
+        }
+        toolInvocation = [pscustomobject]@{
+            observed                   = $true
+            correlatedTaskOrMessageId  = 'task-1'
+            server                     = 'kagent-tool-server'
+            tool                       = 'k8s_get_resources'
+            argumentsSummary           = [pscustomobject]@{ resourceType = 'pod'; namespace = 'kagent' }
+            source                     = [pscustomobject]@{ kind = 'protocol-result'; reference = 'protocol-result:event=2:part=0' }
+        }
+        result         = [pscustomobject]@{
+            returnedThroughA2A         = $true
+            toolDerivedResourceNames   = @('k8s-a2a-agent-abc')
+            crossCheckResourceNames    = @('k8s-a2a-agent-abc', 'kagent-controller-xyz')
+            matched                    = $true
+        }
+        provenance     = [pscustomobject]@{
+            sourceEvidencePath   = 'tests/kagent/fixtures/agent-mediated-source.json'
+            freshnessSeconds     = 1
+            maxFreshnessSeconds  = 900
+            targetBound          = $true
+            taskTraceCorrelated  = $true
+        }
+        decision       = [pscustomobject]@{ passed = $true; exitCode = 0; reason = 'ok' }
+    }
+
+    It 'passes with canonical evidence' {
+        $r = Invoke-KagentHealthProfile -Profile FullMcpExecution -Pods $pods -Agents $agents `
+            -RemoteMcpServers $servers -A2ADispatchEvidence $a2aOk -AgentMediatedEvidence $agentOk `
+            -EvaluationTimeUtc $evalTime -RequireCanonicalTarget
+        $r.passed | Should Be $true
+        $r.exitCode | Should Be 0
+    }
+
+    It 'fails with non-canonical cluster context' {
+        $r = Invoke-KagentHealthProfile -Profile FullMcpExecution -Pods $pods -Agents $agents `
+            -RemoteMcpServers $servers -A2ADispatchEvidence $a2aOk -AgentMediatedEvidence $agentOk `
+            -EvaluationTimeUtc $evalTime -RequireCanonicalTarget `
+            -ExpectedClusterContext 'minikube'
+        $r.passed | Should Be $false
+        $r.exitCode | Should Be 1
+        ($r.gates | Where-Object { $_.name -eq 'canonical-target' }).reason | Should Match 'ExpectedClusterContext'
+    }
+
+    It 'fails with non-canonical namespace' {
+        $r = Invoke-KagentHealthProfile -Profile FullMcpExecution -Pods $pods -Agents $agents `
+            -RemoteMcpServers $servers -A2ADispatchEvidence $a2aOk -AgentMediatedEvidence $agentOk `
+            -EvaluationTimeUtc $evalTime -RequireCanonicalTarget `
+            -ExpectedAgentNamespace 'production'
+        $r.passed | Should Be $false
+        $r.exitCode | Should Be 1
+        ($r.gates | Where-Object { $_.name -eq 'canonical-target' }).reason | Should Match 'ExpectedAgentNamespace'
+    }
+
+    It 'fails with non-canonical controller origin' {
+        $r = Invoke-KagentHealthProfile -Profile FullMcpExecution -Pods $pods -Agents $agents `
+            -RemoteMcpServers $servers -A2ADispatchEvidence $a2aOk -AgentMediatedEvidence $agentOk `
+            -EvaluationTimeUtc $evalTime -RequireCanonicalTarget `
+            -ExpectedControllerOrigin 'http://localhost:8083'
+        $r.passed | Should Be $false
+        $r.exitCode | Should Be 1
+        ($r.gates | Where-Object { $_.name -eq 'canonical-target' }).reason | Should Match 'ExpectedControllerOrigin'
+    }
+
+    It 'fails early before evidence processing when live context is non-canonical' {
+        $r = Invoke-KagentHealthProfile -Profile FullMcpExecution -Pods $pods -Agents $agents `
+            -RemoteMcpServers $servers -RequireCanonicalTarget `
+            -ExpectedClusterContext 'minikube' -ExpectedAgentNamespace 'kagent'
+        $r.passed | Should Be $false
+        $r.exitCode | Should Be 1
+        ($r.gates | Where-Object { $_.name -eq 'canonical-target' }).reason | Should Match 'ExpectedClusterContext'
+        # Only the canonical-target gate should be present; no evidence gates
+        ($r.gates | Where-Object { $_.name -eq 'agent-mediated-tool' }).Count | Should Be 0
+        ($r.gates | Where-Object { $_.name -eq 'a2a-dispatch' }).Count | Should Be 0
+    }
+
+    It 'omits the explicit canonical-target gate when compatibility switch is absent' {
+        $r = Invoke-KagentHealthProfile -Profile FullMcpExecution -Pods $pods -Agents $agents `
+            -RemoteMcpServers $servers -AgentMediatedEvidence $agentOk `
+            -EvaluationTimeUtc $evalTime `
+            -ExpectedClusterContext 'custom-lab' -ExpectedAgentNamespace 'custom-ns'
+        $r.passed | Should Be $false
+        ($r.gates | Where-Object { $_.name -eq 'canonical-target' }).Count | Should Be 0
+    }
+}

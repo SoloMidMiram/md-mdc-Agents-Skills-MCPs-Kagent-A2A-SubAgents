@@ -155,10 +155,18 @@ function Read-Assessment {
                 $incompleteFields.Add("$($case.id).softMeasures.$measureName")
                 continue
             }
-            if ($property.Value -isnot [ValueType]) {
-                throw "Soft measure '$measureName' for $($case.id) must be numeric."
+            $valueType = $property.Value.GetType()
+            $allowedNumericTypes = @(
+                [int], [long], [decimal], [double], [single],
+                [byte], [int16], [uint16], [uint32], [uint64], [sbyte]
+            )
+            if ($valueType -notin $allowedNumericTypes) {
+                throw "Soft measure '$measureName' for $($case.id) must be numeric, got $($valueType.Name)."
             }
             $number = [double]$property.Value
+            if ([double]::IsNaN($number) -or [double]::IsInfinity($number)) {
+                throw "Soft measure '$measureName' for $($case.id) must be a finite number, got $($number)."
+            }
             if ($number -lt 0) {
                 throw "Soft measure '$measureName' for $($case.id) cannot be negative."
             }

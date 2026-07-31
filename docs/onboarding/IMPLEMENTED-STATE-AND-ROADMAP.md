@@ -125,14 +125,14 @@ Implemented and validated:
 - quality workflow configuration for a separate locked kagent Python job
   (`uv sync --frozen --group dev`, Ruff, and full pytest), the suite-compatible
   pinned Pester 3.4.0 baseline, and an explicit deterministic kagent PowerShell
-  test invocation; a green
-  hosted run against the committed workflow is still pending
+  test invocation. Hosted Quality run 30547297255 passed at commit `3e8ceaf` on
+  2026-07-30; that result applies only to that committed revision.
 - fail-closed Kubernetes manifest validation (`scripts/kubernetes/validate.ps1
   -Strict`) and Trivy policy scanning (`scripts/security/scan.ps1 -Required`)
   with pinned validator installation (kubeconform v0.6.7, kube-linter v0.7.1,
-  Trivy v0.61.1) and deterministic Pester failure-path tests
-  (`KagentToolingValidation.Tests.ps1`); a green hosted run against the
-  committed workflow is still pending
+  Trivy v0.72.0) and deterministic Pester failure-path tests
+  (`KagentToolingValidation.Tests.ps1`). Those jobs passed in hosted Quality run
+  30547297255 at `3e8ceaf`; a post-correction hosted result is still pending.
 - `kagent-controller` REST API exposes agent card on port 8083
 
 Current capability decisions, dated observations, corrections, and major flaws

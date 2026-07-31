@@ -48,7 +48,9 @@ param(
 
     [int]$UIPort = 8080,
 
-    [switch]$SkipLiveA2A
+    [switch]$SkipLiveA2A,
+
+    [switch]$RequireCanonicalTarget
 )
 
 $ErrorActionPreference = 'Continue'
@@ -289,12 +291,7 @@ if ($serverResult.Ok) {
 
 $clusterContext = 'docker-desktop'
 if ($Profile -eq 'FullMcpExecution') {
-    $contextResult = Get-KubectlLines -Arguments @('config', 'current-context')
-    if (-not $contextResult.Ok -or $contextResult.Lines.Count -eq 0) {
-        Write-Diag '[FAIL] unable to determine kubectl current-context'
-        exit 3
-    }
-    $clusterContext = "$($contextResult.Lines[0])"
+    Write-Diag "[INFO] FullMcpExecution uses the canonical target '$clusterContext'"
 }
 
 $a2aEvidence = $null
@@ -331,10 +328,11 @@ $evalParams = @{
     DirectMcpEvidenceRequired   = ($Profile -eq 'DirectMcpServer')
     A2ADispatchEvidenceRequired = ($Profile -in @('A2ADispatch', 'FullMcpExecution'))
     AgentMediatedEvidenceRequired = ($Profile -eq 'FullMcpExecution')
-    ExpectedClusterContext         = $clusterContext
-    ExpectedAgentNamespace         = $Namespace
+    ExpectedClusterContext         = 'docker-desktop'
+    ExpectedAgentNamespace         = 'kagent'
     ExpectedAgentName              = 'k8s-a2a-agent'
-    ExpectedControllerOrigin       = $ControllerUrl.TrimEnd('/')
+    ExpectedControllerOrigin       = 'http://127.0.0.1:8083'
+    RequireCanonicalTarget         = $RequireCanonicalTarget
 }
 
 $result = Invoke-KagentHealthProfile @evalParams

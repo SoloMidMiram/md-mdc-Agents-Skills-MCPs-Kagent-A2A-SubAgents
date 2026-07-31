@@ -48,6 +48,43 @@ proof. It does not turn deterministic fixtures into live L6 evidence.
   -AgentToolEvidencePath .\agent-tool.json
 ```
 
+### FullMcpExecution trusted target
+
+`FullMcpExecution` always evaluates evidence against the canonical lab target.
+It never derives expected values from the current Kubernetes context, caller-supplied
+namespace, or controller URL. This prevents self-consistent evidence from a
+non-canonical environment from passing the promotion gate.
+
+Canonical values:
+
+| Parameter | Canonical value |
+|-----------|----------------|
+| Cluster context | `docker-desktop` |
+| Namespace | `kagent` |
+| Agent name | `k8s-a2a-agent` |
+| Controller origin | `http://127.0.0.1:8083` |
+
+`-RequireCanonicalTarget` remains an idempotent compatibility switch for callers
+that explicitly request the module-level early mismatch gate. It does not change
+the trusted target used by the CLI profile. A future Minikube lab must introduce
+a separately named target profile rather than redefining these expectations.
+
+Examples:
+
+```powershell
+# FullMcpExecution uses the canonical target by default
+.\scripts\kagent\check-kagent-health.ps1 `
+  -Profile FullMcpExecution `
+  -ControllerUrl http://127.0.0.1:8083
+```
+
+The compatibility switch is available at the module level:
+
+```powershell
+Invoke-KagentHealthProfile -Profile FullMcpExecution `
+  -RequireCanonicalTarget
+```
+
 ## Exit codes
 
 | Code | Meaning |

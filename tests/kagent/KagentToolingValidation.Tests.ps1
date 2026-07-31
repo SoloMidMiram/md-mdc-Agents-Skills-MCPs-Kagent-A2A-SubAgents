@@ -111,6 +111,25 @@ Describe 'Kubernetes validation strict mode' {
 }
 
 Describe 'Security scan required mode' {
+    It 'keeps Trivy Kubernetes exceptions resource-scoped' {
+        $globalIgnore = Get-Content -Raw (Join-Path $repoRoot '.trivyignore')
+        $globalIgnore | Should Not Match 'KSV-0020|KSV-0021|KSV-0125'
+
+        $allowedManifest = (Resolve-Path (Join-Path $repoRoot 'deploy\base\kagent\kagent-tool-server-runtime.yaml')).Path
+        $manifestFiles = Get-ChildItem (Join-Path $repoRoot 'deploy') -Recurse -File |
+            Where-Object { $_.Extension -in @('.yaml', '.yml') }
+        $annotationMatches = foreach ($manifest in $manifestFiles) {
+            Select-String -Path $manifest.FullName -Pattern 'trivy:ignore:(KSV-0020|KSV-0021|KSV-0125)'
+        }
+        @($annotationMatches).Count | Should Be 3
+        @($annotationMatches | ForEach-Object { (Resolve-Path $_.Path).Path } | Select-Object -Unique) | Should Be @($allowedManifest)
+        @($annotationMatches | ForEach-Object { $_.Line.Trim() }) | Should Be @(
+            '# trivy:ignore:KSV-0020',
+            '# trivy:ignore:KSV-0021',
+            '# trivy:ignore:KSV-0125'
+        )
+    }
+
     It 'fails when Trivy is missing and -Required is set' {
         $tempDir = New-TempDir
         try {

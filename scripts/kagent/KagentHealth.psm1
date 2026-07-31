@@ -951,8 +951,48 @@ function Invoke-KagentHealthProfile {
         [string]$ExpectedAgentNamespace = 'kagent',
         [string]$ExpectedAgentName = 'k8s-a2a-agent',
         [string]$ExpectedControllerOrigin = 'http://127.0.0.1:8083',
-        [datetime]$EvaluationTimeUtc = ([datetime]::UtcNow)
+        [datetime]$EvaluationTimeUtc = ([datetime]::UtcNow),
+
+        [switch]$RequireCanonicalTarget
     )
+
+    # Canonical-target gate: when requested, enforce that all caller-supplied
+    # expected parameters match the canonical values *before* any evidence
+    # parsing. This prevents self-consistent evidence from a non-canonical
+    # environment from passing the promotion gate.
+    $canonical = @{
+        clusterContext = 'docker-desktop'
+        agentNamespace = 'kagent'
+        agentName      = 'k8s-a2a-agent'
+        controllerOrigin = 'http://127.0.0.1:8083'
+    }
+    if ($RequireCanonicalTarget) {
+        $issues = [System.Collections.Generic.List[string]]::new()
+        if ($ExpectedClusterContext -ne $canonical.clusterContext) {
+            $issues.Add("ExpectedClusterContext must be '$($canonical.clusterContext)', got '$ExpectedClusterContext'")
+        }
+        if ($ExpectedAgentNamespace -ne $canonical.agentNamespace) {
+            $issues.Add("ExpectedAgentNamespace must be '$($canonical.agentNamespace)', got '$ExpectedAgentNamespace'")
+        }
+        if ($ExpectedAgentName -ne $canonical.agentName) {
+            $issues.Add("ExpectedAgentName must be '$($canonical.agentName)', got '$ExpectedAgentName'")
+        }
+        if ($ExpectedControllerOrigin -ne $canonical.controllerOrigin) {
+            $issues.Add("ExpectedControllerOrigin must be '$($canonical.controllerOrigin)', got '$ExpectedControllerOrigin'")
+        }
+        if ($issues.Count -gt 0) {
+            $reason = "Canonical target mismatch: $($issues -join '; ')"
+            return New-KagentHealthResult -Profile $Profile -Gates @(
+                New-HealthGate -Name 'canonical-target' -Status 'fail' -Reason $reason
+            ) -ForcedExitCode 1 -Proves @() -DoesNotProve @('promotion evidence not evaluated')
+        }
+        # Inject canonical values so evidence-checking functions use the fixed
+        # expected values regardless of caller-supplied parameters.
+        $ExpectedClusterContext = $canonical.clusterContext
+        $ExpectedAgentNamespace = $canonical.agentNamespace
+        $ExpectedAgentName = $canonical.agentName
+        $ExpectedControllerOrigin = $canonical.controllerOrigin
+    }
 
     $cardGates = @(Get-CardLabGates -Pods $Pods -Agents $Agents -RemoteMcpServers $RemoteMcpServers)
     $cardFailed = @($cardGates | Where-Object { $_.status -eq 'fail' })

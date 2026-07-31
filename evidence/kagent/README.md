@@ -64,18 +64,18 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 - The quality workflow now defines a separate locked kagent Python job
   (`uv sync --frozen --group dev`, Ruff, and pytest), pins the suite-compatible
   Pester 3.4.0 baseline, and
-  explicitly runs the deterministic kagent PowerShell suite. This is repository
-  configuration only until a green hosted run is recorded; it does not change
-  any L0-L7 decision.
+  explicitly runs the deterministic kagent PowerShell suite. Hosted Quality run
+  [30547297255](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30547297255)
+  passed all jobs at commit `3e8ceaf` on 2026-07-30. This proves deterministic
+  CI at that revision but does not change any L0-L7 decision.
 - Kubernetes manifest validation (`scripts/kubernetes/validate.ps1 -Strict`)
   and Trivy policy scanning (`scripts/security/scan.ps1 -Required`) now fail
   closed when required tools are missing or return nonzero exits. Pinned
-  validator versions (kubeconform v0.6.7, kube-linter v0.7.1, Trivy v0.61.1)
+  validator versions (kubeconform v0.6.7, kube-linter v0.7.1, Trivy v0.72.0)
   are installed by separate hosted CI jobs. Deterministic Pester tests cover
   missing-tool and simulated-failure paths in
-  `tests/kagent/KagentToolingValidation.Tests.ps1`. This is repository
-  configuration only until a green hosted run is recorded; it does not change
-  any L0-L7 decision.
+  `tests/kagent/KagentToolingValidation.Tests.ps1`. Those jobs passed in hosted
+  Quality run 30547297255 at `3e8ceaf`; this does not change any L0-L7 decision.
 - 2026-07-30 CRD exit-3: `check-kagent-health.ps1` now exits 3 when
   RemoteMCPServer CRD is absent for `DirectMcpServer`, `A2ADispatch`, or
   `FullMcpExecution`. Covered by child-process stubs in
@@ -94,6 +94,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 | P2 | Controller MCP agent discovery is not yet recorded | A custom IDE bridge could be built unnecessarily, or a native endpoint could be assumed without evidence | Record live `initialize` and `tools/list`; if suitable agent tools are present, use that native surface for the Cursor/Codex acceptance phase |
 | P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
 | P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
+| P2 | Post-correction hosted validation is not yet recorded | Local correction checks do not establish a hosted result for the corrected revision | Record the exact successful workflow run and commit after this correction is pushed |
 
 ## Record Index
 
