@@ -8,6 +8,106 @@ permissions:
   contents: read
 
 jobs:
+  kagent-python:
+    name: Deterministic kagent Python checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.22"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Sync locked development environment
+        run: uv sync --frozen --group dev
+
+      - name: Lint kagent Python code
+        run: uv run ruff check scripts/kagent tests/kagent
+
+      - name: Run deterministic Python tests
+        run: uv run pytest -q
+
+      - name: Validate workflow YAML
+        run: uv run python -c 'import yaml,sys; d=yaml.safe_load(open(sys.argv[1])); assert all(j in d.get("jobs",{}) for j in ["kagent-python","kagent-kubernetes","kagent-security","evaluation"]); print("Workflow valid, jobs:", list(d["jobs"]))' .github/workflows/quality.yml
+
+  kagent-kubernetes:
+    name: Deterministic kagent Kubernetes validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install kubeconform
+        run: |
+          wget -q https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar xzf kubeconform-linux-amd64.tar.gz
+          chmod +x kubeconform
+          sudo mv kubeconform /usr/local/bin/
+          kubeconform -v
+
+      - name: Install kube-linter
+        run: |
+          curl -sSfL https://github.com/stackrox/kube-linter/releases/download/v0.7.1/kube-linter-linux.tar.gz | tar xz
+          chmod +x kube-linter
+          sudo mv kube-linter /usr/local/bin/
+          kube-linter version
+
+      - name: Validate Kubernetes manifests
+        run: pwsh -NoProfile -File scripts/kubernetes/validate.ps1 -Strict
+
+  kagent-security:
+    name: Deterministic kagent Trivy policy scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Trivy v0.72.0
+        run: |
+          wget -q https://github.com/aquasecurity/trivy/releases/download/v0.72.0/trivy_0.72.0_Linux-64bit.tar.gz
+          echo "bbb64b9695866ce4a7a8f5c9592002c5961cab378577fa3f8a040df362b9b2ea  trivy_0.72.0_Linux-64bit.tar.gz" | sha256sum --check
+          tar xzf trivy_0.72.0_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin/
+          trivy --version
+
+      - name: Download Trivy vulnerability DB
+        run: trivy image --download-db-only --quiet
+
+      - name: Scan ghcr.io/kagent-dev/kagent/tools:0.0.13 (advisory)
+        run: |
+          # Advisory scan: upstream pre-built image (kagent/tools:0.0.13) bundles
+          # 6 Go binaries (cilium, helm, istioctl, kubectl, etc.) with ~200 CVEs.
+          # This is an upstream image we cannot rebuild — report findings but
+          # do not block the pipeline.
+          trivy image --exit-code 0 --severity CRITICAL,HIGH --quiet \
+            ghcr.io/kagent-dev/kagent/tools:0.0.13
+
+      - name: Scan mcr.microsoft.com/playwright/mcp:v0.0.76 (advisory)
+        run: |
+          # Advisory scan: Microsoft-curated image (playwright/mcp:v0.0.76) based on
+          # Debian 12.14. 71 CVEs (57 HIGH, 14 CRITICAL) in base OS packages.
+          # Upstream Microsoft/Playwright team will fix when Debian releases patches.
+          trivy image --exit-code 0 --severity CRITICAL,HIGH --quiet \
+            mcr.microsoft.com/playwright/mcp:v0.0.76
+
+      - name: Run Trivy required-policy scan
+        run: pwsh -NoProfile -File scripts/security/scan.ps1 -Required
+
   evaluation:
     name: Repository Evaluation
     runs-on: windows-latest
@@ -31,11 +131,15 @@ jobs:
         shell: pwsh
         run: npm install -g @openai/codex@0.141.0
 
-      - name: Install Pester
+      - name: Install Pester (3.4.0 + 5.7.1)
         shell: pwsh
         run: |
+          if (-not (Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
+            Register-PSRepository -Default -ErrorAction Stop
+          }
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          Install-Module Pester -RequiredVersion 3.4.0 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
 
       - name: Install PSScriptAnalyzer
         shell: pwsh
@@ -69,9 +173,26 @@ jobs:
         shell: pwsh
         run: .\scripts\integrations\verify-integration-scaffold.ps1
 
-      - name: Run evaluation suite
+      - name: Run evaluation suite (Pester 5.7.1)
         shell: pwsh
-        run: .\scripts\evaluation\run-evaluation.ps1 -CI
+        run: |
+          Import-Module Pester -RequiredVersion 5.7.1 -Force
+          $result = .\scripts\evaluation\run-evaluation.ps1 -CI
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Run deterministic kagent PowerShell tests
+        shell: pwsh
+        run: |
+          Import-Module Pester -RequiredVersion 3.4.0 -Force
+          $result = Invoke-Pester -Path .\tests\kagent\KagentHealth.Tests.ps1 -PassThru
+          if ($result.FailedCount -gt 0) { exit 1 }
+
+      - name: Run kagent tooling validation tests
+        shell: pwsh
+        run: |
+          Import-Module Pester -RequiredVersion 3.4.0 -Force
+          $result = Invoke-Pester -Path .\tests\kagent\KagentToolingValidation.Tests.ps1 -PassThru
+          if ($result.FailedCount -gt 0) { exit 1 }
 
       - name: Upload evaluation reports
         if: always()

@@ -3,6 +3,9 @@
 This document records the current observed state of the repository and the
 local validation environment.
 
+For a narrative of completed work only, with critique and good-practice notes,
+see `docs/onboarding/IMPLEMENTED-WORK-NARRATIVE.md`.
+
 It answers four questions:
 
 1. What is implemented now?
@@ -55,6 +58,16 @@ Implemented and documented:
 - VS Code-specific repo instructions
 - Continue slash-command personas
 - explicit host-surface separation for Cursor, Continue, VS Code, and Codex
+- an agent-governance pilot with three scoped Cursor rules, two manual
+  project skills with deterministic helpers, three observation-only Cursor
+  hooks, and a deterministic benchmark contract
+
+The rules and skills are implemented but not promoted. The hooks are in shadow
+mode: they log sanitized classifications and validation-family state, never
+block commands, and never submit a follow-up. The original generated YAML files
+were empty templates rather than scored baseline/candidate runs. The repaired
+JSON harness rejects incomplete or contradictory assessments; a genuine
+isolated baseline/candidate comparison and ten-event hook sample remain open.
 
 Primary artifacts:
 
@@ -63,6 +76,12 @@ Primary artifacts:
 - `.github/instructions/`
 - `.github/agents/`
 - `.github/prompts/`
+- `.cursor/rules/`
+- `.cursor/hooks.json`
+- `.cursor/hooks/`
+- `.agents/skills/`
+- `scripts/benchmark/`
+- `docs/onboarding/AGENT-GOVERNANCE-ROADMAP.md`
 - `docs/ai-tooling.md`
 
 ### Tooling scaffold
@@ -91,33 +110,47 @@ Implemented and validated:
 - local `kagent` CRDs installed
 - local `kagent` controller and UI running in `docker-desktop`
 - local UI reachable on `http://localhost:8080` through port-forward (HTTP 200)
-- **17 pods: all `1/1 Running`**
-- **11 agents: all `Accepted=True, Ready=True`**
-- sample A2A manifest at `deploy/samples/kagent/k8s-a2a-agent.yaml` (Accepted=True, Ready=True)
-- base `RemoteMCPServer` at `deploy/base/kagent/kagent-tool-server.yaml` (exists, Accepted=False — expected, no backing service)
+- sample A2A manifest accepted and deployment-ready
+- real MCP runtime at `deploy/base/kagent/kagent-tool-server-runtime.yaml`
+- `RemoteMCPServer/kagent-tool-server` accepted with discovered tools (L5)
 - health verification script at `scripts/kagent/check-kagent-health.ps1`
-- A2A verification helper at `scripts/kagent/test-a2a-agent.py` (card probe works, task dispatch returns `-32601`)
+- named `CardLab`, `DirectMcpServer`, `A2ADispatch`, and `FullMcpExecution`
+  health profiles with deterministic gate tests
+- A2A helper with truthful `card`, `probe`, `task`, and `both` exit semantics
+- structured Phase 5D A2A tests and a selected controller 0.9.11
+  `message/stream` SSE compatibility path (L4 Proven)
+- Phase 5E single-task agent-mediated producer and `FullMcpExecution` consumer
+  with deterministic transport/protocol/dispatch, freshness, target, source,
+  tool, result, and exit-consistency tests
+- quality workflow configuration for a separate locked kagent Python job
+  (`uv sync --frozen --group dev`, Ruff, and full pytest), the suite-compatible
+  pinned Pester 3.4.0 baseline, and an explicit deterministic kagent PowerShell
+  test invocation. `bc1ce58` restores PSGallery registration with
+  `Register-PSRepository -Default` when absent before Pester installation on
+  Windows Server 2025. Hosted Quality run 30621076867 passed at `f18b906` on
+  2026-07-31, and follow-up Quality run 30621919672 passed all jobs at the
+  exact pre-merge head `94031ff`. The current pre-merge documentation update is
+  a docs-only delta from that verified head and remains subject to its hosted
+  final confirmation before merge.
+- fail-closed Kubernetes manifest validation (`scripts/kubernetes/validate.ps1
+  -Strict`) and Trivy policy scanning (`scripts/security/scan.ps1 -Required`)
+  with pinned validator installation (kubeconform v0.6.7, kube-linter v0.7.1,
+  Trivy v0.72.0) and deterministic Pester failure-path tests
+  (`KagentToolingValidation.Tests.ps1`). Those jobs passed in hosted Quality run
+  30621076867 at `f18b906`, including the required Trivy policy scan.
 - `kagent-controller` REST API exposes agent card on port 8083
-- `promql-agent`: **Running and Accepted=True** (no longer failing)
 
-Observed local state on 2026-07-09:
-
-| Component | Status |
-|-----------|--------|
-| `kagent-controller` | Running |
-| `kagent-ui` | Running |
-| `kagent-kmcp-controller-manager` | Running |
-| `kagent-postgresql` | Running |
-| `kagent-grafana-mcp` | Running |
-| `kagent-querydoc` | Running |
-| `promql-agent` | Accepted=True, Ready=True |
-| `k8s-a2a-agent` | Accepted=True, Ready=True |
-| `RemoteMCPServer (kagent-tool-server)` | Created, Accepted=False (expected) |
-| `RemoteMCPServer (azure-tool-server)` | Created, Accepted=False (expected) |
-
-The local A2A path is ready for card and acceptance testing. JSON-RPC task
-dispatch requires `a2a-cli` or a compatible client (not exposed by the current
-controller version).
+Current capability decisions, dated observations, corrections, and major flaws
+are canonical in `evidence/kagent/README.md`. L0-L5 are proven. L4 is supported
+by a recorded, strictly validated `message/stream` status-update with a
+non-empty task identifier. Phase 5E shipped a nested agent-mediated evidence
+helper and tightened `FullMcpExecution` gates; the live attempt failed closed
+without a correlated tool observation, so L6 remains Not proven. L7
+repeatability is not proven.
+The historical Phase 5 direct `tools/call` failed because its negotiated session
+was not reused. Phase 5B subsequently proved a direct, session-reusing call with
+`k8s_get_resources`; this is auxiliary server evidence only and does not prove
+L4 or L6. See `evidence/kagent/educational-practice-phase-5b-direct-mcp.md`.
 
 ## How To Use What Exists Today
 
@@ -165,7 +198,7 @@ Use this when you are changing configuration or docs:
 
 ```powershell
 .\scripts\verify-global-playwright-mcp.ps1
-pwsh -ExecutionPolicy Bypass -File scripts\kubernetes\validate.ps1
+pwsh -ExecutionPolicy Bypass -File scripts\kubernetes\validate.ps1 -Strict
 pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 ```
 
@@ -181,50 +214,73 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 
 ### Working but still rough
 
+- release acceptance evidence for `laptop-stable-v0.1.1` still needs an exact green GitHub Actions run recorded against the release SHA
+- integration scaffold verification reports findings but does not yet fail CI truthfully for every detected failure
+- PyYAML/Python dependency behavior needs one documented contract across code, tests, README, and the acceptance plan
 - local `kagent` installation path (not yet reduced to a one-command install flow)
-- A2A JSON-RPC task dispatch (requires `a2a-cli`, not exposed by controller natively)
+- A2A dispatch uses the pinned controller 0.9.11 `message/stream` SSE path;
+  legacy blocking `tasks/sendTask` and `message/send` remain unsuitable
+- native read-only MCP tool exposure; the current pinned image relies on RBAC for write denial
+- live correlated L6 tool observation (schema/helper exist; live still Not proven)
+- the deployed controller's client-facing MCP discovery schema has not yet been
+  recorded, so native Cursor/Codex agent integration remains an acceptance task
+- agent-governance R1-R3/S1-S2 benchmark scoring and H1-H3 shadow measurement;
+  artifacts exist, but no independently assessed comparison or ten-event hook
+  sample supports promotion or blocking yet
 
 ### Not yet closed
 
-- `RemoteMCPServer` resources show `Accepted=False` — expected until a real MCP server is deployed behind the `kagent-tool-server` service
+- L6 agent-mediated MCP invocation (live tool marker + kubectl match)
+- Cursor and Codex discovery, minimal dispatch, and correlated read-only
+  acceptance through the controller's MCP endpoint
+- L7 bootstrap, cleanup, and fresh-install evidence
 - root `docs/01-*.md`–`docs/07-*.md` stubs remain as compatibility redirects; full removal pending consumer bookmark updates
 
 ## Practical Roadmap
 
-### Stage 1: A2A task dispatch (current)
+The stable Playwright release lane remains the first priority for any release
+work. The kagent lane below applies when that stable work is explicitly out of
+scope. Detailed educational phase ownership, commands, and promotion gates are
+kept in the [kagent educational roadmap](KAGENT-EDUCATIONAL-ROADMAP.md).
 
-1. Validate `a2a-cli` or a compatible client for JSON-RPC `tasks/sendTask` against the `kagent-controller` REST API on port 8083.
-2. Deploy a lightweight MCP server behind the `kagent-tool-server` service so `RemoteMCPServer` can reach `Accepted=True`.
-3. Document the full end-to-end dispatch flow.
+| Order | Kagent outcome | Depends on | Completion evidence |
+|-------|----------------|------------|---------------------|
+| 1 | **Integrity and protocol hardening** — repair strict missing-CRD exit semantics, multiline SSE parsing, local-debug-log hygiene, and current-head CI truthfulness. | Existing deterministic test suites | Regression cases pass and any hosted status is recorded for the exact head. |
+| 2 | **Read-only surface and L6 closure** — make mutation tools absent from discovery, then diagnose and prove one correlated agent-mediated Kubernetes read. | 1 | Native read-only schema plus fresh `agent_mcp_trace.py` exit 0 and a `kubectl` match. |
+| 3 | **Native IDE acceptance** — inspect the controller MCP schema; if it exposes suitable agent tools, configure project-scoped Cursor and Codex clients instead of building a new bridge. Basic discovery and no-tool dispatch can run after 1, alongside 2. | 1 | Dated discovery and minimal-dispatch records, with the actual tools recorded. |
+| 4 | **IDE-to-Kubernetes correlation** — invoke the already proven read-only path from each IDE and retain same-task correlation. | 2 and 3 | Cursor and Codex records each bind an IDE invocation to the tool result and matching `kubectl` output. |
+| 5 | **Repeatable workshop (L7)** — provide bootstrap, port-forward, configuration-template, acceptance, cleanup, and fresh-install proof. | 4 | A clean Docker Desktop run completes without undocumented repair and cleanup is verified. |
 
-### Stage 2: Repeatable install (near-term)
+### Architecture decision for the IDE lane
 
-1. Reduce the local `kagent` path to a one-command install from a known Helm chart version.
-2. Add a bootstrap script that creates the `docker-desktop` cluster, installs the CRDs, and deploys the base manifests.
+Do not plan a custom Cursor/Codex-to-A2A bridge before checking the running
+controller's native MCP endpoint. The deployed local controller is pinned to
+`0.9.11` and its service exposes port `8083`; the next acceptance record must
+perform MCP `initialize` and `tools/list` and preserve the returned schema. If
+the expected agent discovery and invocation tools are present, use that surface
+as the thin integration layer. If not, record the gap before evaluating an
+adapter.
 
-### Stage 3: Repo scalability
+The initial operating contract is intentionally narrow:
 
-1. Keep `README.md` short and current-state oriented.
-2. Move historical strategy and archival planning into secondary docs.
-3. Continue separating docs by purpose: onboarding, runbooks, architecture, reference, archive.
-4. Continue separating deploy assets by runtime: local sample manifests, reusable base manifests, environment overlays, policies.
+- one of Cursor or Codex is the lead repository agent for a task;
+- kagent receives bounded, read-only Kubernetes investigations only;
+- tool-derived kagent output is labelled as such and repository edits remain
+  with the lead agent; and
+- any cluster mutation needs a future write-enabled profile and explicit human
+  confirmation.
 
-### Stage 4: Integration path
-
-1. Add a documented Playwright-to-`kagent` integration path after the local A2A path supports task dispatch.
-2. Provide an optional real MCP server deployment for the `kagent-tool-server` RemoteMCPServer.
+Reverse delegation from kagent to native Cursor/Codex agents, global installer
+integration, and autonomous cluster mutation are deferred. They do not block
+L6 or L7.
 
 ## Recommended Next Steps
 
-If the goal is immediate usefulness:
-
-1. keep using the Playwright host setup as the stable path
-2. use `docs/runbooks/local-kagent-a2a-lab.md` for the active cluster lab
-3. run `scripts/kagent/check-kagent-health.ps1` to verify cluster health
-4. use `python scripts/kagent/test-a2a-agent.py card` to validate the A2A agent card
-
-If the goal is repo scalability:
-
-1. adopt the target structure in `docs/architecture/SCALABLE-REFACTOR-PLAN.md`
-2. move toward purpose-based documentation
-3. stop adding new behavior to the historical plan documents
+1. Complete the two deterministic integrity repairs before treating strict
+   health or streaming results as dependable gates.
+2. Replace the mutation-advertising runtime before requesting an agent to use
+   Kubernetes tools.
+3. Capture the single live L6 record, while independently recording controller
+   MCP discovery and a no-tool IDE dispatch if the endpoint supports it.
+4. Build bootstrap and cleanup automation only after the full read-only IDE
+   path has correlated evidence.

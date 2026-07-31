@@ -25,6 +25,13 @@ codex mcp list
 Primary docs:
 
 - [Getting started](docs/onboarding/GETTING-STARTED.md)
+- [Educational projects map](docs/onboarding/EDUCATIONAL-PROJECTS.md)
+- [Educational lanes architecture](docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md)
+- [Educational problem manual](docs/runbooks/educational-problem-manual.md)
+- [kagent educational roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
+- [kagent evidence and current status](evidence/kagent/README.md)
+- [documentation organization guide](docs/DOCUMENTATION-ORGANIZATION.md)
+- [Implemented work narrative](docs/onboarding/IMPLEMENTED-WORK-NARRATIVE.md)
 - [Implemented state and roadmap](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
 - [Portable settings bundle](docs/reference/portable-settings-bundle.md)
 - [Glossary](docs/reference/GLOSSARY.md)
@@ -43,12 +50,13 @@ Runbooks:
 
 Two paths matter today:
 
-- **Stable path**: user-level `playwright-global` registration across VS Code, Cursor, Codex, and Continue. Verified by repeatable install (`-WhatIf` first) / verify / rollback / verify round-trip, covered by 73+ Pester tests, and validated by CI on push and pull_request.  
+- **Stable path**: user-level `playwright-global` registration across VS Code, Cursor, Codex, and Continue. Verified by repeatable install (`-WhatIf` first) / verify / rollback / verify round-trip, covered by 73+ Pester tests, and covered by CI configuration on push and pull_request.
   `laptop-stable-v0.1` is tagged at `cdb7dc0`; this tree targets patch `laptop-stable-v0.1.1` (UTF-8 onboarding, narrative sync, bridge manifests).
-- **Active lab path**: local `kagent` and A2A on `docker-desktop` — all 17 pods running, all 11 agents `Accepted=True`, agent card accessible via the controller REST API.
+- **Active lab path**: local `kagent` and A2A on `docker-desktop`; see the [canonical evidence index](evidence/kagent/README.md) for dated status and capability decisions.
 
-Use [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/local-kagent-a2a-lab.md) for the
-cluster runbook and [docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
+Use [docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
+for the learning path, [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/local-kagent-a2a-lab.md)
+for the cluster runbook, and [docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
 for the current repo-wide status.
 
 ## What's Inside
@@ -69,7 +77,7 @@ for the current repo-wide status.
 | Browser automation | `docs/runbooks/local-playwright-lab.md`, `docs/runbooks/remote-playwright-lab.md`, `server/` | Stable |
 | Host configuration portability | `config/templates/`, `docs/reference/portable-settings-bundle.md` | Stable |
 | AI tooling scaffold | `.vscode/settings.json`, `config/integrations/`, `docs/ai-tooling.md` | Implemented |
-| Local Kubernetes and `kagent` | `docs/runbooks/local-kagent-a2a-lab.md`, `deploy/base/kagent/`, `deploy/samples/kagent/` | A2A sample agent accepted and ready |
+| Local Kubernetes and `kagent` | `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`, `docs/runbooks/local-kagent-a2a-lab.md`, `deploy/base/kagent/`, `deploy/samples/kagent/` | A2A sample agent accepted and ready |
 
 ### Scripts
 
@@ -86,26 +94,16 @@ for the current repo-wide status.
 
 ## Roadmap
 
-Deferred lab priorities (outside the laptop-stable gate):
+The detailed roadmap lives in
+[docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md).
 
-*These items do not block `laptop-stable-v0.1`; the stable path is Playwright MCP host registration.*
+Current priority order:
 
-1. **A2A task dispatch via `a2a-cli`** — the controller exposes agent card discovery via REST on port 8083. The next step is to use `a2a-cli` (or a compatible client) for JSON-RPC `tasks/sendTask` delivery.
-2. **Optional real MCP server for `kagent-tool-server`** — `RemoteMCPServer/Accepted=False` is the expected degraded-lab state today. Deploying a lightweight MCP server behind the `kagent-tool-server` service makes the full tool-execution path testable.
-
-General cleanup (non-blocking):
-
-3. **Finish doc stub cleanup** — root-level `docs/01-*.md`–`docs/07-*.md` files are now compat redirects only. A future pass can remove them after consumers have updated their bookmarks.
-
-Architecture direction:
-
-- onboarding docs should explain what works now
-- runbooks should describe operational steps and failure recovery
-- architecture docs should explain the target structure and runtime separation
-- old plan-heavy documents should become secondary reference, not the default path
-
-See [docs/architecture/SCALABLE-REFACTOR-PLAN.md](docs/architecture/SCALABLE-REFACTOR-PLAN.md)
-for the target repo shape.
+1. **Release truthfulness** — fix CI/reporting gaps before tagging `laptop-stable-v0.1.1`.
+2. **A2A task dispatch** — prove real task delivery separately from card inspection and method probing.
+3. **Real MCP execution behind kagent** — deploy a lightweight MCP server and prove one tool invocation through the agent path.
+4. **Repeatable kagent install** — pin versions and automate the Docker Desktop lab setup.
+5. **Repository stabilization** — validate the manifest, update stale architecture docs, and retire compatibility stubs when safe.
 
 ## Repository Map
 
@@ -140,16 +138,17 @@ for the target repo shape.
 ## Reading Order
 
 1. `docs/onboarding/GETTING-STARTED.md`
-2. `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md`
-3. `docs/01-MCP-MENTAL-MODEL.md`
-4. `docs/reference/portable-settings-bundle.md`
-5. `docs/runbooks/local-playwright-lab.md`
-6. `docs/runbooks/remote-playwright-lab.md`
-7. `docs/runbooks/local-kagent-a2a-lab.md`
-8. `docs/architecture/SCALABLE-REFACTOR-PLAN.md`
-9. `docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md`
-10. `docs/04-KAGENT-INTEGRATION.md`
-11. `docs/runbooks/troubleshooting.md`
+2. `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`
+3. `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md`
+4. `docs/01-MCP-MENTAL-MODEL.md`
+5. `docs/reference/portable-settings-bundle.md`
+6. `docs/runbooks/local-playwright-lab.md`
+7. `docs/runbooks/remote-playwright-lab.md`
+8. `docs/runbooks/local-kagent-a2a-lab.md`
+9. `docs/architecture/SCALABLE-REFACTOR-PLAN.md`
+10. `docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md`
+11. `docs/04-KAGENT-INTEGRATION.md`
+12. `docs/runbooks/troubleshooting.md`
 
 ## Key Concepts
 

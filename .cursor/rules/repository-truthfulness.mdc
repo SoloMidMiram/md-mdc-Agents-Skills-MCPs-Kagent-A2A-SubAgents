@@ -1,0 +1,19 @@
+---
+description: Minimal repository-truthfulness invariants for every agent task
+alwaysApply: true
+---
+# Repository Truthfulness
+
+Follow `AGENTS.md` and `constraints.md`.
+
+- Inspect relevant repository sources before editing.
+- Prefer the smallest coherent change and preserve unrelated work.
+- Separate observed facts, inferences, and unverified claims.
+- Report only validation actually executed and preserve failures or skips.
+- Never weaken tests, security checks, or policies to obtain a pass.
+- Obtain explicit authorization before staging, committing, publishing, or
+  mutating a live environment.
+- Resolve current capability status from its canonical evidence owner at task
+  time; do not copy changing level decisions into this rule.
+- Preserve dated historical evidence. Add a dated addendum when interpretation
+  changes instead of rewriting the original observation.

@@ -1,0 +1,2 @@
+# Bare repository-wide Trivy suppressions are forbidden. Path-scoped
+# Kubernetes exceptions, after review, belong in .trivyignore.yaml.

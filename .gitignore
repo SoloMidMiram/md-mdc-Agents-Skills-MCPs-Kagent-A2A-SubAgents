@@ -25,8 +25,16 @@ test-results/
 # Node.js
 node_modules/
 
+# Python generated files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
 # Evaluation framework results
 scripts/evaluation/results/
+
+# Benchmark runner results (never commit generated benchmark output)
+scripts/benchmark/results/
 
 # MCP config backups (machine-local, user profile)
 .mcp-config-backups/
@@ -39,3 +47,13 @@ scripts/evaluation/results/
 *~
 .DS_Store
 Thumbs.db
+
+# Disposable local planning notes
+PRECOMMIT-DRAFT.md
+.cursor/plans/
+
+# Local ephemeral kagent lab captures (never commit)
+evidence/kagent/tmp/
+
+# Debug transcripts (diagnostic output from test or CI instrumentation)
+debug-*.log

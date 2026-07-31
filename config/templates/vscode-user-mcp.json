@@ -42,7 +42,7 @@
         "firecrawl/firecrawl-mcp-server": {
             "type": "stdio",
             "command": "npx",
-            "args": ["-y", "firecrawl-mcp@latest"],
+            "args": ["-y", "firecrawl-mcp@3.22.4"],
             "env": {
                 "FIRECRAWL_API_KEY": "${input:api_key}"
             },

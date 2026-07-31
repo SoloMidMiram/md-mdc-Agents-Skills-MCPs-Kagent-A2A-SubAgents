@@ -42,6 +42,7 @@ This matrix separates the five agent surfaces available in this repo and explain
 | `.github/prompts/diagnose-failure.prompt.md` | Reusable | Failure diagnosis |
 | `.github/prompts/review-kubernetes.prompt.md` | Reusable | K8s review workflow |
 | `.github/prompts/update-project-memory.prompt.md` | Reusable | Memory maintenance |
+| `.github/prompts/implement-next-educational-stage.prompt.md` | Reusable/portable | Next educational reliability implementation request; explicitly attach in Cursor |
 | `.github/agents/python-reviewer.agent.md` | Custom agent | Python code review |
 | `.github/agents/kubernetes-reviewer.agent.md` | Custom agent | K8s review |
 | `.github/agents/release-auditor.agent.md` | Custom agent | Release readiness |

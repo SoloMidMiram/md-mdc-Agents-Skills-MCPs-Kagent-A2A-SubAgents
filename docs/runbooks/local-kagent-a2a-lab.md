@@ -3,27 +3,33 @@
 This runbook is the shortest path from a local Kubernetes cluster to a working
 kagent A2A lab: deploy, reconcile, verify, and inspect the sample A2A agent.
 
+For the phase-by-phase learning path and architecture guardrails, read
+[kagent Educational Roadmap](../onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
+before using this runbook.
+
 ## Lab Status Summary
 
-As of July 9, 2026 the local kagent lab is in the following state:
+As of July 17, 2026 the local kagent lab is in the following state:
 
-- **Infrastructure:** 17/17 pods Running and Ready; 11/11 agents Accepted=True Ready=True.
+- **Infrastructure:** 18/18 pods Running and Ready; 11/11 agents Accepted=True Ready=True.
 - **REST agent card:** Reachable and returns full agent metadata (works).
-- **JSON-RPC `tasks/sendTask`:** Not exposed by this controller version (returns `-32601`).
-- **RemoteMCPServer:** Both `kagent-tool-server` and `kagent-grafana-mcp` exist with `Accepted=False` -- expected because no MCP server is deployed at their target URLs.
+- **A2A `message/stream`:** Proven for L4 via structured helper JSON (phase 5d).
+- **JSON-RPC `tasks/sendTask`:** Not exposed (`-32601`); empty-param probes may still error.
+- **RemoteMCPServer:** `kagent-tool-server` is `Accepted=True` (real MCP server deployed). `kagent-grafana-mcp` remains `Accepted=False` (no backing service).
 - **UI:** Reachable at `http://localhost:8080` (returns HTTP 200).
 - **Controller API:** Reachable at `http://localhost:8083`.
+- **L6:** Not proven ([phase 5e](../../evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md)).
 
 ## Current Local State
 
-Observed on this machine on July 9, 2026:
+Observed on this machine through July 17, 2026:
 
 - Docker Desktop cluster (context: `docker-desktop`).
-- All 17 kagent pods are `Running` and `1/1 Ready`.
+- All 18 kagent pods are `Running` with complete readiness ratios (17 original
+  pods + `kagent-tool-server` runtime).
 - All agents including `k8s-a2a-agent` show `Accepted=True` and `Ready=True`.
-- `kagent-tool-server` RemoteMCPServer exists (agents depend on it).
-- `kagent-grafana-mcp` and `kagent-tool-server` RemoteMCPServers show `Accepted=False`
-  because no actual MCP server is deployed at their URLs -- this is expected in a lab.
+- `kagent-tool-server` RemoteMCPServer is `Accepted=True` -- a real MCP server (official kagent tools image) is deployed behind the service URL.
+- `kagent-grafana-mcp` RemoteMCPServer shows `Accepted=False` because no MCP server is deployed at its URL.
 - UI is reachable on `http://localhost:8080` via port-forward.
 - Controller REST API is reachable on `http://localhost:8083`.
 - `kagent-openai` secret is required for agents and must be created separately.
@@ -61,7 +67,7 @@ helm upgrade --install kagent-crds oci://ghcr.io/kagent-dev/kagent/helm/kagent-c
 ### 3. Set the API key
 
 ```powershell
-$env:OPENAI_API_KEY = "your-api-key-here"
+$env:OPENAI_API_KEY = "<your-api-key>"
 ```
 
 ### 4. Install kagent core
@@ -90,7 +96,8 @@ kubectl create secret generic kagent-openai `
 kubectl get pods -n kagent -w
 ```
 
-All pods should reach `1/1 Running`.
+Every pod should be `Running` with a complete positive readiness ratio such as
+`1/1` or `2/2`.
 
 ## Reconcile (if already installed)
 
@@ -113,16 +120,24 @@ If missing, create it as shown in step 5 above.
 
 ## Apply Sample A2A Resources
 
-The lab uses two resources:
+The lab uses three resources applied in order:
 
 1. **`kagent-tool-server`** (`RemoteMCPServer`) - base resource shared by multiple agents
-2. **`k8s-a2a-agent`** (`Agent`) - sample A2A agent for read-only cluster inspection
+2. **`kagent-tool-server-runtime`** (Deployment + Service + RBAC) - MCP server runtime that backs the RemoteMCPServer URL
+3. **`k8s-a2a-agent`** (`Agent`) - sample A2A agent for read-only cluster inspection
 
-Apply the base resource first, then the sample agent:
+Apply them in order:
 
 ```powershell
 kubectl apply -f deploy/base/kagent/kagent-tool-server.yaml
+kubectl apply -f deploy/base/kagent/kagent-tool-server-runtime.yaml
 kubectl apply -f deploy/samples/kagent/k8s-a2a-agent.yaml
+```
+
+Wait for the tool server pod to become ready:
+
+```powershell
+kubectl wait --for=condition=Ready pod -n kagent -l app.kubernetes.io/component=tool-server-runtime --timeout=120s
 ```
 
 Resources are organized as:
@@ -130,9 +145,10 @@ Resources are organized as:
 ```
 deploy/
   base/kagent/
-    kagent-tool-server.yaml      # shared MCP server reference (reusable)
+    kagent-tool-server.yaml           # shared MCP server reference (RemoteMCPServer CR)
+    kagent-tool-server-runtime.yaml   # MCP server runtime (Deployment + Service + RBAC)
   samples/kagent/
-    k8s-a2a-agent.yaml           # sample A2A agent (educational / lab use)
+    k8s-a2a-agent.yaml                # sample A2A agent (educational / lab use)
 ```
 
 ## Verify Health
@@ -144,7 +160,7 @@ deploy/
 ```
 
 This inspects:
-- pod readiness (all pods 1/1 Running)
+- pod readiness (all pods Running with complete positive ratios such as `1/1` or `2/2`)
 - agent status (Accepted=True, Ready=True)
 - RemoteMCPServer status
 - recent events
@@ -216,20 +232,28 @@ Skills (1):
   - get-resources-skill: Get Resources - Get resources in the Kubernetes cluster
 ```
 
-### A2A task dispatch via a2a-cli
+### A2A client compatibility note
 
-The kagent controller's A2A endpoint at `/.well-known/agent.json` uses the A2A
-protocol. The current controller version does not expose the `tasks/sendTask`
-JSON-RPC method. For full A2A task dispatch, install and use the A2A CLI:
-
-```powershell
-pip install a2a-sdk
-kubectl port-forward -n kagent svc/kagent-controller 8083:8083
-a2a-cli --agent http://localhost:8083/api/a2a/kagent/k8s-a2a-agent
-```
+The current controller does not expose legacy `tasks/sendTask`, and the tested
+blocking `message/send` path fails internally. Controller 0.9.11's working L4
+path is the same path used by the UI: `message/stream` over SSE with a complete
+`MessageSendParams` text message. The repository helper implements and strictly
+validates that path; no external `a2a-cli` installation is recommended.
 
 The REST API agent card fetch works reliably and verifies that the agent is
 accepted, ready, and configured with the correct skills.
+
+The helper uses truthful exit codes:
+
+- `card` exits 0 when agent metadata/card details are reachable.
+- `probe` exits 0 when method probing completes, even if methods are unsupported.
+- `task` exits 0 only after a valid `message/stream` response contains a
+  non-empty task/message id in an accepted state.
+- `both` exits 0 only when both card validation and task dispatch pass.
+
+With a controller port-forward, the recorded Phase 5D `task` and `both` paths
+pass L4. A later terminal model failure does not revoke L4 after an accepted
+state was observed; it still does not prove L6.
 
 ## How to Observe Failures
 
@@ -263,30 +287,109 @@ Common causes:
 .\scripts\kagent\check-kagent-health.ps1
 ```
 
-This exits non-zero on any failure and lists all detected issues.
+Default remains CardLab (pods + accepted/ready agents). Named profiles make
+capability claims explicit — see
+[kagent health profiles](../reference/kagent-health-profiles.md).
+
+```powershell
+.\scripts\kagent\check-kagent-health.ps1 -Profile CardLab
+.\scripts\kagent\check-kagent-health.ps1 -Profile DirectMcpServer -DirectMcpResultPath <sanitized-json> -OutputFormat Json
+.\scripts\kagent\check-kagent-health.ps1 -Profile A2ADispatch -ControllerUrl http://127.0.0.1:8083
+.\scripts\kagent\check-kagent-health.ps1 -Profile FullMcpExecution -ControllerUrl http://127.0.0.1:8083
+.\scripts\kagent\check-kagent-health.ps1 -Profile FullMcpExecution -ControllerUrl http://127.0.0.1:8083 -AgentToolEvidencePath <agent-mediated-json>
+
+# FullMcpExecution uses the canonical target by default
+.\scripts\kagent\check-kagent-health.ps1 `
+  -Profile FullMcpExecution `
+  -ControllerUrl http://127.0.0.1:8083
+```
+
+On the current lab, expect CardLab, DirectMcpServer, and A2ADispatch to pass
+when the controller port-forward is up and the A2A helper can complete
+`message/stream`. FullMcpExecution still fails until a live correlated L6
+record exists ([phase 5e](../../evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md)).
+Omitting `-AgentToolEvidencePath` invokes `agent_mcp_trace.py --output json`.
+
+### Trustworthy A2A helper
+
+```powershell
+kubectl port-forward -n kagent svc/kagent-controller 8083:8083
+python scripts/kagent/test-a2a-agent.py card --controller http://127.0.0.1:8083 --output json
+python scripts/kagent/test-a2a-agent.py probe --controller http://127.0.0.1:8083 --output json
+python scripts/kagent/test-a2a-agent.py task --controller http://127.0.0.1:8083 --output json
+python scripts/kagent/test-a2a-agent.py both --controller http://127.0.0.1:8083 --output json
+```
+
+Pinned dispatch: `POST /api/a2a/{ns}/{agent}` method `message/stream` (SSE).
+Schema: [kagent-a2a-dispatch-evidence.md](../reference/kagent-a2a-dispatch-evidence.md).
+Live L4 evidence: `evidence/kagent/educational-practice-phase-5d-trustworthy-a2a.md`.
+
+### Agent-mediated MCP correlation helper
+
+```powershell
+kubectl port-forward -n kagent svc/kagent-controller 8083:8083
+python scripts/kagent/agent_mcp_trace.py --controller http://127.0.0.1:8083 --output json
+```
+
+Requires an observable `k8s_get_resources` invocation correlated to the A2A
+taskId from the same Phase 5E dispatch (agent/tool/model structured part or
+bounded correlated logs), normalized `pod`/`kagent` arguments, same-task names
+returned after the observation, a repo-contained source record, and a
+recomputed kubectl name match. The helper observes the actual kubectl context;
+it must be `docker-desktop`. `FullMcpExecution` does not send a second A2A task.
+Schema: [kagent-agent-mediated-mcp-evidence.md](../reference/kagent-agent-mediated-mcp-evidence.md).
+Live attempt: `evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md`
+(L6 Not proven; L4 unchanged).
+
+### Direct MCP session smoke
+
+Learner-owned port-forward, then the session helper. A successful live run proves
+**direct MCP tool invocation only**. It does **not** prove L6 agent-mediated
+tool use. Live evidence: `evidence/kagent/educational-practice-phase-5b-direct-mcp.md`.
+
+```powershell
+kubectl port-forward -n kagent svc/kagent-tool-server 8000:8000
+python scripts/kagent/mcp_session_smoke.py --url http://127.0.0.1:8000/mcp --output json --resource-type pod --resource-namespace kagent
+```
+
+Expected: exit code `0`, `sessionId` reported as `present` (never print the raw
+value), `toolCallSucceeded: true`, and a `cleanup` status such as `deleted`.
+
+If cleanup fails (e.g. DELETE returns a server error), the script exits 1 to
+prevent silent session leaks. HTTP 405 (Method Not Allowed) on cleanup is benign
+and does not cause a failure.
+
+Problem context: `evidence/kagent/problems/2026-07-17-mcp-session-reuse.md`.
 
 ## Known Limitations
 
-1. **A2A task dispatch** via JSON-RPC `tasks/sendTask` is not available in the
-   current kagent controller version. The agent card is fully accessible via the
-   REST API at `/api/agents/{namespace}/{agent}`. Use `a2a-cli` for task dispatch.
+1. **Blocking A2A methods** `tasks/sendTask` and empty-param `message/send` /
+   `message/stream` probes still return JSON-RPC errors on controller 0.9.11.
+   Use the pinned MessageSendParams `message/stream` path documented above.
+   Historical phase 5 failures remain in
+   `evidence/kagent/educational-practice-phase-5.md`.
 
-2. **`kagent-tool-server` RemoteMCPServer `Accepted=False`** is an expected
-   degraded-lab state. Agents require only that the `RemoteMCPServer` resource
-   *exists*; the controller cannot reach the backing service at
-   `http://kagent-tool-server.kagent:8000/mcp` because no MCP server is deployed
-   there. This is acceptable for card and acceptance testing, and not acceptable
-   for real tool execution.
+2. **`kagent-grafana-mcp` RemoteMCPServer `Accepted=False`** is the remaining
+   expected degraded-lab state. The controller cannot reach the backing service at
+   `http://kagent-grafana-mcp.kagent:8000/mcp` because no MCP server is deployed there.
+   `kagent-tool-server` was in this state before Subphase 4C (July 16, 2026) and
+   is now `Accepted=True` with a real MCP server deployed behind it via the
+   `deploy/base/kagent/kagent-tool-server-runtime.yaml` manifest.
 
-3. **`kagent-grafana-mcp`** RemoteMCPServer is similarly `Accepted=False` for the
-   same reason -- no backing service at its URL.
+3. **Pod restart counts increase with each `helm upgrade`.** Each Helm upgrade
+   triggers a rolling restart. On a fresh install most pods show 1 restart
+   (the initial container start). After multiple upgrades, counts can grow:
+   most pods accumulate restarts from each rollout, while the controller and
+   UI pods accumulate additional restarts from the initial secret-not-found
+   cycle. Restart counts do not affect pod readiness (`1/1 Running`) or agent
+   acceptance.
 
-4. **All pods show 1 restart** on initial deploy (typical for Helm-managed
-   rollouts). The kagent-controller and kagent-ui show 3-6 restarts from the
-   initial secret-not-found cycle.
-
-5. **Port-forward sessions** block the terminal. Use separate terminals or
+4. **Port-forward sessions** block the terminal. Use separate terminals or
    `Start-Process` for background port-forwards.
+
+5. **Terminal stream state may be `failed`** (for example model quota) after
+   `submitted`/`working`. L4 is still proven when an accepted state with a
+   non-empty task id was observed; that does not prove L6.
 
 ## Verdict Script (One-Command Lab Check)
 
@@ -309,6 +412,14 @@ the lab is working.
 ## Related Docs
 
 - [Deploy structure](../../deploy/README.md)
+- [kagent educational roadmap](../onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
+- [kagent current evidence and flaw ledger](../../evidence/kagent/README.md)
+- [kagent capability definitions](../reference/kagent-capability-matrix.md)
+- [documentation organization rules](../DOCUMENTATION-ORGANIZATION.md)
 - [scripts/kagent/check-kagent-health.ps1](../../scripts/kagent/check-kagent-health.ps1)
+- [scripts/kagent/KagentHealth.psm1](../../scripts/kagent/KagentHealth.psm1)
+- [kagent health profiles](../reference/kagent-health-profiles.md)
+- [kagent-a2a-dispatch-evidence.md](../reference/kagent-a2a-dispatch-evidence.md)
 - [scripts/kagent/test-a2a-agent.py](../../scripts/kagent/test-a2a-agent.py)
+- [scripts/kagent/mcp_session_smoke.py](../../scripts/kagent/mcp_session_smoke.py)
 - [docs/onboarding/GETTING-STARTED.md](../onboarding/GETTING-STARTED.md)
