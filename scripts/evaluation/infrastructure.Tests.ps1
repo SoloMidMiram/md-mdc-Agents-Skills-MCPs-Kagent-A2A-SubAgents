@@ -202,12 +202,13 @@ Describe "Package Availability" -Tag "Infrastructure", "Package" {
 
 Describe "Workspace Duplicate Detection" -Tag "Infrastructure", "Duplicates" {
 
-    It "Detects no workspace-level MCP configs in this repo" {
+    It "Detects no workspace-level Playwright MCP configs in this repo" {
         $repoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
         $duplicates = @(
             @{ Path = Join-Path $repoRoot ".vscode\mcp.json";        Condition = { param($c) $c -match "playwright" } }
             @{ Path = Join-Path $repoRoot ".continue\mcpServers";    Condition = { param($c) Test-Path $c } }
-            @{ Path = Join-Path $repoRoot ".codex\config.toml";      Condition = { param($c) Test-Path $c } }
+            @{ Path = Join-Path $repoRoot ".cursor\mcp.json";        Condition = { param($c) $c -match "playwright" } }
+            @{ Path = Join-Path $repoRoot ".codex\config.toml";      Condition = { param($c) $c -match '\[mcp_servers\.playwright-global\]' } }
         )
         $issues = @()
         foreach ($d in $duplicates) {
@@ -217,7 +218,32 @@ Describe "Workspace Duplicate Detection" -Tag "Infrastructure", "Duplicates" {
                 if ($cond) { $issues += $d.Path }
             }
         }
-        $issues | Should -BeNullOrEmpty -Because "workspace-level playwright entries should have been removed"
+        $issues | Should -BeNullOrEmpty -Because "workspace-level Playwright entries should have been removed"
+    }
+
+    It "Restricts project kagent configuration to the reviewed native controller contract" {
+        $repoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+        $cursorPath = Join-Path $repoRoot ".cursor\mcp.json"
+        $codexPath = Join-Path $repoRoot ".codex\config.toml"
+        $expectedUrl = "http://127.0.0.1:8083/mcp"
+
+        $cursorPath | Should -Exist
+        $cursorText = Get-Content $cursorPath -Raw
+        $cursor = $cursorText | ConvertFrom-Json
+        ($cursor.PSObject.Properties.Name -join ",") | Should -Be "mcpServers"
+        ($cursor.mcpServers.PSObject.Properties.Name -join ",") | Should -Be "kagent-controller"
+        ($cursor.mcpServers.'kagent-controller'.PSObject.Properties.Name -join ",") | Should -Be "url"
+        $cursor.mcpServers.'kagent-controller'.url | Should -Be $expectedUrl
+        $cursorText | Should -Not -Match '(?i)(authorization|token|secret|password|api[_-]?key)'
+
+        $codexPath | Should -Exist
+        $codexText = Get-Content $codexPath -Raw
+        $codexText | Should -Match '(?m)^\[mcp_servers\.kagent-controller\]$'
+        $codexText | Should -Not -Match '(?m)^\[mcp_servers\.(?!kagent-controller\])'
+        $codexText | Should -Match '(?m)^url = "http://127\.0\.0\.1:8083/mcp"$'
+        $codexText | Should -Match '(?m)^enabled_tools = \["list_agents", "invoke_agent"\]$'
+        $codexText | Should -Match '(?m)^default_tools_approval_mode = "prompt"$'
+        $codexText | Should -Not -Match '(?i)(authorization|token|secret|password|api[_-]?key)'
     }
 }
 

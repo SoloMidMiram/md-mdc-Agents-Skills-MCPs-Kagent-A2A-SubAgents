@@ -222,8 +222,9 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
   legacy blocking `tasks/sendTask` and `message/send` remain unsuitable
 - native read-only MCP tool exposure; the current pinned image relies on RBAC for write denial
 - live correlated L6 tool observation (schema/helper exist; live still Not proven)
-- the deployed controller's client-facing MCP discovery schema has not yet been
-  recorded, so native Cursor/Codex agent integration remains an acceptance task
+- the deployed controller's client-facing MCP schema is recorded: `/mcp` exposes
+  only `list_agents` and `invoke_agent`, and `k8s-a2a-agent` is discoverable
+  (I0-I2 Proven); the bounded invocation is blocked by provider region policy
 - agent-governance R1-R3/S1-S2 benchmark scoring and H1-H3 shadow measurement;
   artifacts exist, but no independently assessed comparison or ten-event hook
   sample supports promotion or blocking yet
@@ -231,8 +232,8 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 ### Not yet closed
 
 - L6 agent-mediated MCP invocation (live tool marker + kubectl match)
-- Cursor and Codex discovery, minimal dispatch, and correlated read-only
-  acceptance through the controller's MCP endpoint
+- successful bounded Cursor/Codex delegation and correlated read-only acceptance
+  through the controller's MCP endpoint
 - L7 bootstrap, cleanup, and fresh-install evidence
 - root `docs/01-*.md`–`docs/07-*.md` stubs remain as compatibility redirects; full removal pending consumer bookmark updates
 
@@ -246,20 +247,18 @@ kept in the [kagent educational roadmap](KAGENT-EDUCATIONAL-ROADMAP.md).
 | Order | Kagent outcome | Depends on | Completion evidence |
 |-------|----------------|------------|---------------------|
 | 1 | **Integrity and protocol hardening** — repair strict missing-CRD exit semantics, multiline SSE parsing, local-debug-log hygiene, and current-head CI truthfulness. | Existing deterministic test suites | Regression cases pass and any hosted status is recorded for the exact head. |
-| 2 | **Read-only surface and L6 closure** — make mutation tools absent from discovery, then diagnose and prove one correlated agent-mediated Kubernetes read. | 1 | Native read-only schema plus fresh `agent_mcp_trace.py` exit 0 and a `kubectl` match. |
-| 3 | **Native IDE acceptance** — inspect the controller MCP schema; if it exposes suitable agent tools, configure project-scoped Cursor and Codex clients instead of building a new bridge. Basic discovery and no-tool dispatch can run after 1, alongside 2. | 1 | Dated discovery and minimal-dispatch records, with the actual tools recorded. |
-| 4 | **IDE-to-Kubernetes correlation** — invoke the already proven read-only path from each IDE and retain same-task correlation. | 2 and 3 | Cursor and Codex records each bind an IDE invocation to the tool result and matching `kubectl` output. |
-| 5 | **Repeatable workshop (L7)** — provide bootstrap, port-forward, configuration-template, acceptance, cleanup, and fresh-install proof. | 4 | A clean Docker Desktop run completes without undocumented repair and cleanup is verified. |
+| 2 | **Native IDE federation** — use the recorded controller `/mcp` contract and project-scoped clients; restore provider access for the blocked bounded response. | 1 | I3 bounded `invoke_agent` response and same-session continuation; this does not prove L6. |
+| 3 | **Read-only surface and L6/I4 closure** — make mutation tools absent from discovery, then correlate one IDE invocation with the agent-mediated Kubernetes read. | 2 | Native read-only schema, same invocation/task identity, fresh `agent_mcp_trace.py` exit 0, and a `kubectl` match. |
+| 4 | **Repeatable native workshop (I5/L7)** — provide bootstrap, port-forward, project configuration, acceptance, cleanup, and fresh-install proof for both clients. | 3 | A clean Docker Desktop run completes without undocumented repair and cleanup is verified. |
 
 ### Architecture decision for the IDE lane
 
-Do not plan a custom Cursor/Codex-to-A2A bridge before checking the running
-controller's native MCP endpoint. The deployed local controller is pinned to
-`0.9.11` and its service exposes port `8083`; the next acceptance record must
-perform MCP `initialize` and `tools/list` and preserve the returned schema. If
-the expected agent discovery and invocation tools are present, use that surface
-as the thin integration layer. If not, record the gap before evaluating an
-adapter.
+The deployed local controller is pinned to `0.9.11`; its native `/mcp` endpoint
+was recorded at `http://127.0.0.1:8083/mcp` with exactly `list_agents` and
+`invoke_agent`. Use that surface as the only IDE-facing integration layer.
+Do not build a custom Cursor/Codex-to-A2A bridge unless a future dated live
+record establishes that the pinned native contract cannot satisfy a required
+capability.
 
 The initial operating contract is intentionally narrow:
 
@@ -276,11 +275,9 @@ L6 or L7.
 
 ## Recommended Next Steps
 
-1. Complete the two deterministic integrity repairs before treating strict
-   health or streaming results as dependable gates.
+1. Restore supported provider access and capture the bounded no-tool I3 response.
 2. Replace the mutation-advertising runtime before requesting an agent to use
    Kubernetes tools.
-3. Capture the single live L6 record, while independently recording controller
-   MCP discovery and a no-tool IDE dispatch if the endpoint supports it.
+3. Capture one same-invocation I4/L6 Kubernetes record with a `kubectl` match.
 4. Build bootstrap and cleanup automation only after the full read-only IDE
-   path has correlated evidence.
+   correlation succeeds for the lead client, then validate both clients.

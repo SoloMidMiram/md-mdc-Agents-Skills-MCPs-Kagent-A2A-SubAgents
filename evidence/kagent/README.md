@@ -19,6 +19,20 @@ Environment observed through 2026-07-17: local Docker Desktop Kubernetes cluster
 | L6 | Not proven | [phase 5e](educational-practice-phase-5e-agent-mediated-mcp.md): no correlated tool observation for the A2A task (helper exit 1) |
 | L7 | Not proven | No fresh-install bootstrap and cleanup evidence |
 
+## Native IDE-Federation Status
+
+The native controller MCP surface is tracked independently from L0-L7 so that
+agent discovery cannot be mistaken for agent-mediated Kubernetes execution.
+
+| Level | Decision | Evidence |
+|-------|----------|----------|
+| I0 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): controller `/mcp` initialized |
+| I1 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `tools/list` returned the pinned agent tools |
+| I2 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `list_agents` returned `kagent/k8s-a2a-agent` |
+| I3 | Blocked | [phase 6](educational-practice-phase-6-native-mcp-federation.md): provider region policy prevented the bounded response |
+| I4 | Not proven | No same-invocation controller, tool, and `kubectl` correlation |
+| I5 | Not attempted | No fresh setup, restart, and cleanup record |
+
 The phase 5 MCP `initialize` handshake succeeded. The subsequent direct
 `tools/call` failed because its session identifier was not reused
 ([phase 5](educational-practice-phase-5.md)). That failure is corrected and
@@ -92,6 +106,11 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   [30621919672](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30621919672)
   passed all jobs at the exact pre-merge head `94031ff` on 2026-07-31. This
   documentation-only delta does not change any L0-L7 decision.
+- Phase 6 native federation now has a deterministic Streamable HTTP helper for
+  the pinned controller contract and project-scoped Cursor/Codex configurations.
+  The live controller exposes `list_agents` and `invoke_agent`; I0-I2 are
+  proven, while I3 is blocked by the provider region policy. Native MCP is the
+  preferred client seam, so a custom A2A-to-MCP gateway remains deferred.
 
 ## Major Open Flaws
 
@@ -99,7 +118,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 |----------|------|--------|------------------------------|
 | P0 | No live correlated agent-mediated MCP result | Core L6 objective remains unproved; deterministic gates cannot promote it | One fresh `agent_mcp_trace.py` exit 0 binding a taskId to `kagent-tool-server` / `k8s_get_resources`, same-task returned names, bounded source proof, and kubectl match |
 | P1 | MCP image advertises write tools | RBAC is the only write barrier and tool discovery is misleading | Native read-only image plus retained restrictive RBAC |
-| P2 | Controller MCP agent discovery is not yet recorded | A custom IDE bridge could be built unnecessarily, or a native endpoint could be assumed without evidence | Record live `initialize` and `tools/list`; if suitable agent tools are present, use that native surface for the Cursor/Codex acceptance phase |
+| P1 | Native `invoke_agent` is blocked by the provider region policy | Cursor/Codex delegation cannot complete its bounded acceptance task | Restore supported provider connectivity, then capture one bounded no-tool `invoke_agent` response without treating it as L6 |
 | P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
 | P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
 
@@ -115,6 +134,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 - [Phase 5C truthful health profiles](educational-practice-phase-5c-health-profiles.md)
 - [Phase 5D trustworthy A2A dispatch](educational-practice-phase-5d-trustworthy-a2a.md)
 - [Phase 5E correlated agent-mediated MCP](educational-practice-phase-5e-agent-mediated-mcp.md)
+- [Phase 6 native MCP federation](educational-practice-phase-6-native-mcp-federation.md)
 - [Problem: MCP session reuse](problems/2026-07-17-mcp-session-reuse.md)
 - [Problem: health profile overclaim](problems/2026-07-17-health-profile-overclaim.md)
 - [Problem: A2A dispatch compatibility](problems/2026-07-17-a2a-dispatch-compatibility.md)

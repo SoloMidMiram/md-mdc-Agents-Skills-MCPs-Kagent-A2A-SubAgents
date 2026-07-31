@@ -255,6 +255,25 @@ With a controller port-forward, the recorded Phase 5D `task` and `both` paths
 pass L4. A later terminal model failure does not revoke L4 after an accepted
 state was observed; it still does not prove L6.
 
+### Verify the native controller MCP surface
+
+The project-scoped Cursor and Codex configurations both target the discovered
+controller endpoint. This is the normal IDE-facing seam; the A2A commands above
+remain protocol and evidence diagnostics.
+
+```powershell
+kubectl port-forward -n kagent svc/kagent-controller 8083:8083
+python scripts/kagent/controller_mcp_smoke.py --output json
+```
+
+Expected success behavior: the helper exits `0` after `initialize`,
+`tools/list`, `list_agents`, a bounded `invoke_agent` response, and a
+same-session continuation. It records only whether the MCP session was present,
+never its value. Exit `1` means the controller contract or bounded agent result
+did not qualify; exit `3` means the endpoint was unavailable. Neither result
+proves L6. The recorded Phase 6 observation currently proves I0-I2 and marks I3
+Blocked because the configured provider rejects the local region.
+
 ## How to Observe Failures
 
 ### Agent not Accepted

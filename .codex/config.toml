@@ -1,0 +1,6 @@
+[mcp_servers.kagent-controller]
+url = "http://127.0.0.1:8083/mcp"
+enabled_tools = ["list_agents", "invoke_agent"]
+default_tools_approval_mode = "prompt"
+startup_timeout_sec = 30
+tool_timeout_sec = 30

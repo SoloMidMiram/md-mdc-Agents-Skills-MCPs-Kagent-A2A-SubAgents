@@ -20,8 +20,6 @@ Python/Kubernetes tool stacks, and `.project-ai/memory/`.
 
 **Status:** Accepted
 
----
-
 ## 2026-07-17 — Isolate Educational Lanes from the Stable Core
 
 **Context:** The repository contains a release-gated Playwright host-registration
@@ -39,5 +37,30 @@ become dependencies of normal agentic coding or stable validation.
   rules, tests, or architecture decisions only when repeatable and proven.
 - Use `docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md` as the boundary design
   and `docs/runbooks/educational-problem-manual.md` as the diagnostic workflow.
+
+**Status:** Accepted
+
+---
+
+## 2026-07-31 — Prefer kagent's Embedded MCP Agent Surface
+
+**Context:** The local pinned kagent controller `0.9.11` exposes a Streamable
+HTTP MCP endpoint at its controller service. A live observation established the
+native `list_agents` and `invoke_agent` contract, making a separate client-to-
+A2A translation layer redundant.
+
+**Decision:**
+
+- Cursor and Codex integrate through the controller's native Streamable HTTP
+  MCP endpoint when the pinned version exposes the compatible contract.
+- The northbound contract is limited to reviewed `list_agents` and
+  `invoke_agent` tools; Codex uses an explicit tool allowlist and both clients
+  retain normal approval controls.
+- A custom A2A-to-MCP gateway, agent directory, Cursor-specific adapter,
+  duplicate task/session translator, reverse delegation, and autonomous cluster
+  mutation are prohibited unless a dated live compatibility record proves that
+  the native endpoint cannot satisfy a required capability.
+- Direct A2A helpers remain protocol-conformance and evidence diagnostics. They
+  are not the default Cursor/Codex integration seam.
 
 **Status:** Accepted

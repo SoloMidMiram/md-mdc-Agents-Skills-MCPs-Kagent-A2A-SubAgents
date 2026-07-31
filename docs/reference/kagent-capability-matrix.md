@@ -14,6 +14,20 @@ levels. Current decisions and evidence links live in `evidence/kagent/README.md`
 | L6 Agent tool invocation proven | An A2A request causes the agent to call a real MCP tool and return tool-derived output | One end-to-end agentic tool path works | Direct MCP initialize/call, logs showing configuration, or L5 |
 | L7 Repeatable workshop | Fresh documented setup reaches its target with cleanup and evidence capture | Lab can be replayed by a new learner | A one-machine snapshot |
 
+## Native IDE-Federation Track
+
+This parallel track describes client access to the controller's native MCP
+surface. It does not renumber or replace L0-L7.
+
+| Level | Required evidence | Allowed claim | Insufficient evidence |
+|-------|-------------------|---------------|-----------------------|
+| I0 Controller MCP reachable | Controller `/mcp` completes `initialize` with a negotiated protocol and session | Native MCP endpoint is reachable | Service port or REST card alone |
+| I1 Controller contract known | Same session `tools/list` exposes the reviewed agent tools and no unreviewed privileged tool | Client contract is known | Documentation or a guessed tool list |
+| I2 Agent discovery works | `list_agents` structured content contains the target agent reference | The target agent is discoverable | A card or REST endpoint |
+| I3 IDE-to-kagent delegation works | Bounded `invoke_agent` returns the required valid agent response and same-session continuation succeeds | A client can delegate to the agent through native MCP | HTTP 200 paired with a provider or agent error |
+| I4 IDE-to-Kubernetes delegation works | One I3 invocation joins to qualifying same-task L6 output | IDE delegation produced verified Kubernetes results | I3 alone or direct MCP evidence |
+| I5 Native workflow repeatable | Fresh setup, restart, both-client acceptance, and cleanup complete | Native IDE workflow is repeatable | One running-machine snapshot |
+
 ## Promotion Rules
 
 - Levels are independent evidence gates; a higher numbered observation does not
@@ -30,3 +44,8 @@ levels. Current decisions and evidence links live in `evidence/kagent/README.md`
   independently recompute freshness and result matching. L6 machine evidence uses
   [kagent-agent-mediated-mcp-evidence.md](kagent-agent-mediated-mcp-evidence.md).
 - A failed attempt stays `Not proven`; it is not a partial pass.
+- I3 does not imply L6. A dependable IDE-to-Kubernetes claim requires both I4
+  and L6 evidence from the same bounded workflow.
+- Native controller MCP is the preferred northbound seam. Direct A2A helpers
+  remain protocol and evidence diagnostics, not the default Cursor/Codex
+  integration path.
