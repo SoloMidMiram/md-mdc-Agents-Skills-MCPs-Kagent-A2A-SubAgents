@@ -129,7 +129,7 @@ Describe 'Security scan required mode' {
 
         $scopedIgnore = Get-Content -Raw (Join-Path $repoRoot '.trivyignore.yaml')
         $expectedPath = 'deploy/base/kagent/kagent-tool-server-runtime.yaml'
-        $scopedIgnore | Should Match '(?m)^misconfigurations:$'
+        (($scopedIgnore -split '\r?\n') -contains 'misconfigurations:') | Should Be $true
         foreach ($id in @('KSV-0020', 'KSV-0021', 'KSV-0125')) {
             $rulePattern = "(?ms)^  - id: $([regex]::Escape($id))\s*\r?\n    paths:\s*\r?\n      - $([regex]::Escape($expectedPath))\s*\r?\n    expired_at: 2027-01-01\s*\r?\n    statement:"
             $scopedIgnore | Should Match $rulePattern
