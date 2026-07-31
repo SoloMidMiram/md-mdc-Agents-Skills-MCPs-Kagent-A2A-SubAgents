@@ -490,13 +490,13 @@ entries:
     status: lab
     authority: true
 
-  - path: deploy/samples/kagent/k8s-a2a-agent-ide-safe-modelconfig-patch.yaml
-    purpose: manifest
+  - path: config/kagent/k8s-a2a-agent-ide-safe-modelconfig-patch.yaml
+    purpose: config
     status: lab
     authority: false
 
-  - path: deploy/samples/kagent/k8s-a2a-agent-default-modelconfig-patch.yaml
-    purpose: manifest
+  - path: config/kagent/k8s-a2a-agent-default-modelconfig-patch.yaml
+    purpose: config
     status: lab
     authority: false
 

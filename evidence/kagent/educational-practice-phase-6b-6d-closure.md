@@ -19,7 +19,8 @@ which remains the immutable OpenAI-403-era observation.
   mutual exclusion with `--approved-agent`, fail on duplicate discovered refs.
 - Target-specific Ollama manifests:
   `deploy/samples/kagent/ide-safe-ollama-model-config.yaml`,
-  merge patch and rollback patch for `k8s-a2a-agent`.
+  merge/rollback patches under `config/kagent/` (not `deploy/`, so kubeconform
+  does not treat partial patches as resources).
 - Runbook/capability-matrix updates for Minimal-profile isolation, Ollama
   reachability, Cursor tool-trace context proof, and preflight/postflight.
 

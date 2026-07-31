@@ -320,7 +320,7 @@ kubectl get agent k8s-a2a-agent -n kagent `
   -o jsonpath="{.spec.declarative.modelConfig}{'\n'}"
 kubectl apply -f deploy/samples/kagent/ide-safe-ollama-model-config.yaml
 kubectl patch agent k8s-a2a-agent -n kagent --type merge `
-  --patch-file deploy/samples/kagent/k8s-a2a-agent-ide-safe-modelconfig-patch.yaml
+  --patch-file config/kagent/k8s-a2a-agent-ide-safe-modelconfig-patch.yaml
 ```
 
 Never `kubectl apply` the merge-patch files; they are not complete Agent
@@ -328,7 +328,7 @@ manifests. Rollback:
 
 ```powershell
 kubectl patch agent k8s-a2a-agent -n kagent --type merge `
-  --patch-file deploy/samples/kagent/k8s-a2a-agent-default-modelconfig-patch.yaml
+  --patch-file config/kagent/k8s-a2a-agent-default-modelconfig-patch.yaml
 kubectl get agent k8s-a2a-agent -n kagent `
   -o jsonpath="{.spec.declarative.modelConfig}{'\n'}"
 ```
