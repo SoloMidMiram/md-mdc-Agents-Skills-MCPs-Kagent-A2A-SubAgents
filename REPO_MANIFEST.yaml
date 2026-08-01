@@ -142,6 +142,11 @@ entries:
     status: lab
     authority: false
 
+  - path: .github/prompts/investigate-roadmap-revision.prompt.md
+    purpose: reference
+    status: lab
+    authority: false
+
   - path: .github/workflows/*
     purpose: config
     status: stable
@@ -468,6 +473,21 @@ entries:
     purpose: config
     status: stable
     authority: true
+
+  - path: pyproject.toml
+    purpose: config
+    status: stable
+    authority: true
+
+  - path: scripts/quality/python-full.ps1
+    purpose: script
+    status: stable
+    authority: false
+
+  - path: scripts/quality/python-fast.ps1
+    purpose: script
+    status: stable
+    authority: false
 
   # — Base deploy manifests —
   - path: deploy/base/kagent/kagent-tool-server.yaml

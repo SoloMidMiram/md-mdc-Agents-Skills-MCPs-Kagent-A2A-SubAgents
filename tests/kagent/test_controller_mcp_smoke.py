@@ -483,9 +483,7 @@ def test_parse_approved_agents_rejects_duplicates_and_malformed() -> None:
         raise AssertionError("expected malformed rejection")
     except controller.UsageError as exc:
         assert "invalid agent reference" in str(exc)
-    parsed = controller.parse_approved_agents(
-        ["kagent/k8s-a2a-agent,kagent/observability-agent"]
-    )
+    parsed = controller.parse_approved_agents(["kagent/k8s-a2a-agent,kagent/observability-agent"])
     assert parsed == ("kagent/k8s-a2a-agent", "kagent/observability-agent")
 
 
@@ -533,9 +531,7 @@ def test_exact_inventory_rejects_missing_expected() -> None:
 
 def test_exact_inventory_rejects_duplicate_discovered_refs() -> None:
     result = _run(
-        FakeTransport(
-            _handler(include_observability=False, duplicates=["kagent/k8s-a2a-agent"])
-        ),
+        FakeTransport(_handler(include_observability=False, duplicates=["kagent/k8s-a2a-agent"])),
         **_exact_inventory_config(),
     )
     assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL

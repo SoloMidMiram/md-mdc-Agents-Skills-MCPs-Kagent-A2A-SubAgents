@@ -37,6 +37,15 @@ For the kagent lane specifically:
 - `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md` owns phase order and promotion gates;
 - `docs/runbooks/local-kagent-a2a-lab.md` owns executable lab instructions.
 
+For cross-lane delivery planning:
+
+- `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md` owns the order of work
+  across the stable Playwright and kagent lanes;
+- `docs/laptop-stable-acceptance-plan.md` owns the stable release's exact-SHA
+  checklist, target-host round trip, and tag gate; and
+- a branch may carry implementation notes, but it must not become a second
+  roadmap or status ledger. Update the canonical owners instead.
+
 ## Writing Rules
 
 1. Give every document one primary job.

@@ -185,7 +185,8 @@ When this becomes unacceptable:
 | `phase_5e_agent_mediated_mcp` | Correlate one A2A task → MCP `k8s_get_resources` → same-task returned names → kubectl match under nested schema 1.0. | `python scripts/kagent/agent_mcp_trace.py --output json`; FullMcpExecution profile | agreeing transport/protocol/dispatch; exact task/server/tool/arguments; bounded source proof; computed freshness; recomputed name match | Hardened helper/schema/tests shipped; retained live exit 1 — L6 Not proven ([phase 5e](../../evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md)) | Live L6 without one fresh exit 0 |
 | `phase_5f_integrity_and_protocol_hardening` | Close reproducible fail-closed defects before relying on stricter health or A2A evidence gates. | Targeted Pester and pytest cases for missing CRDs and multiline SSE; repository hygiene checks | strict health profiles reject a missing `RemoteMCPServer` CRD; multi-line SSE `data:` fields form one JSON payload; local debug captures are not tracked | fixes and deterministic regression tests are merged; hosted CI status is recorded only for the exact committed head | L6, IDE discovery, or a green run at an unverified SHA |
 | `phase_6_native_mcp_federation` | Verify the controller's native MCP contract before exposing any IDE-facing bridge. | `controller_mcp_smoke.py --output json` with strict inventory for IDE docs; project Cursor/Codex configuration; Cursor UI acceptance for I3-Cursor | negotiated controller protocol, reviewed tool schemas, target discovery, bounded response, agent-context continuation, and separate MCP-session reuse | I0-I2 are recorded in [phase 6](../../evidence/kagent/educational-practice-phase-6-native-mcp-federation.md); I3 requires a real IDE client (Cursor lead gate) plus bounded response and agent-context continuation; Python helper alone is insufficient | L6 tool invocation, autonomous mutation, or an alternate gateway |
-| `phase_7_readonly_l6_end_to_end` | Make the runtime natively read-only, then correlate one normal IDE invocation through agent tooling to Kubernetes. | native read-only schema discovery; one controller `invoke_agent`; `agent_mcp_trace.py --output json`; `FullMcpExecution` profile | mutation tools absent; same invocation/task identity; `k8s_get_resources`; returned pod names; `kubectl` match | one qualifying I4 and L6 record; three consecutive successes recommended for operational confidence | L7 repeatability or reverse delegation |
+| `phase_7_readonly_surface_hardening` | Make the MCP runtime natively read-only while retaining restrictive RBAC. This is a safety prerequisite that may proceed alongside the no-tool I3 gate. | native read-only schema discovery; deterministic negative inventory test; strict Kubernetes validation; required policy scan | discovery has no mutation-capable tools; RBAC remains restrictive; negative inventory rejects forbidden operations | surface-hardening record and deterministic validation pass | I3, I4, L6, repeatability, or write authority |
+| `phase_7b_correlated_i4_l6` | After I3 and phase 7 are complete, correlate one normal IDE invocation through the agent and the intended read-only Kubernetes tool. | one controller `invoke_agent`; `agent_mcp_trace.py --output json`; `FullMcpExecution` profile; independent `kubectl` query | same invocation/task identity; `k8s_get_resources`; bounded source/tool evidence; returned resource names; `kubectl` match | one qualifying I4 and L6 record; three consecutive successes recommended for operational confidence | L7 repeatability, production readiness, reverse delegation, or write authority |
 | `phase_8_repeatable_native_runtime` | Make the proven native read-only IDE path reproducible for a fresh learner. | start, check, stop, restart, project configuration, acceptance, and cleanup commands | pinned prerequisites; both-client acceptance; no orphaned port-forwards or lab resources | clean Docker Desktop run reaches I5 and L7 targets with dated evidence | production readiness or a write-enabled profile |
 
 ## Strategic Upper-Layer Grid
@@ -305,10 +306,14 @@ Correlated agent-mediated MCP attempt (L6 Not proven) is recorded in
     is now part of merged PR #1 and remains historical CI context rather than
     an active merge gate; capability decisions are unchanged.
 
-**Delivery sequence:** PR #3 delivers the Phase 6 native-federation foundation
-(I0-I2 Proven; I3 remains Blocked). A Phase 7 PR follows for read-only I4/L6
-proof, then a Phase 8 PR for repeatable I5/L7. These are dependency-ordered,
-not date-estimated. Items 11-13 below map one-to-one to these PRs.
+**Delivery sequence:** Phase 6 closes the bounded no-tool I3 gate. Native
+read-only discovery preparation may proceed in parallel because it is a
+separate runtime-safety prerequisite, but no Kubernetes-tool request may be
+used for I4/L6 until both the I3 and read-only gates are satisfied. Phase 8
+follows only after one qualifying Phase 7B correlation. These are
+dependency-ordered, not date-estimated. The repository-wide sequencing,
+including the prior stable release lane, is in
+`docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md`.
 
 11. Native controller MCP federation: record the live `initialize`, `tools/list`,
     and `list_agents` contract; maintain project-scoped Cursor/Codex configs
@@ -320,18 +325,25 @@ not date-estimated. Items 11-13 below map one-to-one to these PRs.
     [phase 6b–6d closure](../../evidence/kagent/educational-practice-phase-6b-6d-closure.md).
     Python diagnostics alone do not prove I3. Do not build a custom
     Cursor/Codex-to-A2A bridge.
-12. Make the MCP runtime natively read-only and obtain one same-invocation
+12. Make the MCP runtime natively read-only while retaining restrictive RBAC.
+    Validate that discovery excludes mutation-capable tools with a deterministic
+    negative test. This safety work may be completed alongside Item 11, but it
+    does not itself promote I3, I4, or L6. Treat model credentials, provider
+    availability, resolved skills, schema validity, and timeout as hypotheses
+    until observed.
+13. After Items 11 and 12 have qualifying evidence, obtain one same-invocation
     IDE -> agent -> MCP tool -> kubectl-matched loop to promote I4 and L6.
-    Retain restrictive RBAC. Treat model credentials, provider availability,
-    resolved skills, schema validity, and timeout as hypotheses until observed.
-13. Build the repeatable native workshop/bootstrap and cleanup path only after
-    the full read-only IDE correlation succeeds; it must validate both clients
-    before awarding I5 or L7.
+    Require the recorded task identity, intended target and tool, bounded source
+    proof, recomputed returned-name match, fresh `agent_mcp_trace.py` exit 0,
+    and an independent `kubectl` match.
+14. Build the repeatable native workshop/bootstrap and cleanup path only after
+    Item 13 succeeds; validate both clients before awarding I5 or L7.
 
 ## Major Flaws To Close
 
-The ranked flaw ledger is maintained in `evidence/kagent/README.md`. Roadmap
-ownership is:
+The ranked flaw ledger is maintained in `evidence/kagent/README.md`. Its P0/P1
+labels are evidence priorities; they do not override the repository-wide
+stable-release sequencing. Roadmap responsibilities are:
 
 1. **P0 L6:** obtain one live correlated tool observation with kubectl match
    (helper/schema already fail closed).

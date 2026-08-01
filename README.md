@@ -100,17 +100,20 @@ for the current repo-wide status.
 
 ## kagent Roadmap
 
-The stable Playwright release lane remains separately tracked in
-[the implemented state and roadmap](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md).
-The detailed kagent learning path lives in the
-[kagent educational roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md).
+The repository first establishes the exact-SHA baseline and closes the stable
+Playwright patch release in [the implemented state and roadmap](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md).
+The detailed kagent learning path and its promotion gates live in the
+[kagent educational roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md);
+the [stable acceptance plan](docs/laptop-stable-acceptance-plan.md) owns the
+release checklist. Do not add a branch-local subroadmap.
 
 Current kagent priority order:
 
-1. **Native delegation** — complete Phase 6 federation through the controller's
-   `/mcp` surface, without a custom A2A bridge.
-2. **Read-only I4/L6 evidence** — remove mutation-capable tools from discovery
-   and capture one same-invocation Kubernetes result with a `kubectl` match.
+1. **Two compatible prerequisites** — close no-tool I3 native delegation
+   through the controller's `/mcp` surface and harden discovery to a read-only
+   tool set; these may proceed in parallel, without a custom A2A bridge.
+2. **Read-only I4/L6 evidence** — only after both prerequisites, capture one
+   same-invocation Kubernetes result with a `kubectl` match.
 3. **Repeatability** — automate a clean-install workshop with restart, cleanup,
    I5, and L7 evidence.
 

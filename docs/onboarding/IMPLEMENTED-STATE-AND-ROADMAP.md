@@ -215,7 +215,7 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 
 - release acceptance evidence for `laptop-stable-v0.1.1` still needs an exact green GitHub Actions run recorded against the release SHA
 - integration scaffold verification reports findings but does not yet fail CI truthfully for every detected failure
-- PyYAML/Python dependency behavior needs one documented contract across code, tests, README, and the acceptance plan
+- current-head baseline hygiene is in place locally (`pyyaml==6.0.3` direct in the `dev` group; coverage/quality paths target `scripts/kagent`; quality wrappers fail-closed); selecting the immutable release SHA and recording same-SHA hosted Quality remain open. Full-quality debt (Mypy, coverage below 80%, Bandit Low findings, and a 2026-08-01 pip-audit timeout) is recorded in `docs/laptop-stable-acceptance-plan.md` and is not a Gate 0 pass claim
 - local `kagent` installation path (not yet reduced to a one-command install flow)
 - A2A dispatch uses the pinned controller 0.9.11 `message/stream` SSE path;
   legacy blocking `tasks/sendTask` and `message/send` remain unsuitable
@@ -238,17 +238,20 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 
 ## Practical Roadmap
 
-The stable Playwright release lane remains the first priority for any release
-work. The kagent lane below applies when that stable work is explicitly out of
-scope. Detailed educational phase ownership, commands, and promotion gates are
-kept in the [kagent educational roadmap](KAGENT-EDUCATIONAL-ROADMAP.md).
+This is the repository's delivery sequence. It coordinates lanes; it does not
+replace the stable acceptance checklist, kagent phase gates, or the evidence
+index. Do not create a branch subroadmap: use a branch only to implement one
+of the slices below, and update the named canonical owner when its outcome is
+observed.
 
-| Order | Kagent outcome | Depends on | Completion evidence |
+| Order | Delivery slice | Depends on | Completion evidence |
 |-------|----------------|------------|---------------------|
-| 1 | **Integrity and protocol hardening** — repair strict missing-CRD exit semantics, multiline SSE parsing, local-debug-log hygiene, and current-head CI truthfulness. | Existing deterministic test suites | Regression cases pass and any hosted status is recorded for the exact head. |
-| 2 | **Native IDE federation** — use the recorded controller `/mcp` contract and project-scoped clients; restore provider access for the blocked bounded response. | 1 | Dated I3-Cursor evidence: bounded `invoke_agent` response plus agent-context continuation; Python diagnostics are prerequisites only; this does not prove L6. |
-| 3 | **Read-only surface and L6/I4 closure** — make mutation tools absent from discovery, then correlate one IDE invocation with the agent-mediated Kubernetes read. | 2 | Native read-only schema, same invocation/task identity, fresh `agent_mcp_trace.py` exit 0, and a `kubectl` match. |
-| 4 | **Repeatable native workshop (I5/L7)** — provide bootstrap, port-forward, project configuration, acceptance, cleanup, and fresh-install proof for both clients. | 3 | A clean Docker Desktop run completes without undocumented repair and cleanup is verified. |
+| 0 | **Current-head release baseline** — PyYAML is a direct pinned `dev` dependency and coverage/quality paths target `scripts/kagent`; remaining work is to use the checklist in `docs/laptop-stable-acceptance-plan.md`, select one immutable release SHA, and run full hosted Quality for it. | Existing deterministic suites | The candidate SHA, local results, and a same-SHA hosted Quality result are recorded. This is preparation, not a release tag. |
+| 1 | **Stable Playwright patch release** — complete the Windows install → verify → rollback → verify round trip against the selected SHA; record the result and tag `laptop-stable-v0.1.1`. | 0 | Exact-SHA CI is green, target-host acceptance is recorded, and the tag points to that SHA. |
+| 2a | **Native no-tool I3 delegation** — restore the provider/model path, enforce the minimal approved agent inventory, and capture the bounded IDE response plus agent-context continuation. | 1 for normal sequencing; may be separately staffed without delaying the release | A real IDE bounded `invoke_agent` response and second-call context continuation. This does not prove Kubernetes tool use or L6. |
+| 2b | **Native read-only discovery hardening** — make mutation-capable tools absent from discovery, retain restrictive RBAC, and add a deterministic negative inventory test. | 1 for normal sequencing; may be separately staffed alongside 2a without delaying the release | Native read-only discovery and an enforced negative inventory test. This does not prove I3, I4, or L6. |
+| 3 | **One correlated read-only I4/L6 transaction** — after both 2a and 2b are complete, run one normal IDE → agent → MCP tool → Kubernetes read and independently compare it with `kubectl`. | 2a and 2b | Same invocation/task identity, fresh `agent_mcp_trace.py` exit 0, bounded source evidence, matching returned resource names, and a `kubectl` match. |
+| 4 | **Repeatable native workshop (I5/L7)** — provide bootstrap, port-forward, project configuration, acceptance, restart, cleanup, and fresh-install proof for the supported clients. | 3 | A clean Docker Desktop run completes without undocumented repair, survives the required restart check, and verifies cleanup. |
 
 ### Architecture decision for the IDE lane
 
@@ -274,10 +277,15 @@ L6 or L7.
 
 ## Recommended Next Steps
 
-1. Restore supported provider access and capture dated I3-Cursor evidence
-   (bounded no-tool response plus agent-context continuation).
-2. Replace the mutation-advertising runtime before requesting an agent to use
-   Kubernetes tools.
-3. Capture one same-invocation I4/L6 Kubernetes record with a `kubectl` match.
-4. Build bootstrap and cleanup automation only after the full read-only IDE
-   correlation succeeds for the lead client, then validate both clients.
+1. Complete the remaining current-head checklist items: name one immutable
+   candidate SHA, record local deterministic results for it, and trigger full
+   `quality.yml` for that exact SHA (PyYAML and coverage contracts are already
+   declared).
+2. Perform the Windows acceptance round trip against that SHA and tag
+   `laptop-stable-v0.1.1` only if every required gate passes.
+3. In the kagent lane, complete the no-tool I3 acceptance and the native
+   read-only discovery hardening as two compatible prerequisites. Do not
+   request a Kubernetes tool until the latter is proven; do not build a custom
+   Cursor/Codex-to-A2A bridge.
+4. Capture one same-invocation I4/L6 Kubernetes record with a `kubectl` match,
+   then automate bootstrap, restart, and cleanup for I5/L7.

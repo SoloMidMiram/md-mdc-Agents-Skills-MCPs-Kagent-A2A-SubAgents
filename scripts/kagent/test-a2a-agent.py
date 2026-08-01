@@ -304,21 +304,15 @@ def validate_controller_url(value: str) -> str:
     except ValueError as exc:
         raise UsageFailure(f"controller URL could not be parsed: {exc}") from exc
     if parsed.scheme not in {"http", "https"}:
-        raise UsageFailure(
-            f"controller URL scheme must be http or https, got {parsed.scheme!r}"
-        )
+        raise UsageFailure(f"controller URL scheme must be http or https, got {parsed.scheme!r}")
     if not parsed.hostname:
-        raise UsageFailure(
-            f"controller URL must have a host, got {controller!r}"
-        )
+        raise UsageFailure(f"controller URL must have a host, got {controller!r}")
     if parsed.username is not None or parsed.password is not None:
         raise UsageFailure("controller URL must not include userinfo")
     try:
         port = parsed.port
     except ValueError as exc:
-        raise UsageFailure(
-            f"controller URL has invalid port: {exc}"
-        ) from exc
+        raise UsageFailure(f"controller URL has invalid port: {exc}") from exc
     if port is None:
         raise UsageFailure("controller URL must include an explicit port")
     if parsed.path not in {"", "/"} or parsed.params:
@@ -368,11 +362,7 @@ def parse_sse_jsonrpc_events(body_text: str) -> list[dict[str, Any]]:
     normalized = body_text.replace("\r\n", "\n").replace("\r", "\n")
 
     for block in normalized.split("\n\n"):
-        data_lines = [
-            line[5:].lstrip()
-            for line in block.splitlines()
-            if line.startswith("data:")
-        ]
+        data_lines = [line[5:].lstrip() for line in block.splitlines() if line.startswith("data:")]
 
         if not data_lines:
             continue

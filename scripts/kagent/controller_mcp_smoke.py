@@ -235,15 +235,11 @@ def load_expected_inventory(path_arg: str) -> tuple[str, tuple[str, ...], str]:
     try:
         resolved.relative_to(ALLOWED_INVENTORY_DIR)
     except ValueError as exc:
-        raise UsageError(
-            "expected inventory path must resolve under config/kagent/"
-        ) from exc
+        raise UsageError("expected inventory path must resolve under config/kagent/") from exc
 
     size = resolved.stat().st_size
     if size > MAX_EXPECTED_INVENTORY_BYTES:
-        raise UsageError(
-            f"expected inventory file exceeds {MAX_EXPECTED_INVENTORY_BYTES} bytes"
-        )
+        raise UsageError(f"expected inventory file exceeds {MAX_EXPECTED_INVENTORY_BYTES} bytes")
 
     text = resolved.read_text(encoding="utf-8")
     refs: list[str] = []
@@ -281,9 +277,7 @@ def sanitized_output_leaks_context_id(payload: dict[str, Any], raw: str) -> bool
 
     def walk(node: Any) -> bool:
         if isinstance(node, str):
-            return node == raw or (
-                len(raw) >= MIN_EMBEDDED_SECRET_LENGTH and raw in node
-            )
+            return node == raw or (len(raw) >= MIN_EMBEDDED_SECRET_LENGTH and raw in node)
         if isinstance(node, dict):
             return any(walk(value) for value in node.values())
         if isinstance(node, list):
@@ -547,9 +541,7 @@ class ControllerMcpClient:
     def _list_target_agent(self, *, session_reuse: bool) -> None:
         response, result = self._call_tool("list_agents", {})
         ordered_refs = self._agent_ref_list(result)
-        duplicates = sorted(
-            {ref for ref in ordered_refs if ordered_refs.count(ref) > 1}
-        )
+        duplicates = sorted({ref for ref in ordered_refs if ordered_refs.count(ref) > 1})
         refs = set(ordered_refs)
         exact = bool(self.config.expected_inventory_refs)
         if exact:
@@ -597,9 +589,7 @@ class ControllerMcpClient:
             preview = ", ".join(unexpected[:5])
             more = "" if len(unexpected) <= 5 else f" (+{len(unexpected) - 5} more)"
             label = "exact" if exact else "strict"
-            raise ProtocolError(
-                f"{label} inventory rejected unexpected agents: {preview}{more}"
-            )
+            raise ProtocolError(f"{label} inventory rejected unexpected agents: {preview}{more}")
 
     def _invoke_structured(
         self, arguments: dict[str, Any]
@@ -676,9 +666,7 @@ class ControllerMcpClient:
                 raise UsageError("timeout must be greater than zero")
             validate_agent_ref(self.config.agent)
             if self.config.expected_inventory_path and self.config.approved_agents:
-                raise UsageError(
-                    "--expected-inventory cannot be combined with --approved-agent"
-                )
+                raise UsageError("--expected-inventory cannot be combined with --approved-agent")
             if (
                 self.config.strict_agent_inventory
                 and not self.config.expected_inventory_path
@@ -819,8 +807,7 @@ def main(argv: list[str] | None = None) -> int:
                         f"invokeAgentSucceeded={result.invoke_agent_succeeded}",
                         f"agentContextContinuationSucceeded="
                         f"{result.agent_context_continuation_succeeded}",
-                        f"mcpSessionReuseTargetPresent="
-                        f"{result.mcp_session_reuse_target_present}",
+                        f"mcpSessionReuseTargetPresent={result.mcp_session_reuse_target_present}",
                         f"cleanup={result.cleanup}",
                     )
                 )

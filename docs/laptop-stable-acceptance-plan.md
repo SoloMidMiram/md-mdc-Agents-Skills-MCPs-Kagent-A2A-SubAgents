@@ -4,7 +4,9 @@
 > **Tag history:**
 > - `laptop-stable-v0.1` @ `cdb7dc0` — initial release (2026-07-09)
 > - **`laptop-stable-v0.1.1`** — pending (this stabilization SHA after CI)
-> **Status:** `READY_FOR_PATCH_TAG` — Gate A3 closed on hosted Quality green (`46a1d7d`, run [29953440286](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/29953440286))
+> **Status:** `RELEASE_SHA_NOT_SELECTED` — historical hosted Quality runs are
+> useful context, but the patch still requires an exact green `quality.yml` run
+> and target-host round-trip evidence for the selected release SHA.
 
 ---
 
@@ -29,7 +31,7 @@ This document now tracks the **v0.1.1 patch** (UTF-8 onboarding, narrative sync,
 | Verify exit codes | ✅ Tested | Exits 0 on correct, 1 on missing |
 | WhatIf non-mutating | ✅ Tested | No backup directory created |
 | CI workflow | ✅ Configured | PSScriptAnalyzer, JSON validation, Pester evaluation, artifact upload |
-| PyYAML dependency | ⚠️ **Pinned** | CI installs PyYAML; local `Get-ConfigState` skips gracefully if missing |
+| PyYAML dependency contract | ✅ **Implemented** | `pyyaml==6.0.3` is a direct pinned development dependency; workflow YAML validation uses `uv sync --frozen --group dev` / `uv run`. The Windows evaluation job still installs `pyyaml==6.0.3` via pip for Pester/config YAML paths that do not use the uv environment. |
 | Documented test counts | ✅ **Updated** | README says "73+ tests" — Pester-verified aggregate, not hardcoded per-file |
 | Dataset structural tests | ✅ **Done** | ConfigRoot isolation + child `pwsh` installer; Package scope in Describe; hosted Quality green |
 | Old plan doc | ✅ Archived | `docs/laptop-stable-implementation-plan.md` → replaced by this file |
@@ -49,7 +51,7 @@ This document now tracks the **v0.1.1 patch** (UTF-8 onboarding, narrative sync,
 | A1 | ✅ **Done** | CI step validates `config/templates/*.json` |
 | A2 | ✅ **Done** | CI step `Invoke-ScriptAnalyzer -Severity Error` |
 | A3 | ✅ **Done** | CI step `run-evaluation.ps1 -CI` — exit 0 on clean runner; hosted Quality SUCCESS @ `46a1d7d` (ConfigRoot + Package Describe scope) |
-| A4 | ✅ **Done** | CI step `pip install pyyaml` |
+| A4 | ✅ **Contract declared** | `pyyaml==6.0.3` is declared in the `dev` group; `uv.lock` pins it; the kagent-python job validates workflow YAML through the frozen uv environment. Hosted green Quality on the eventual release SHA remains Gate A overall. |
 | A5 | ✅ **Done** | CI step `actions/upload-artifact` |
 | A6 | ✅ **Done** | Workflow runs on `push` and `pull_request` |
 
@@ -110,6 +112,40 @@ These are explicitly excluded from the laptop-stable v0.1 gate:
 
 ---
 
+## Current-Head Baseline Checklist
+
+This is a short preparation gate, not a second roadmap and not release
+evidence. Complete it before selecting the patch SHA.
+
+| Check | Required result |
+|-------|-----------------|
+| PyYAML contract | ✅ Direct pinned `pyyaml==6.0.3` in the `dev` group; frozen uv environment imports it for workflow YAML validation. Windows pip install retained for Pester/config validation. |
+| Coverage scope | ✅ `tool.coverage.run.source` and `scripts/quality/python-full.ps1` target `scripts/kagent` (no `src/` package yet). |
+| Gate 0 local bar | ✅ Frozen `uv sync --group dev`, PyYAML import, `ruff check` on `scripts/kagent`/`tests/kagent`, `ruff format --check .`, `pytest -q tests/kagent`, `audit-slice -RequireEmptyStaging`, and `git diff --check`. |
+| Exact candidate | ⬜ One immutable commit SHA is named as the release candidate. |
+| Local deterministic checks | ⬜ Ruff, Python tests, Pester evaluation, strict Kubernetes validation, required Trivy scan, and integration-scaffold checks have recorded results for that SHA. |
+| Hosted confirmation | ⬜ All required `quality.yml` jobs are green for that same SHA; historical runs do not substitute. |
+
+Do not tag from this checklist alone: Gate B's Windows target-host round trip is
+still required.
+
+### Full-quality wrapper (not a Gate 0 pass criterion)
+
+`scripts/quality/python-full.ps1` and `scripts/quality/python-fast.ps1` are
+fail-closed (`$LASTEXITCODE` checked after every native step). The full wrapper
+is **not** currently green and must not be treated as a release gate until the
+debts below are cleared. Observed on 2026-08-01 (local Windows, Python 3.12.12):
+
+| Check | Observed result |
+|-------|-----------------|
+| Mypy (`uv run mypy scripts/kagent`) | Exit 1 — 26 errors in 3 files |
+| Coverage | Total 79.88% under `fail_under` 80 with `precision = 2`. After that config: `uv run pytest -q tests/kagent --cov=scripts/kagent` exits 1; `uv run coverage report --precision=2 --fail-under=80` exits 2. `python-full.ps1` runs the explicit coverage-report step after pytest. |
+| Bandit (`uv run bandit -r scripts/kagent -q`) | Exit 1 — 14 Low / 0 Medium / 0 High |
+| Pip-audit (`uv run pip-audit` via `python-full.ps1`) | Timed out in the observed environment on 2026-08-01; not classified as flaky without repeat evidence |
+
+Gate 0 acceptance remains the checklist bar above. Do not claim the full-quality
+gate passes.
+
 ## Release Checklist
 
 When all acceptance gates above pass:
@@ -120,8 +156,11 @@ When all acceptance gates above pass:
 4. ✅ Run `.\scripts\verify-global-playwright-mcp.ps1` — exit 0, all 4 targets correct
 5. ✅ Run `.\scripts\rollback-global-playwright-mcp.ps1 -BackupDir <latest> -Force` — restore confirmed
 6. ✅ Run `.\scripts\verify-global-playwright-mcp.ps1` — exit 1 (Cursor entry correctly absent after rollback)
-7. [ ] Confirm CI workflow passes for the release commit — verify at https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/workflows/quality.yml after push
-8. [ ] Tag the commit as `laptop-stable-v0.1.1`
+7. [ ] Record the selected immutable release SHA in the current-head baseline
+   checklist above.
+8. [ ] Confirm every required `quality.yml` job passes for that exact commit —
+   verify at https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/workflows/quality.yml after push.
+9. [ ] Tag that exact commit as `laptop-stable-v0.1.1`.
 
 > **Tag note:** `laptop-stable-v0.1` remains at `cdb7dc0` (historical). The next tag is `v0.1.1`.
 
