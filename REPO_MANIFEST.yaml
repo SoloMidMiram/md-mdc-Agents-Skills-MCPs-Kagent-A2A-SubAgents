@@ -409,6 +409,11 @@ entries:
     status: lab
     authority: false
 
+  - path: scripts/kagent/deepseek_provider_probe.py
+    purpose: script
+    status: lab
+    authority: false
+
   - path: scripts/kagent/test-a2a-agent.py
     purpose: script
     status: lab
@@ -435,6 +440,11 @@ entries:
     authority: false
 
   - path: tests/kagent/test_controller_mcp_smoke.py
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: tests/kagent/test_deepseek_provider_probe.py
     purpose: test
     status: lab
     authority: false
@@ -510,7 +520,17 @@ entries:
     status: lab
     authority: true
 
+  - path: deploy/samples/kagent/ide-safe-deepseek-model-config.yaml
+    purpose: manifest
+    status: lab
+    authority: true
+
   - path: config/kagent/k8s-a2a-agent-ide-safe-modelconfig-patch.yaml
+    purpose: config
+    status: lab
+    authority: false
+
+  - path: config/kagent/k8s-a2a-agent-ide-safe-deepseek-modelconfig-patch.yaml
     purpose: config
     status: lab
     authority: false

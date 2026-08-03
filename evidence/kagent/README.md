@@ -6,7 +6,7 @@ to imply capabilities that were not observed.
 
 ## Latest Verified Status
 
-Environment observed through 2026-07-31: local Docker Desktop Kubernetes cluster,
+Environment observed through 2026-08-03: local Docker Desktop Kubernetes cluster,
 including the Phase 6 native-federation observation.
 
 | Level | Decision | Evidence |
@@ -30,7 +30,7 @@ agent discovery cannot be mistaken for agent-mediated Kubernetes execution.
 | I0 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): controller `/mcp` initialized |
 | I1 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `tools/list` returned the pinned agent tools |
 | I2 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `list_agents` returned `kagent/k8s-a2a-agent` |
-| I3 | Blocked | [phase 6](educational-practice-phase-6-native-mcp-federation.md) (OpenAI region 403) and [phase 6b–6d closure](educational-practice-phase-6b-6d-closure.md) (exact inventory not singleton; Ollama pinned-model pull/DNS and cluster probe incomplete; no Cursor tool-trace context proof). Python helper success alone is insufficient. |
+| I3 | Blocked | [phase 6](educational-practice-phase-6-native-mcp-federation.md) (OpenAI region 403) and [phase 6b–6d closure](educational-practice-phase-6b-6d-closure.md) (2026-08-02 singleton inventory and 2026-08-03 direct DeepSeek Flash qualification passed; the controller preflight remains unqualified and no Cursor tool-trace context proof exists). Python helper success alone is insufficient. |
 | I4 | Not proven | No same-invocation controller, tool, and `kubectl` correlation |
 | I5 | Not attempted | No fresh setup, restart, both-client acceptance, and cleanup record |
 
@@ -123,6 +123,17 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   Minimal-profile + Cursor tool-trace requirements. Live closure attempt
   recorded in [phase 6b–6d](educational-practice-phase-6b-6d-closure.md); I3
   remains Blocked (draft stay).
+- 2026-08-02 Phase 6B retry: the local Docker Desktop demo Agent CRs were
+  deliberately removed and only reviewed resources reapplied, producing the
+  exact singleton `kagent/k8s-a2a-agent` inventory. The pinned Ollama model
+  pull still failed at registry DNS before provider qualification; the agent
+  remained on `default-model-config`, no Cursor trace was attempted, and I3
+  remains Blocked. Phase 7 was not started.
+- 2026-08-03 DeepSeek fallback: a stdlib-only, redacting provider qualifier
+  selected `deepseek-v4-flash` after bounded no-tool and dummy function-schema
+  HTTP 200 checks. Its target-only ModelConfig and Agent patch reconciled, but
+  the controller preflight did not qualify before rollback and no Cursor trace
+  was attempted. I3 remains Blocked; no Kubernetes tool was requested.
 
 ## Major Open Flaws
 
@@ -130,7 +141,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 |----------|------|--------|------------------------------|
 | P0 | No live correlated agent-mediated MCP result | Core L6 objective remains unproved; deterministic gates cannot promote it | One fresh `agent_mcp_trace.py` exit 0 binding a taskId to `kagent-tool-server` / `k8s_get_resources`, same-task returned names, bounded source proof, and kubectl match |
 | P1 | MCP image advertises write tools | RBAC is the only write barrier and tool discovery is misleading | Native read-only image plus retained restrictive RBAC |
-| P1 | I3-Cursor blocked: Demo agent inventory, Ollama pinned-model pull/reachability, and missing Cursor tool-trace context proof | Cursor cannot complete IDE-safe exact-inventory acceptance | Minimal-profile singleton inventory; pull `qwen2.5:7b-instruct` with in-cluster Ollama reachability; patch only `k8s-a2a-agent`; capture Cursor tool-trace proving second `invoke_agent` forwarded `context_id` ([6b–6d](educational-practice-phase-6b-6d-closure.md)) |
+| P1 | I3-Cursor blocked: the qualified DeepSeek profile still lacks a successful stable controller preflight and Cursor tool-trace context proof | Cursor cannot complete the IDE-safe acceptance | Complete the exact-inventory no-tool preflight after Agent rollout, then capture Cursor evidence that the second `invoke_agent` forwarded `context_id` ([6b–6d](educational-practice-phase-6b-6d-closure.md)) |
 | P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
 | P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
 

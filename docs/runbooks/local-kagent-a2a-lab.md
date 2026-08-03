@@ -335,6 +335,71 @@ kubectl get agent k8s-a2a-agent -n kagent `
 
 Expected rollback value: `default-model-config`.
 
+### Target-specific DeepSeek fallback (IDE-safe)
+
+Use this fallback only after the local `DEEPSEEK_API_KEY` is available to the
+acceptance operator. The key is passed through a local process into a
+namespace-local Secret; never print it, place it in a manifest, or commit it.
+The qualification helper tries `deepseek-v4-flash` first and tries
+`deepseek-v4-pro` only when Flash does not qualify.
+
+```powershell
+$env:DEEPSEEK_API_KEY = [Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'User')
+uv run python scripts/kagent/deepseek_provider_probe.py --output json
+Remove-Item Env:DEEPSEEK_API_KEY
+```
+
+Exit `0` selects a candidate only after a bounded no-tool response and a dummy
+function-schema response both pass. Its JSON contains only model names, HTTP
+statuses, latency, and pass/fail information—never the API key or response
+text. Exit `1` means no candidate qualified; keep I3 Blocked and do not apply a
+target profile.
+
+After exit `0`, create the local-only Secret, apply the selected profile, patch
+only `k8s-a2a-agent`, and wait for both the Agent and its Deployment rollout:
+
+```powershell
+$deepSeekKey = [Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'User')
+if ([string]::IsNullOrWhiteSpace($deepSeekKey)) { throw 'DEEPSEEK_API_KEY is unavailable.' }
+$deepSeekEnvFile = New-TemporaryFile
+try {
+  [IO.File]::WriteAllText(
+    $deepSeekEnvFile.FullName,
+    "DEEPSEEK_API_KEY=$deepSeekKey`n",
+    [Text.UTF8Encoding]::new($false)
+  )
+  kubectl create secret generic kagent-deepseek -n kagent `
+    --from-env-file=$deepSeekEnvFile.FullName --dry-run=client -o yaml |
+    kubectl apply -f -
+  if ($LASTEXITCODE -ne 0) { throw 'Secret creation failed.' }
+}
+finally {
+  Remove-Item -LiteralPath $deepSeekEnvFile.FullName -Force -ErrorAction SilentlyContinue
+  Remove-Variable deepSeekKey -ErrorAction SilentlyContinue
+}
+kubectl apply -f deploy/samples/kagent/ide-safe-deepseek-model-config.yaml
+kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+  --patch-file config/kagent/k8s-a2a-agent-ide-safe-deepseek-modelconfig-patch.yaml
+kubectl wait --for=condition=Accepted=true agent/k8s-a2a-agent -n kagent --timeout=180s
+kubectl wait --for=condition=Ready=true agent/k8s-a2a-agent -n kagent --timeout=180s
+kubectl rollout status deployment/k8s-a2a-agent -n kagent --timeout=180s
+```
+
+For the 2026-08-03 Flash observation, use the model's observed punctuation for
+the exact bounded controller diagnostic after the rollout is stable:
+
+```powershell
+uv run python scripts/kagent/controller_mcp_smoke.py --output json `
+  --expected-inventory config/kagent/ide-safe-agent-inventory.txt `
+  --expected-response 'kagent native MCP acceptance.' `
+  --continuation-expected-response 'kagent native MCP context continuation.'
+```
+
+A failed readiness or controller diagnostic must restore
+`default-model-config` with the existing rollback patch. A successful provider
+probe or Python diagnostic is preparation only; I3 still requires the Cursor
+tool-call trace and it never proves I4 or L6.
+
 ### Verify the native controller MCP surface
 
 The project-scoped Cursor and Codex configurations both target the discovered

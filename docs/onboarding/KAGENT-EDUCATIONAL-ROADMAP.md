@@ -318,10 +318,11 @@ including the prior stable release lane, is in
 11. Native controller MCP federation: record the live `initialize`, `tools/list`,
     and `list_agents` contract; maintain project-scoped Cursor/Codex configs
     against that one endpoint. I0-I2 are proven for controller 0.9.11. I3 remains
-    Blocked pending Minimal-profile exact inventory, a usable provider (IDE-safe
-    Ollama ModelConfig with in-cluster reachability), and a dated Cursor
-    acceptance whose tool-call trace proves second `invoke_agent` forwarded
-    `context_id`. See
+    Blocked pending a successful stable controller preflight for the qualified
+    target-only DeepSeek Flash profile and a dated Cursor acceptance whose
+    tool-call trace proves second `invoke_agent` forwarded `context_id`. The
+    2026-08-02 local Docker Desktop reset completed the Minimal-profile exact
+    singleton inventory; the Ollama route remains registry-DNS blocked. See
     [phase 6b–6d closure](../../evidence/kagent/educational-practice-phase-6b-6d-closure.md).
     Python diagnostics alone do not prove I3. Do not build a custom
     Cursor/Codex-to-A2A bridge.
@@ -349,8 +350,10 @@ stable-release sequencing. Roadmap responsibilities are:
    (helper/schema already fail closed).
 2. **P1 runtime safety:** move to a native read-only MCP image while retaining
    restrictive RBAC.
-3. **P1 native federation:** restore provider access for the recorded
-   `invoke_agent` region-policy block, then capture I3-Cursor evidence; do not
-   mistake HTTP 200, helper exit 0, or MCP-session reuse for I3 or L6.
+3. **P1 native federation:** complete the stable no-tool controller preflight
+   for the qualified DeepSeek profile, then capture I3-Cursor evidence; do not
+   mistake provider HTTP 200, helper exit 0, or MCP-session reuse for I3 or
+   L6. The singleton inventory prerequisite is complete on the local Docker
+   Desktop cluster.
 4. **P2 documentation drift:** continue replacing repeated runtime snapshots
    with links to `evidence/kagent/README.md`.
