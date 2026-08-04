@@ -315,15 +315,9 @@ dependency-ordered, not date-estimated. The repository-wide sequencing,
 including the prior stable release lane, is in
 `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md`.
 
-11. Native controller MCP federation: record the live `initialize`, `tools/list`,
-    and `list_agents` contract; maintain project-scoped Cursor/Codex configs
-    against that one endpoint. I0-I2 are proven for controller 0.9.11. I3 remains
-    Blocked pending a successful stable controller preflight for the qualified
-    target-only DeepSeek Flash profile and a dated Cursor acceptance whose
-    tool-call trace proves second `invoke_agent` forwarded `context_id`. The
-    2026-08-02 local Docker Desktop reset completed the Minimal-profile exact
-    singleton inventory; the Ollama route remains registry-DNS blocked. See
-    [phase 6b–6d closure](../../evidence/kagent/educational-practice-phase-6b-6d-closure.md).
+11. Native controller MCP federation: Candidate B strict preflight is a recorded
+    prerequisite; the authoritative I3-Cursor decision and remaining live-evidence
+    gate are maintained in the [kagent evidence index](../../evidence/kagent/README.md).
     Python diagnostics alone do not prove I3. Do not build a custom
     Cursor/Codex-to-A2A bridge.
 12. Make the MCP runtime natively read-only while retaining restrictive RBAC.
@@ -350,10 +344,10 @@ stable-release sequencing. Roadmap responsibilities are:
    (helper/schema already fail closed).
 2. **P1 runtime safety:** move to a native read-only MCP image while retaining
    restrictive RBAC.
-3. **P1 native federation:** complete the stable no-tool controller preflight
-   for the qualified DeepSeek profile, then capture I3-Cursor evidence; do not
-   mistake provider HTTP 200, helper exit 0, or MCP-session reuse for I3 or
-   L6. The singleton inventory prerequisite is complete on the local Docker
-   Desktop cluster.
+3. **P1 native federation:** Candidate B strict preflight is a recorded
+   prerequisite; the authoritative I3-Cursor decision and remaining live-evidence
+   gate are maintained in the [kagent evidence index](../../evidence/kagent/README.md).
+   Do not mistake provider HTTP 200, helper exit 0, or MCP-session reuse for I3
+   or L6.
 4. **P2 documentation drift:** continue replacing repeated runtime snapshots
    with links to `evidence/kagent/README.md`.

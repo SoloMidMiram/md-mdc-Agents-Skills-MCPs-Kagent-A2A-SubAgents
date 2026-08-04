@@ -6,8 +6,8 @@ to imply capabilities that were not observed.
 
 ## Latest Verified Status
 
-Environment observed through 2026-08-03: local Docker Desktop Kubernetes cluster,
-including the Phase 6 native-federation observation.
+Environment observed through 2026-08-04: local Docker Desktop Kubernetes cluster,
+including the Phase 6E strict-preflight observation.
 
 | Level | Decision | Evidence |
 |-------|----------|----------|
@@ -30,7 +30,7 @@ agent discovery cannot be mistaken for agent-mediated Kubernetes execution.
 | I0 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): controller `/mcp` initialized |
 | I1 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `tools/list` returned the pinned agent tools |
 | I2 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `list_agents` returned `kagent/k8s-a2a-agent` |
-| I3 | Blocked | [phase 6](educational-practice-phase-6-native-mcp-federation.md) (OpenAI region 403) and [phase 6b–6d closure](educational-practice-phase-6b-6d-closure.md) (2026-08-02 singleton inventory; 2026-08-03 DeepSeek Flash qualification; 2026-08-04 Phase 6E: task/expected contract corrected; Candidate B DeepSeek+I3 `systemMessage` strict preflight exited 0 with `strictPreflightQualified=true`; real Cursor `context_id` forward trace still missing / not observable — `client context propagation not observable`). Python helper success alone is insufficient. |
+| I3 | Blocked | [phase 6](educational-practice-phase-6-native-mcp-federation.md) and [phase 6b–6d closure](educational-practice-phase-6b-6d-closure.md) (2026-08-02 singleton inventory; 2026-08-03 DeepSeek Flash qualification; 2026-08-04 Phase 6E: task/expected contract corrected and Candidate B strict preflight exited 0 with `strictPreflightQualified=true`). The remaining I3 evidence is a real Cursor trace proving second-call context forwarding; the required Cursor MCP tool-input arguments were not observable in the non-UI acceptance environment. Python helper success alone is insufficient. |
 | I4 | Not proven | No same-invocation controller, tool, and `kubectl` correlation |
 | I5 | Not attempted | No fresh setup, restart, both-client acceptance, and cleanup record |
 
@@ -111,8 +111,9 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 - Phase 6 native federation now has a deterministic Streamable HTTP helper for
   the pinned controller contract and project-scoped Cursor/Codex configurations.
   The live controller exposes `list_agents` and `invoke_agent`; I0-I2 are
-  proven, while I3 is blocked by the provider region policy. Native MCP is the
-  preferred client seam, so a custom A2A-to-MCP gateway remains deferred.
+  proven. The dated I3-Cursor decision is maintained in the Native
+  IDE-Federation Status table above. Native MCP is the preferred client seam,
+  so a custom A2A-to-MCP gateway remains deferred.
 - 2026-07-31 correction cycle: MCP-session reuse is named separately from
   agent-context continuation; strict approved-agent inventory is available for
   IDE acceptance; Codex `tool_timeout_sec` is 90 with startup still 30; Cursor
@@ -151,7 +152,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 |----------|------|--------|------------------------------|
 | P0 | No live correlated agent-mediated MCP result | Core L6 objective remains unproved; deterministic gates cannot promote it | One fresh `agent_mcp_trace.py` exit 0 binding a taskId to `kagent-tool-server` / `k8s_get_resources`, same-task returned names, bounded source proof, and kubectl match |
 | P1 | MCP image advertises write tools | RBAC is the only write barrier and tool discovery is misleading | Native read-only image plus retained restrictive RBAC |
-| P1 | I3-Cursor blocked: Candidate B strict controller preflight qualifies, but no Cursor tool-trace proves second-call `context_id` forwarding | Cursor cannot complete the IDE-safe acceptance | Re-apply Candidate B profile, run the Cursor UI sequence with sanitized `<context-id-A>` evidence that the second `invoke_agent` forwarded `context_id` ([6b–6d](educational-practice-phase-6b-6d-closure.md)) |
+| P1 | I3-Cursor blocked: Candidate B strict controller preflight qualifies, but no Cursor tool-trace proves second-call `context_id` forwarding | Cursor cannot complete the IDE-safe acceptance | Re-apply Candidate B profile, run the Cursor UI sequence with sanitized `<context-id-A>` evidence that the second `invoke_agent` forwarded `context_id`; if arguments cannot be observed, record `I3-Cursor: Blocked — second-call Cursor MCP tool-input arguments were not observable in the acceptance environment` ([6b–6d](educational-practice-phase-6b-6d-closure.md)) |
 | P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
 | P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
 

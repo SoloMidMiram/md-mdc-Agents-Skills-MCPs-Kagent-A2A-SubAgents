@@ -223,7 +223,9 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 - live correlated L6 tool observation (schema/helper exist; live still Not proven)
 - the deployed controller's client-facing MCP schema is recorded: `/mcp` exposes
   only `list_agents` and `invoke_agent`, and `k8s-a2a-agent` is discoverable
-  (I0-I2 Proven); the bounded invocation is blocked by provider region policy
+  (I0-I2 Proven); Candidate B strict preflight is recorded, while the current
+  I3-Cursor decision and remaining live-evidence gate are maintained in
+  `evidence/kagent/README.md`
 - agent-governance R1-R3/S1-S2 benchmark scoring and H1-H3 shadow measurement;
   artifacts exist, but no independently assessed comparison or ten-event hook
   sample supports promotion or blocking yet
@@ -248,7 +250,7 @@ observed.
 |-------|----------------|------------|---------------------|
 | 0 | **Current-head release baseline** — PyYAML is a direct pinned `dev` dependency and coverage/quality paths target `scripts/kagent`; remaining work is to use the checklist in `docs/laptop-stable-acceptance-plan.md`, select one immutable release SHA, and run full hosted Quality for it. | Existing deterministic suites | The candidate SHA, local results, and a same-SHA hosted Quality result are recorded. This is preparation, not a release tag. |
 | 1 | **Stable Playwright patch release** — complete the Windows install → verify → rollback → verify round trip against the selected SHA; record the result and tag `laptop-stable-v0.1.1`. | 0 | Exact-SHA CI is green, target-host acceptance is recorded, and the tag points to that SHA. |
-| 2a | **Native no-tool I3 delegation** — complete the stable controller preflight for the qualified target-only DeepSeek profile, then capture the bounded IDE response plus agent-context continuation. The local Minimal reset already enforces the singleton approved agent inventory. | 1 for normal sequencing; may be separately staffed without delaying the release | A real IDE bounded `invoke_agent` response and second-call context continuation. This does not prove Kubernetes tool use or L6. |
+| 2a | **Native no-tool I3 delegation** — Candidate B strict preflight is recorded; capture the bounded IDE response plus agent-context continuation. The current I3-Cursor decision and live-evidence gate are maintained in `evidence/kagent/README.md`. | 1 for normal sequencing; may be separately staffed without delaying the release | A real IDE bounded `invoke_agent` response and second-call context continuation. This does not prove Kubernetes tool use or L6. |
 | 2b | **Native read-only discovery hardening** — make mutation-capable tools absent from discovery, retain restrictive RBAC, and add a deterministic negative inventory test. | 1 for normal sequencing; may be separately staffed alongside 2a without delaying the release | Native read-only discovery and an enforced negative inventory test. This does not prove I3, I4, or L6. |
 | 3 | **One correlated read-only I4/L6 transaction** — after both 2a and 2b are complete, run one normal IDE → agent → MCP tool → Kubernetes read and independently compare it with `kubectl`. | 2a and 2b | Same invocation/task identity, fresh `agent_mcp_trace.py` exit 0, bounded source evidence, matching returned resource names, and a `kubectl` match. |
 | 4 | **Repeatable native workshop (I5/L7)** — provide bootstrap, port-forward, project configuration, acceptance, restart, cleanup, and fresh-install proof for the supported clients. | 3 | A clean Docker Desktop run completes without undocumented repair, survives the required restart check, and verifies cleanup. |
