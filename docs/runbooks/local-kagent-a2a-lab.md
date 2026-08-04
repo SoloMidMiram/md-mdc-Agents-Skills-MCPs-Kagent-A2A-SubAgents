@@ -385,9 +385,6 @@ kubectl wait --for=condition=Ready=true agent/k8s-a2a-agent -n kagent --timeout=
 kubectl rollout status deployment/k8s-a2a-agent -n kagent --timeout=180s
 ```
 
-For the 2026-08-03 Flash observation, use the model's observed punctuation for
-the exact bounded controller diagnostic after the rollout is stable.
-
 Before a strict retry, run observation mode so a live bounded reply can be
 captured without treating punctuation mismatch as a fake pass:
 
@@ -405,23 +402,44 @@ exact-text equality and context continuation, and always records
 `observationOnly: true` with `strictPreflightQualified: false`. Observation
 success is not I3 proof.
 
-Do not change helper default `--expected-response` /
-`--continuation-expected-response` constants from a single live observation.
-Use the freshly observed reply only as an explicit CLI value for the immediate
-strict retry. Update the runbook or evidence afterward only through a dated
-addendum if warranted.
+Helper default tasks and `--expected-response` /
+`--continuation-expected-response` values are built from the same canonical
+tokens (`ACCEPTANCE_TOKEN` / `CONTINUATION_TOKEN`). Do not change those defaults
+from a single live observation, and do not paper over mismatches with
+punctuation-adjusted CLI overrides. Use a freshly observed reply only as an
+explicit CLI value for an immediate diagnostic retry; update the runbook or
+evidence afterward only through a dated addendum if warranted.
 
 ```powershell
 uv run python scripts/kagent/controller_mcp_smoke.py --output json `
-  --expected-inventory config/kagent/ide-safe-agent-inventory.txt `
-  --expected-response 'kagent native MCP acceptance.' `
-  --continuation-expected-response 'kagent native MCP context continuation.'
+  --expected-inventory config/kagent/ide-safe-agent-inventory.txt
 ```
 
-A failed readiness or controller diagnostic must restore
-`default-model-config` with the existing rollback patch. A successful provider
-probe or Python diagnostic is preparation only; I3 still requires the Cursor
-tool-call trace and it never proves I4 or L6.
+If the first DeepSeek ModelConfig-only strict attempt fails continuation
+exactness (for example by prepending prior reply text), roll back, then try
+one Candidate B profile: DeepSeek ModelConfig plus the target-only
+`systemMessage` merge patch that forbids restating the task and forbids all
+tool calls (declared tools may remain on the Agent):
+
+```powershell
+kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+  --patch-file config/kagent/k8s-a2a-agent-ide-safe-deepseek-modelconfig-patch.yaml
+kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+  --patch-file config/kagent/k8s-a2a-agent-ide-safe-deepseek-i3-systemmessage-patch.yaml
+```
+
+Rollback after Candidate B must restore both `default-model-config` and the
+original sample `systemMessage`:
+
+```powershell
+kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+  --patch-file config/kagent/k8s-a2a-agent-default-profile-rollback-patch.yaml
+```
+
+A failed readiness or controller diagnostic must restore the default profile
+with the appropriate rollback patch. A successful provider probe or Python
+diagnostic is preparation only; I3 still requires the Cursor tool-call trace
+and it never proves I4 or L6.
 
 ### Verify the native controller MCP surface
 

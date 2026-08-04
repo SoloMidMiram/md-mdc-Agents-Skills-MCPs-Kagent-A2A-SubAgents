@@ -252,6 +252,24 @@ def _exact_inventory_config(**kwargs: Any) -> dict[str, Any]:
     return base
 
 
+def test_default_task_requests_exact_acceptance_token() -> None:
+    assert controller.DEFAULT_EXPECTED_RESPONSE == controller.ACCEPTANCE_TOKEN
+    assert f"Reply exactly: {controller.ACCEPTANCE_TOKEN}" in controller.DEFAULT_TASK
+    assert controller.DEFAULT_TASK.startswith("Reply exactly:")
+    # Trailing period after the token would make the task ask for a different string.
+    assert f"Reply exactly: {controller.ACCEPTANCE_TOKEN}." not in controller.DEFAULT_TASK
+
+
+def test_default_continuation_task_requests_exact_continuation_token() -> None:
+    assert controller.DEFAULT_CONTINUATION_EXPECTED_RESPONSE == controller.CONTINUATION_TOKEN
+    assert f"Reply exactly: {controller.CONTINUATION_TOKEN}" in controller.DEFAULT_CONTINUATION_TASK
+    assert controller.DEFAULT_CONTINUATION_TASK.startswith("Reply exactly:")
+    assert (
+        f"Reply exactly: {controller.CONTINUATION_TOKEN}."
+        not in controller.DEFAULT_CONTINUATION_TASK
+    )
+
+
 def test_success_requires_exact_tools_target_response_and_mcp_session_reuse() -> None:
     transport = FakeTransport(_handler())
     result = _run(transport)

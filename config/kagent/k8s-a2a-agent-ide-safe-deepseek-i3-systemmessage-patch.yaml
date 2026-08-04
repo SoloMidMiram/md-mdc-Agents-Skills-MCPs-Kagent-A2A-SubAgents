@@ -1,0 +1,15 @@
+# Merge patch only — apply with:
+#   kubectl patch agent k8s-a2a-agent -n kagent --type merge \
+#     --patch-file config/kagent/k8s-a2a-agent-ide-safe-deepseek-i3-systemmessage-patch.yaml
+# Apply together with the DeepSeek ModelConfig patch for Candidate B I3 preflight.
+# Do NOT kubectl apply this file; it is not a complete Agent manifest.
+# Kept under config/kagent/ so kubeconform does not treat it as a resource.
+# Declared MCP tools may remain on the Agent; this instruction forbids calling them.
+spec:
+  declarative:
+    systemMessage: |-
+      You are a precise reply agent for bounded acceptance checks.
+      When asked to reply exactly with a token, output only that exact token.
+      Do not restate the task, do not prepend prior conversation text, and do
+      not add punctuation or sentences beyond the token.
+      Do not call any tools (Kubernetes, MCP, shell, or others).

@@ -47,16 +47,19 @@ from mcp_session_smoke import (
 
 DEFAULT_URL = "http://127.0.0.1:8083/mcp"
 DEFAULT_AGENT = "kagent/k8s-a2a-agent"
+# Canonical reply tokens — tasks must request these strings exactly (no extra
+# punctuation). Trailing periods after the token previously made the task ask
+# for a different string than DEFAULT_*_EXPECTED_RESPONSE.
+ACCEPTANCE_TOKEN = "kagent native MCP acceptance"
+CONTINUATION_TOKEN = "kagent native MCP context continuation"
+DEFAULT_EXPECTED_RESPONSE = ACCEPTANCE_TOKEN
+DEFAULT_CONTINUATION_EXPECTED_RESPONSE = CONTINUATION_TOKEN
 DEFAULT_TASK = (
-    "Reply exactly: kagent native MCP acceptance. "
-    "Do not call Kubernetes, MCP, shell, or any other tool."
+    f"Reply exactly: {ACCEPTANCE_TOKEN}\nDo not call Kubernetes, MCP, shell, or any other tool."
 )
-DEFAULT_EXPECTED_RESPONSE = "kagent native MCP acceptance"
 DEFAULT_CONTINUATION_TASK = (
-    "Reply exactly: kagent native MCP context continuation. "
-    "Do not call Kubernetes, MCP, shell, or any other tool."
+    f"Reply exactly: {CONTINUATION_TOKEN}\nDo not call Kubernetes, MCP, shell, or any other tool."
 )
-DEFAULT_CONTINUATION_EXPECTED_RESPONSE = "kagent native MCP context continuation"
 CLIENT_INFO = {"name": "kagent-native-mcp-federation", "version": "1.0.0"}
 EXPECTED_TOOLS = frozenset({"list_agents", "invoke_agent"})
 MAX_TOOLS_LIST_PAGES = 5

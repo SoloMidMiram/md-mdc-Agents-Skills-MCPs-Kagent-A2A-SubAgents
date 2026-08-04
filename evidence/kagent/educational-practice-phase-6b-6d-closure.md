@@ -302,3 +302,96 @@ Kubernetes tool was requested. Helper defaults were not changed.
 **Explicit non-claims:** observe-only exit 0 and `strictPreflightQualified`
 false do not prove I3. A strict Python helper success would still be controller
 preflight only, not I3-Cursor acceptance. Phase 7 remains deferred.
+
+## 2026-08-04 addendum — Phase 6E contract fix + Candidate B strict
+
+**Observed:** 2026-08-04 (later), Asia/Tehran
+**Environment:** Docker Desktop Kubernetes context `docker-desktop`, namespace
+`kagent`; controller `0.9.11`
+**Scope:** Phase 6E I3-Cursor attempt; Phase 7 remained deferred
+
+### Step 0 — prompt/expected-response contract
+
+`DEFAULT_TASK` previously asked for `kagent native MCP acceptance.` (trailing
+period) while `DEFAULT_EXPECTED_RESPONSE` was `kagent native MCP acceptance`.
+Continuation had the same mismatch. Canonical tokens
+`ACCEPTANCE_TOKEN` / `CONTINUATION_TOKEN` now drive both task and expected
+defaults. Deterministic tests assert each task embeds exactly its paired token
+and does not append a period after the token. Runbook strict command uses
+corrected defaults (no punctuation-adjusted CLI overrides).
+
+### Candidate A — DeepSeek ModelConfig only
+
+Patched `k8s-a2a-agent` to `ide-safe-deepseek-model-config` (generation 11).
+One observe → strict pair on existing port-forward `8083`:
+
+| Step | Exit | Sanitized shape |
+|------|------|-----------------|
+| observe-only | 0 | `agentResponse=kagent native MCP acceptance` (exact token) |
+| strict | 1 | First invoke exact match; continuation returned prior token plus continuation token text, so exact continuation failed closed; `strictPreflightQualified=false` |
+
+Immediate rollback to `default-model-config` (generation 12).
+
+### Candidate B — DeepSeek + I3 systemMessage
+
+Live CRD inspect: `ModelConfig.spec.openAI` exposes `temperature` / `maxTokens`
+among other fields; Candidate B still used instruction tightening only (no
+temperature change in this attempt).
+
+Added target-only merge patches (base Agent manifest unchanged):
+
+- `config/kagent/k8s-a2a-agent-ide-safe-deepseek-i3-systemmessage-patch.yaml`
+  (exact token replies; no task restatement; no tool calls)
+- `config/kagent/k8s-a2a-agent-default-profile-rollback-patch.yaml`
+  (restores `default-model-config` and original sample `systemMessage`)
+
+Applied DeepSeek ModelConfig + systemMessage patches (generation 14). One
+observe → strict pair:
+
+| Step | Exit | Notes |
+|------|------|-------|
+| observe-only | 0 | Exact acceptance token; inventory matched |
+| strict | 0 | Exact acceptance + exact continuation; `strictPreflightQualified=true`; session reuse inventory matched |
+
+Declared MCP tools remained on the Agent; no Kubernetes tool calls were made
+during these helpers.
+
+### Cursor I3 sequence
+
+Not completed in this agent session: project `.cursor/mcp.json` targets
+`kagent-controller`, but `list_agents` / `invoke_agent` were **not** exposed as
+callable tools to the coding agent, so a real Cursor UI tool-call trace with
+second-call `context_id` input arguments could not be captured here.
+
+Required sanitized evidence shape when a human Cursor run succeeds (do not
+retain raw ids):
+
+```text
+1) list_agents → singleton kagent/k8s-a2a-agent
+2) invoke_agent #1 → context_id: <context-id-A>
+3) invoke_agent #2 tool input includes context_id: <context-id-A>
+4) list_agents postflight → singleton unchanged
+```
+
+Recorded decision: `I3-Cursor: Blocked` with reason
+`client context propagation not observable` (from this session).
+
+### Rollback
+
+Combined default-profile rollback applied (generation 15):
+`modelConfig=default-model-config`, original sample `systemMessage` restored,
+`Accepted=True`/`Ready=True`.
+
+| Level | Decision | Notes |
+|-------|----------|-------|
+| I0–I2 | Proven | Unchanged. |
+| I3 / I3-Cursor | **Blocked** | Candidate B strict controller preflight now qualifies (`strictPreflightQualified=true`), but no real Cursor tool-trace proving second-call `context_id` forwarding was captured. PR #3 remains draft. |
+| I3-Codex | Not proven | Not attempted. |
+| I4 | Not proven | Unchanged. |
+| I5 | Not attempted | Unchanged. |
+| L6 / L7 | Not proven | Unchanged. |
+
+**Explicit non-claims:** Candidate B strict helper success is controller
+preflight only. It does not prove I3-Cursor, I4, L6, or L7. Phase 7 remains
+deferred. A Candidate B failure or missing Cursor trace is not merge
+authorization for PR #3.

@@ -540,6 +540,16 @@ entries:
     status: lab
     authority: false
 
+  - path: config/kagent/k8s-a2a-agent-ide-safe-deepseek-i3-systemmessage-patch.yaml
+    purpose: config
+    status: lab
+    authority: false
+
+  - path: config/kagent/k8s-a2a-agent-default-profile-rollback-patch.yaml
+    purpose: config
+    status: lab
+    authority: false
+
   # — Release diary —
   - path: .project-ai/memory/release-diary.md
     purpose: memory
