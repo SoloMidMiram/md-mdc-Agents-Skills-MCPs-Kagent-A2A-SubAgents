@@ -386,7 +386,30 @@ kubectl rollout status deployment/k8s-a2a-agent -n kagent --timeout=180s
 ```
 
 For the 2026-08-03 Flash observation, use the model's observed punctuation for
-the exact bounded controller diagnostic after the rollout is stable:
+the exact bounded controller diagnostic after the rollout is stable.
+
+Before a strict retry, run observation mode so a live bounded reply can be
+captured without treating punctuation mismatch as a fake pass:
+
+```powershell
+uv run python scripts/kagent/controller_mcp_smoke.py --output json `
+  --observe-only `
+  --expected-inventory config/kagent/ide-safe-agent-inventory.txt
+```
+
+Observation mode still requires exact controller tools, singleton exact
+inventory (including the final same-session `list_agents` re-check), a
+non-empty bounded first reply (capped at 160 sanitized characters), and a
+non-empty `context_id`. It performs only the first `invoke_agent`, skips
+exact-text equality and context continuation, and always records
+`observationOnly: true` with `strictPreflightQualified: false`. Observation
+success is not I3 proof.
+
+Do not change helper default `--expected-response` /
+`--continuation-expected-response` constants from a single live observation.
+Use the freshly observed reply only as an explicit CLI value for the immediate
+strict retry. Update the runbook or evidence afterward only through a dated
+addendum if warranted.
 
 ```powershell
 uv run python scripts/kagent/controller_mcp_smoke.py --output json `
@@ -418,6 +441,10 @@ python scripts/kagent/controller_mcp_smoke.py --output json `
 # IDE-safe exact profile (authoritative; mutually exclusive with --approved-agent)
 python scripts/kagent/controller_mcp_smoke.py --output json `
   --expected-inventory config/kagent/ide-safe-agent-inventory.txt
+# Observation-only (requires --expected-inventory; not a strict preflight)
+python scripts/kagent/controller_mcp_smoke.py --output json `
+  --observe-only `
+  --expected-inventory config/kagent/ide-safe-agent-inventory.txt
 ```
 
 `--expected-inventory` implies exact-set equality against the committed file
@@ -429,11 +456,20 @@ singleton profile instead. Default (non-strict) mode only checks target presence
 for shared educational environments. The Python helper default HTTP timeout
 remains 30s; it is a prerequisite diagnostic, not an I3 proof.
 
+`--observe-only` keeps the same tool, inventory, non-empty bounded reply, and
+`context_id` gates for the first invoke, then skips exact-text equality and
+context continuation while still re-checking inventory on the same MCP session.
+It never sets `strictPreflightQualified`. Use a fresh observation only as an
+explicit `--expected-response` for an immediate strict retry; do not rewrite
+helper defaults from one model reply.
+
 Expected success behavior: the helper exits `0` after `initialize`,
 `tools/list`, `list_agents`, a bounded `invoke_agent` response, a second
 `invoke_agent` with the returned `context_id` (agent-context continuation), and
 MCP-session reuse via a later `list_agents` on the same session. It records
 session and context identifiers only as `present`/`missing`, never raw values.
+Strict success also sets `strictPreflightQualified: true`. That marker means
+controller preflight only; it is not I3 acceptance.
 `cleanup: method-not-allowed` means explicit client-triggered MCP session
 termination was attempted but is unsupported by the pinned controller; it does
 not prove the session was deleted. Phase 8 owns lab resource cleanup separately.

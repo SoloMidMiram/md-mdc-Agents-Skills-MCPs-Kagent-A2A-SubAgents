@@ -62,12 +62,15 @@ EXPECTED_TOOLS = frozenset({"list_agents", "invoke_agent"})
 MAX_TOOLS_LIST_PAGES = 5
 MIN_EMBEDDED_SECRET_LENGTH = 8
 MAX_EXPECTED_INVENTORY_BYTES = 64 * 1024
+MAX_OBSERVATION_RESPONSE_CHARS = 160
+OBSERVATION_TRUNCATION_MARKER = "...[truncated]"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ALLOWED_INVENTORY_DIR = (REPO_ROOT / "config" / "kagent").resolve()
 AGENT_REF_PATTERN = re.compile(
     r"^[A-Za-z0-9]([A-Za-z0-9._-]{0,61}[A-Za-z0-9])?/"
     r"[A-Za-z0-9]([A-Za-z0-9._-]{0,61}[A-Za-z0-9])?$"
 )
+_CONTROL_CHAR_PATTERN = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 
 
 @dataclass(frozen=True)
@@ -88,6 +91,7 @@ class ControllerMcpConfig:
     expected_inventory_relative_path: str | None = None
     expected_inventory_refs: tuple[str, ...] = ()
     expected_inventory_canonical_sha256: str | None = None
+    observe_only: bool = False
 
 
 @dataclass
@@ -121,6 +125,9 @@ class ControllerMcpResult:
     continuation_agent_response: str = ""
     same_mcp_session_reuse_http_status: int | None = None
     mcp_session_reuse_target_present: bool = False
+    observation_only: bool = False
+    strict_preflight_qualified: bool = False
+    response_truncated: bool = False
     cleanup: str = "not-attempted"
     error: str | None = None
 
@@ -153,6 +160,9 @@ class ControllerMcpResult:
             "continuationAgentResponse": self.continuation_agent_response,
             "sameMcpSessionReuseHttpStatus": self.same_mcp_session_reuse_http_status,
             "mcpSessionReuseTargetPresent": self.mcp_session_reuse_target_present,
+            "observationOnly": self.observation_only,
+            "strictPreflightQualified": self.strict_preflight_qualified,
+            "responseTruncated": self.response_truncated,
             "cleanup": self.cleanup,
             "error": self.error,
             "exitCode": self.exit_code,
@@ -169,6 +179,35 @@ def _sanitized_controller(url: str) -> str:
 def _sanitize_text(text: str) -> str:
     """Keep useful agent output while never retaining URI userinfo."""
     return re.sub(r"(https?://)[^\s/@:]+:[^\s/@]+@", r"\1<redacted>@", text)
+
+
+def _truncate_observation_text(text: str) -> str:
+    """Cap observation text for sanitized exposure; always <= max chars."""
+    marker = OBSERVATION_TRUNCATION_MARKER
+    if len(text) <= MAX_OBSERVATION_RESPONSE_CHARS:
+        return text
+    keep = MAX_OBSERVATION_RESPONSE_CHARS - len(marker)
+    if keep < 1:
+        return marker[:MAX_OBSERVATION_RESPONSE_CHARS]
+    return text[:keep] + marker
+
+
+def bound_observation_response(text: str) -> tuple[str, bool]:
+    """Validate and bound observe-only agent text.
+
+    Returns (bounded_sanitized_text, truncated). Raises ProtocolError when the
+    reply is empty, whitespace-only, control-heavy, or longer than the bound.
+    """
+    if not isinstance(text, str) or not text.strip():
+        raise ProtocolError("invoke_agent returned empty response text")
+    sanitized = _sanitize_text(text)
+    if not sanitized.strip():
+        raise ProtocolError("invoke_agent returned empty response text")
+    if _CONTROL_CHAR_PATTERN.search(sanitized):
+        raise ProtocolError("invoke_agent observation response contains control characters")
+    if len(sanitized) > MAX_OBSERVATION_RESPONSE_CHARS:
+        raise ProtocolError("invoke_agent observation response exceeds bounded length")
+    return sanitized, False
 
 
 def validate_controller_url(url: str) -> None:
@@ -338,6 +377,7 @@ class ControllerMcpClient:
             inventory_policy=policy,
             expected_inventory_path=config.expected_inventory_relative_path,
             expected_inventory_canonical_sha256=config.expected_inventory_canonical_sha256,
+            observation_only=config.observe_only,
         )
 
     def _alloc_id(self) -> int:
@@ -610,9 +650,23 @@ class ControllerMcpClient:
             {"agent": self.config.agent, "task": self.config.task}
         )
         self.result.invoke_http_status = response.status
-        self.result.agent_response = _sanitize_text(text)
-        if text != self.config.expected_response:
-            raise ProtocolError("invoke_agent did not return the required bounded no-tool response")
+        if self.config.observe_only:
+            sanitized = _sanitize_text(text) if isinstance(text, str) else ""
+            try:
+                bounded, truncated = bound_observation_response(text)
+            except ProtocolError as exc:
+                if "exceeds bounded length" in str(exc):
+                    self.result.response_truncated = True
+                    self.result.agent_response = _truncate_observation_text(sanitized)
+                raise
+            self.result.agent_response = bounded
+            self.result.response_truncated = truncated
+        else:
+            self.result.agent_response = _sanitize_text(text)
+            if text != self.config.expected_response:
+                raise ProtocolError(
+                    "invoke_agent did not return the required bounded no-tool response"
+                )
         context_id = extract_agent_context_id(structured)
         self._agent_context_id = context_id
         self.result.agent_context_id = "present"
@@ -665,6 +719,8 @@ class ControllerMcpClient:
             if self.config.timeout <= 0:
                 raise UsageError("timeout must be greater than zero")
             validate_agent_ref(self.config.agent)
+            if self.config.observe_only and not self.config.expected_inventory_refs:
+                raise UsageError("--observe-only requires --expected-inventory")
             if self.config.expected_inventory_path and self.config.approved_agents:
                 raise UsageError("--expected-inventory cannot be combined with --approved-agent")
             if (
@@ -689,7 +745,8 @@ class ControllerMcpClient:
             self._list_tools()
             self._list_target_agent(session_reuse=False)
             self._invoke_agent()
-            self._continue_agent_context()
+            if not self.config.observe_only:
+                self._continue_agent_context()
             self._list_target_agent(session_reuse=True)
             self.result.exit_code = ExitCode.SUCCESS
         except UsageError as exc:
@@ -713,6 +770,9 @@ class ControllerMcpClient:
                     self.result.exit_code = ExitCode.PROTOCOL_OR_TOOL
                     self.result.agent_context_continuation_succeeded = False
                     self.result.error = "sanitized output leaked agent context identifier"
+        self.result.strict_preflight_qualified = (
+            self.result.exit_code == ExitCode.SUCCESS and not self.config.observe_only
+        )
         return self.result
 
 
@@ -756,6 +816,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Exact inventory file under config/kagent/ (implies strict exact-set mode)",
     )
+    parser.add_argument(
+        "--observe-only",
+        action="store_true",
+        help=(
+            "Observe a bounded first invoke without exact-text equality or context "
+            "continuation; requires --expected-inventory; never qualifies as strict "
+            "preflight"
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -792,6 +861,7 @@ def main(argv: list[str] | None = None) -> int:
             expected_inventory_relative_path=relative,
             expected_inventory_refs=refs,
             expected_inventory_canonical_sha256=digest,
+            observe_only=bool(args.observe_only),
         )
     ).run()
     if not args.quiet:

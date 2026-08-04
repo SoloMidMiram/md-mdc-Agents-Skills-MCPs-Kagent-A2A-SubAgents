@@ -113,8 +113,11 @@ def _handler(
     include_observability: bool = True,
     duplicates: list[str] | None = None,
     leak_context_into_continuation: bool = False,
+    postflight_extras: list[str] | None = None,
+    postflight_include_observability: bool | None = None,
 ):
     invoke_count = {"n": 0}
+    list_count = {"n": 0}
 
     def handler(method, _url, headers, body, _timeout):
         if method == "DELETE":
@@ -145,6 +148,16 @@ def _handler(
         if name == "tools/call":
             tool_name = payload["params"]["name"]
             if tool_name == "list_agents":
+                list_count["n"] += 1
+                call_extras = extras
+                call_observability = include_observability
+                if list_count["n"] > 1 and (
+                    postflight_extras is not None or postflight_include_observability is not None
+                ):
+                    if postflight_extras is not None:
+                        call_extras = postflight_extras
+                    if postflight_include_observability is not None:
+                        call_observability = postflight_include_observability
                 return _response(
                     {
                         "jsonrpc": "2.0",
@@ -153,8 +166,8 @@ def _handler(
                             "structuredContent": {
                                 "agents": _agents(
                                     include_target=include_target,
-                                    extras=extras,
-                                    include_observability=include_observability,
+                                    extras=call_extras,
+                                    include_observability=call_observability,
                                     duplicates=duplicates,
                                 )
                             }
@@ -253,6 +266,8 @@ def test_success_requires_exact_tools_target_response_and_mcp_session_reuse() ->
     assert result.same_mcp_session_reuse_http_status == 200
     assert result.mcp_session_reuse_target_present
     assert result.cleanup == "method-not-allowed"
+    assert result.strict_preflight_qualified is True
+    assert result.observation_only is False
     rendered = json.dumps(result.to_sanitized_dict())
     assert "session-secret" not in rendered
     assert RAW_CONTEXT_ID not in rendered
@@ -260,6 +275,8 @@ def test_success_requires_exact_tools_target_response_and_mcp_session_reuse() ->
     assert "continuationTargetPresent" not in rendered
     assert "sameMcpSessionReuseHttpStatus" in rendered
     assert "mcpSessionReuseTargetPresent" in rendered
+    assert result.to_sanitized_dict()["strictPreflightQualified"] is True
+    assert result.to_sanitized_dict()["observationOnly"] is False
 
 
 def test_short_context_id_does_not_false_fail_on_sanitized_output() -> None:
@@ -606,3 +623,151 @@ def test_extract_agent_context_id_fail_closed_cases() -> None:
     except mcp.ProtocolError as exc:
         assert "non-empty string" in str(exc)
     assert controller.extract_agent_context_id({"context_id": "ok"}) == "ok"
+
+
+def _observe_config(**kwargs: Any) -> dict[str, Any]:
+    return _exact_inventory_config(observe_only=True, **kwargs)
+
+
+def test_observe_only_requires_expected_inventory() -> None:
+    result = _run(FakeTransport(_handler(include_observability=False)), observe_only=True)
+    assert result.exit_code == mcp.ExitCode.USAGE
+    assert "--observe-only requires --expected-inventory" in (result.error or "")
+    assert result.observation_only is True
+    assert result.strict_preflight_qualified is False
+
+
+def test_observe_only_keeps_gates_but_skips_exact_text() -> None:
+    transport = FakeTransport(
+        _handler(
+            include_observability=False,
+            agent_text="kagent native MCP acceptance.",
+        )
+    )
+    result = _run(transport, **_observe_config())
+    assert result.exit_code == mcp.ExitCode.SUCCESS
+    assert result.observation_only is True
+    assert result.strict_preflight_qualified is False
+    assert result.invoke_agent_succeeded is True
+    assert result.agent_context_id == "present"
+    assert result.agent_context_continuation_succeeded is False
+    assert result.continuation_http_status is None
+    assert result.agent_response == "kagent native MCP acceptance."
+    assert result.response_truncated is False
+    assert RAW_CONTEXT_ID not in json.dumps(result.to_sanitized_dict())
+
+
+def test_observe_only_rejects_unexpected_tools() -> None:
+    result = _run(
+        FakeTransport(_handler(tools=_tools(privileged=True), include_observability=False)),
+        **_observe_config(),
+    )
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert "unexpected privileged" in (result.error or "")
+    assert result.strict_preflight_qualified is False
+
+
+def test_observe_only_rejects_inventory_mismatch() -> None:
+    result = _run(FakeTransport(_handler()), **_observe_config())
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert result.unexpected_agents == ["kagent/observability-agent"]
+    assert "exact inventory" in (result.error or "")
+    assert result.strict_preflight_qualified is False
+
+
+def test_observe_only_rejects_missing_context_id() -> None:
+    result = _run(
+        FakeTransport(_handler(include_observability=False, omit_context_id=True)),
+        **_observe_config(),
+    )
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert "missing context_id" in (result.error or "")
+    assert result.agent_context_id == "missing"
+    assert result.strict_preflight_qualified is False
+
+
+def test_observe_only_rejects_empty_response_text() -> None:
+    result = _run(
+        FakeTransport(_handler(include_observability=False, agent_text="")),
+        **_observe_config(),
+    )
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert "empty response text" in (result.error or "")
+    assert not result.invoke_agent_succeeded
+    assert result.strict_preflight_qualified is False
+
+
+def test_observe_only_rejects_overlong_response() -> None:
+    overlong = "x" * (controller.MAX_OBSERVATION_RESPONSE_CHARS + 1)
+    result = _run(
+        FakeTransport(_handler(include_observability=False, agent_text=overlong)),
+        **_observe_config(),
+    )
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert "exceeds bounded length" in (result.error or "")
+    assert result.response_truncated is True
+    assert len(result.agent_response) <= controller.MAX_OBSERVATION_RESPONSE_CHARS
+    assert overlong not in result.agent_response
+    assert overlong not in json.dumps(result.to_sanitized_dict())
+    assert result.strict_preflight_qualified is False
+
+
+def test_observe_only_makes_exactly_one_invoke_call() -> None:
+    transport = FakeTransport(
+        _handler(
+            include_observability=False,
+            agent_text="kagent native MCP acceptance.",
+        )
+    )
+    result = _run(transport, **_observe_config())
+    assert result.exit_code == mcp.ExitCode.SUCCESS
+    invoke_calls: list[dict[str, Any]] = []
+    for request in transport.requests:
+        if request["method"] != "POST" or not request["body"]:
+            continue
+        payload = json.loads(request["body"].decode())
+        if payload.get("method") != "tools/call":
+            continue
+        if payload.get("params", {}).get("name") == "invoke_agent":
+            invoke_calls.append(payload["params"]["arguments"])
+    assert len(invoke_calls) == 1
+    assert "context_id" not in invoke_calls[0]
+    assert invoke_calls[0]["task"] == controller.DEFAULT_TASK
+    assert result.agent_context_continuation_succeeded is False
+
+
+def test_observe_only_postflight_inventory_change_fails() -> None:
+    result = _run(
+        FakeTransport(
+            _handler(
+                include_observability=False,
+                agent_text="kagent native MCP acceptance.",
+                postflight_include_observability=True,
+            )
+        ),
+        **_observe_config(),
+    )
+    assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+    assert "unexpected agents" in (result.error or "")
+    assert result.invoke_agent_succeeded is True
+    assert result.strict_preflight_qualified is False
+
+
+def test_observe_only_sanitized_output_marks_observation_and_no_leak() -> None:
+    result = _run(
+        FakeTransport(
+            _handler(
+                include_observability=False,
+                agent_text="kagent native MCP acceptance.",
+            )
+        ),
+        **_observe_config(),
+    )
+    assert result.exit_code == mcp.ExitCode.SUCCESS
+    payload = result.to_sanitized_dict()
+    rendered = json.dumps(payload, sort_keys=True)
+    assert payload["observationOnly"] is True
+    assert payload["strictPreflightQualified"] is False
+    assert payload["responseTruncated"] is False
+    assert RAW_CONTEXT_ID not in rendered
+    assert "session-secret" not in rendered

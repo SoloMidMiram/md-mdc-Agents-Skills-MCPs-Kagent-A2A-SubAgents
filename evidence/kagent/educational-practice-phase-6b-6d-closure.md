@@ -241,3 +241,64 @@ request was captured.
 **Explicit non-claims:** DeepSeek HTTP 200, ModelConfig acceptance, Agent
 readiness, controller tool discovery, and direct provider function-schema
 qualification do not prove I3, I4, L6, or L7. Phase 7 remains deferred.
+
+## 2026-08-04 addendum — observe-only preflight + DeepSeek strict retry
+
+**Observed:** 2026-08-04, Asia/Tehran
+**Environment:** Docker Desktop Kubernetes context `docker-desktop`, namespace
+`kagent`; controller `0.9.11`
+**Scope:** Phase 6D observe-only helper + local DeepSeek no-tool preflight
+retry; Phase 7 remained deferred
+
+### Helper shipped this slice
+
+- `--observe-only` on `scripts/kagent/controller_mcp_smoke.py` keeps exact tools,
+  singleton inventory (including postflight same-session re-check), non-empty
+  bounded first reply (160-char cap), and non-empty `context_id`; skips
+  exact-text equality and context continuation.
+- Sanitized markers: `observationOnly`, `strictPreflightQualified` (true only
+  for full strict success), `responseTruncated`.
+- Deterministic tests cover USAGE without inventory, exact-text skip, tool /
+  inventory / empty / overlong / missing-context failures, exactly one
+  `invoke_agent`, and postflight inventory drift.
+- Runbook documents observation before strict retry and forbids changing helper
+  default expected-response constants from a single live observation.
+
+### Live attempt (sanitized)
+
+Prerequisites (metadata only): `kagent-deepseek` key name `DEEPSEEK_API_KEY`
+present; `ide-safe-deepseek-model-config` `Accepted=True`. Agent pre-state was
+`modelConfig=default-model-config`, generation/observedGeneration `8`,
+`Accepted=True`/`Ready=True`.
+
+Applied DeepSeek ModelConfig (unchanged) and patched only `k8s-a2a-agent` to
+`ide-safe-deepseek-model-config`. Post-patch: generation/observedGeneration
+`9`, `Accepted=True`/`Ready=True`, rollout complete, EndpointSlice ready.
+Controller port-forward `8083:8083` was started for the helper and stopped
+afterward.
+
+| Step | Exit | Notes |
+|------|------|-------|
+| observe-only exact inventory | 0 | `observationOnly=true`, `strictPreflightQualified=false`, `agentResponse=kagent native MCP acceptance`, `agentContextId=present`, continuation skipped, postflight inventory matched |
+| strict exact inventory with explicit CLI expected text from observation | 1 | First `invoke_agent` returned the task text echoed with a terminal period (`…acceptance. Do not call…`), so exact-text equality failed closed; no continuation; `strictPreflightQualified=false` |
+
+Agent remained `Accepted=True`/`Ready=True` during the failure. Controller log
+tail showed successful MCP `invoke_agent` handling plus unrelated recurring
+`kagent-grafana-mcp` Forbidden noise; no Secret values were read.
+
+Immediate rollback restored `default-model-config` (generation/observedGeneration
+`10`, `Accepted=True`/`Ready=True`). No Cursor UI trace was attempted. No
+Kubernetes tool was requested. Helper defaults were not changed.
+
+| Level | Decision | Notes |
+|-------|----------|-------|
+| I0–I2 | Proven | Unchanged. |
+| I3 / I3-Cursor | **Blocked** | Observe-only controller diagnostic passed under DeepSeek Flash, but the strict no-tool preflight (exact text + context continuation) did not qualify because the model reply was non-deterministic; no Cursor `context_id` tool-trace proof exists. |
+| I3-Codex | Not proven | Not attempted. |
+| I4 | Not proven | No IDE-to-Kubernetes correlation was attempted. |
+| I5 | Not attempted | No workshop acceptance was attempted. |
+| L6 / L7 | Not proven | No agent-mediated Kubernetes tool execution or repeatability evidence was attempted. |
+
+**Explicit non-claims:** observe-only exit 0 and `strictPreflightQualified`
+false do not prove I3. A strict Python helper success would still be controller
+preflight only, not I3-Cursor acceptance. Phase 7 remains deferred.

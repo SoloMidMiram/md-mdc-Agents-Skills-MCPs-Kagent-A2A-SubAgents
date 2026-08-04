@@ -30,7 +30,7 @@ agent discovery cannot be mistaken for agent-mediated Kubernetes execution.
 | I0 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): controller `/mcp` initialized |
 | I1 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `tools/list` returned the pinned agent tools |
 | I2 | Proven | [phase 6](educational-practice-phase-6-native-mcp-federation.md): `list_agents` returned `kagent/k8s-a2a-agent` |
-| I3 | Blocked | [phase 6](educational-practice-phase-6-native-mcp-federation.md) (OpenAI region 403) and [phase 6b–6d closure](educational-practice-phase-6b-6d-closure.md) (2026-08-02 singleton inventory and 2026-08-03 direct DeepSeek Flash qualification passed; the controller preflight remains unqualified and no Cursor tool-trace context proof exists). Python helper success alone is insufficient. |
+| I3 | Blocked | [phase 6](educational-practice-phase-6-native-mcp-federation.md) (OpenAI region 403) and [phase 6b–6d closure](educational-practice-phase-6b-6d-closure.md) (2026-08-02 singleton inventory, 2026-08-03 direct DeepSeek Flash qualification, and 2026-08-04 observe-only preflight passed; the strict controller preflight remains unqualified because the DeepSeek reply was non-deterministic, and no Cursor tool-trace context proof exists). Python helper success alone is insufficient. |
 | I4 | Not proven | No same-invocation controller, tool, and `kubectl` correlation |
 | I5 | Not attempted | No fresh setup, restart, both-client acceptance, and cleanup record |
 
@@ -134,6 +134,11 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   HTTP 200 checks. Its target-only ModelConfig and Agent patch reconciled, but
   the controller preflight did not qualify before rollback and no Cursor trace
   was attempted. I3 remains Blocked; no Kubernetes tool was requested.
+- 2026-08-04 Phase 6D: `--observe-only` controller preflight shipped with
+  `strictPreflightQualified` markers and deterministic tests. Live DeepSeek
+  observe-only passed under the singleton inventory; the immediate strict
+  retry failed closed on a non-deterministic echoed task reply. Agent rolled
+  back to `default-model-config`. No Cursor trace. I3 remains Blocked.
 
 ## Major Open Flaws
 
@@ -141,7 +146,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 |----------|------|--------|------------------------------|
 | P0 | No live correlated agent-mediated MCP result | Core L6 objective remains unproved; deterministic gates cannot promote it | One fresh `agent_mcp_trace.py` exit 0 binding a taskId to `kagent-tool-server` / `k8s_get_resources`, same-task returned names, bounded source proof, and kubectl match |
 | P1 | MCP image advertises write tools | RBAC is the only write barrier and tool discovery is misleading | Native read-only image plus retained restrictive RBAC |
-| P1 | I3-Cursor blocked: the qualified DeepSeek profile still lacks a successful stable controller preflight and Cursor tool-trace context proof | Cursor cannot complete the IDE-safe acceptance | Complete the exact-inventory no-tool preflight after Agent rollout, then capture Cursor evidence that the second `invoke_agent` forwarded `context_id` ([6b–6d](educational-practice-phase-6b-6d-closure.md)) |
+| P1 | I3-Cursor blocked: observe-only DeepSeek preflight works, but strict exact-text + continuation preflight is still unqualified and no Cursor tool-trace context proof exists | Cursor cannot complete the IDE-safe acceptance | Stabilize the exact-inventory no-tool strict preflight after Agent rollout, then capture Cursor evidence that the second `invoke_agent` forwarded `context_id` ([6b–6d](educational-practice-phase-6b-6d-closure.md)) |
 | P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
 | P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
 
