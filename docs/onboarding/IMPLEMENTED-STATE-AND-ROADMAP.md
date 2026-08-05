@@ -151,6 +151,12 @@ was not reused. Phase 5B subsequently proved a direct, session-reusing call with
 `k8s_get_resources`; this is auxiliary server evidence only and does not prove
 L4 or L6. See `evidence/kagent/educational-practice-phase-5b-direct-mcp.md`.
 
+The parallel native IDE track is I0-I2 Proven, I3 Blocked, I4 Not proven, and
+I5 Not attempted. Candidate B has a qualifying strict controller preflight;
+the only remaining I3 gate is a real Cursor trace showing the second
+`invoke_agent` tool-call input forwarded the first call's `context_id`. The
+authoritative decision and blocker wording live in `evidence/kagent/README.md`.
+
 ## How To Use What Exists Today
 
 ### Fast path: host-level browser automation
@@ -221,6 +227,10 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
   legacy blocking `tasks/sendTask` and `message/send` remain unsuitable
 - native read-only MCP tool exposure; the current pinned image relies on RBAC for write denial
 - live correlated L6 tool observation (schema/helper exist; live still Not proven)
+- IDE-to-A2A correlation capture: `agent_mcp_trace.py` currently creates its own
+  direct A2A task, so running it beside Cursor cannot prove that Cursor caused
+  that same task; Phase 7C needs an external-invocation evidence mode or another
+  fail-closed join before I4 can be reviewed
 - the deployed controller's client-facing MCP schema is recorded: `/mcp` exposes
   only `list_agents` and `invoke_agent`, and `k8s-a2a-agent` is discoverable
   (I0-I2 Proven); Candidate B strict preflight is recorded, while the current
@@ -240,20 +250,26 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 
 ## Practical Roadmap
 
-This is the repository's delivery sequence. It coordinates lanes; it does not
-replace the stable acceptance checklist, kagent phase gates, or the evidence
-index. Do not create a branch subroadmap: use a branch only to implement one
-of the slices below, and update the named canonical owner when its outcome is
-observed.
+This table coordinates repository delivery. The stable release checklist owns
+release mechanics, the kagent educational roadmap owns detailed phase/PR work,
+and the evidence index owns capability decisions. Proposed PR numbers below are
+planning units and do not assert that a hosted PR exists.
 
-| Order | Delivery slice | Depends on | Completion evidence |
-|-------|----------------|------------|---------------------|
-| 0 | **Current-head release baseline** — PyYAML is a direct pinned `dev` dependency and coverage/quality paths target `scripts/kagent`; remaining work is to use the checklist in `docs/laptop-stable-acceptance-plan.md`, select one immutable release SHA, and run full hosted Quality for it. | Existing deterministic suites | The candidate SHA, local results, and a same-SHA hosted Quality result are recorded. This is preparation, not a release tag. |
-| 1 | **Stable Playwright patch release** — complete the Windows install → verify → rollback → verify round trip against the selected SHA; record the result and tag `laptop-stable-v0.1.1`. | 0 | Exact-SHA CI is green, target-host acceptance is recorded, and the tag points to that SHA. |
-| 2a | **Native no-tool I3 delegation** — Candidate B strict preflight is recorded; capture the bounded IDE response plus agent-context continuation. The current I3-Cursor decision and live-evidence gate are maintained in `evidence/kagent/README.md`. | 1 for normal sequencing; may be separately staffed without delaying the release | A real IDE bounded `invoke_agent` response and second-call context continuation. This does not prove Kubernetes tool use or L6. |
-| 2b | **Native read-only discovery hardening** — make mutation-capable tools absent from discovery, retain restrictive RBAC, and add a deterministic negative inventory test. | 1 for normal sequencing; may be separately staffed alongside 2a without delaying the release | Native read-only discovery and an enforced negative inventory test. This does not prove I3, I4, or L6. |
-| 3 | **One correlated read-only I4/L6 transaction** — after both 2a and 2b are complete, run one normal IDE → agent → MCP tool → Kubernetes read and independently compare it with `kubectl`. | 2a and 2b | Same invocation/task identity, fresh `agent_mcp_trace.py` exit 0, bounded source evidence, matching returned resource names, and a `kubectl` match. |
-| 4 | **Repeatable native workshop (I5/L7)** — provide bootstrap, port-forward, project configuration, acceptance, restart, cleanup, and fresh-install proof for the supported clients. | 3 | A clean Docker Desktop run completes without undocumented repair, survives the required restart check, and verifies cleanup. |
+| Order | Delivery unit | State | Depends on | Completion evidence |
+|-------|---------------|-------|------------|---------------------|
+| 0 | **Current-head release baseline** — select one immutable release SHA and run the full hosted workflow from `docs/laptop-stable-acceptance-plan.md`. | Open | Existing deterministic suites | Candidate SHA, local results, and same-SHA hosted Quality are recorded. |
+| 1 | **Stable Playwright patch release** — complete Windows install → verify → rollback → verify and tag `laptop-stable-v0.1.1`. | Open | 0 | Target-host acceptance and exact-SHA hosted Quality pass; the tag points to that SHA. |
+| 2 | **Kagent Delivery Gate 0 / roadmap-baseline publication** — preserve the six coherent documentation updates on the current PR #3 branch before Phase 7 implementation. | Awaiting intentional publication; all required local validation must be clean; publication is not authorized in this documentation task | Current six-file roadmap diff, empty staging area, and a clean required validation run | Intentional commit and pushed SHA, followed by exact-SHA `quality.yml`; no capability decision changes. |
+| 3 | **PR #3 / Phase 6 human Cursor I3 close-out** — capture the no-tool context-forwarding trace, postflight, rollback, and dated decision addendum. | Active human gate; I3 remains Blocked | Candidate B strict preflight and singleton inventory are already qualified | Qualifying Cursor trace or exact Blocked addendum; default profile restored; owned port-forward stopped; final pushed SHA passes `quality.yml` before undraft. |
+| 4 | **Proposed PR #4 / Phase 7A read-only hardening** — exact default-deny discovery plus least-privilege RBAC. | Planned | 3 closed or deliberately recorded Blocked; no temporary I3 profile remains | Only `k8s_get_resources` is advertised; forbidden names are absent; RBAC negative checks, manifest validation, security scan, and final-SHA hosted Quality pass. |
+| 5 | **Proposed PR #5 / Phase 7B terminal L6 proof** — one direct A2A task invokes the approved tool and returns `kubectl`-matching pod names. | Planned | 4 | Fresh `agent_mcp_trace.py` exit 0 with one task, exact server/tool/arguments, bounded source proof, returned names, and independent match. |
+| 6 | **Proposed PR #6 / Phase 7C Cursor I4 proof** — join one real Cursor call to the same qualifying A2A task and tool result without dispatching a helper task. | Planned | I3-Cursor and 5 | A fail-closed external-invocation join plus one real same-invocation Cursor → agent → MCP → Kubernetes record. |
+| 7 | **Proposed PR #7 / Phase 8 parity and workshop** — Codex parity, clean bootstrap, restart/recovery, tracked process cleanup, and fresh acceptance. | Planned | 6 | Fresh Docker Desktop run qualifies both clients, I5, and L7; cleanup is verified; final pushed SHA passes hosted Quality. |
+
+The kagent delivery units are deliberately sequential for a single operator.
+Design investigation may occur earlier, but Phase 7 must not mutate the live
+cluster while the current human I3 session and temporary provider profile are
+awaiting close-out.
 
 ### Architecture decision for the IDE lane
 
@@ -285,9 +301,13 @@ L6 or L7.
    declared).
 2. Perform the Windows acceptance round trip against that SHA and tag
    `laptop-stable-v0.1.1` only if every required gate passes.
-3. In the kagent lane, complete the no-tool I3 acceptance and the native
-   read-only discovery hardening as two compatible prerequisites. Do not
-   request a Kubernetes tool until the latter is proven; do not build a custom
-   Cursor/Codex-to-A2A bridge.
-4. Capture one same-invocation I4/L6 Kubernetes record with a `kubectl` match,
-   then automate bootstrap, restart, and cleanup for I5/L7.
+3. When authorized, publish the six-document kagent roadmap baseline on the
+   current branch and require `quality.yml` for that exact SHA. Any later I3
+   evidence commit creates a new final SHA and needs its own hosted run.
+4. Close PR #3's human Cursor I3 gate: capture the trace, run postflight,
+   restore the default profile, stop the actual port-forward child, append the
+   dated result, and require final-SHA hosted Quality before undrafting.
+5. Implement the kagent units in order: read-only discovery, direct A2A L6,
+   external same-invocation Cursor I4 correlation, then Codex parity and the
+   fresh I5/L7 workshop. Do not treat a separate `agent_mcp_trace.py` dispatch
+   as IDE correlation, and do not build a custom IDE-to-A2A bridge.

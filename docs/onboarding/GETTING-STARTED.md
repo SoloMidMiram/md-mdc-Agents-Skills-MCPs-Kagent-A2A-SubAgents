@@ -17,16 +17,18 @@ This repository is a portable MCP learning and implementation lab. It combines:
 | Local browser automation exercises | Working and documented |
 | Remote browser Docker scaffold | Implemented; needs a Linux server to use remotely |
 | AI tooling scaffold and host guidance | Implemented |
-| Local `kagent` namespace and UI | 18 pods and 11 accepted/ready agents observed on July 16, 2026 |
-| A2A sample agent and tool-server manifests | Committed; agent accepted/ready and tool-server RemoteMCPServer Accepted=True |
+| Local `kagent` namespace and UI | Lab path implemented; use the evidence index for dated runtime state |
+| A2A sample agent and tool-server manifests | Committed; L4/L5 and I0-I2 are Proven in the canonical evidence index |
 | kagent health and A2A verification scripts | Available for cluster inspection and agent card validation |
 
 ## Current Local kagent Reality
 
 The repo is past design-only kagent documentation. The authoritative dated
 status, capability decisions, implemented corrections, and open flaw ledger are
-maintained in `evidence/kagent/README.md`. In summary, L0-L5 are proven (L4 by
-strict `message/stream` dispatch evidence); L6 and L7 remain unproven.
+maintained in `evidence/kagent/README.md`. In summary, L0-L5 and I0-I2 are
+Proven. Candidate B strict preflight qualified, but I3 remains Blocked on the
+human Cursor context-forwarding trace. L6, L7, and I4 remain Not proven; I5 is
+Not attempted.
 
 Use these documents in order for cluster work:
 
@@ -107,7 +109,7 @@ F:\Git\MCPtest\
 `-- server\          Remote Playwright Docker runtime
 ```
 
-> **Last updated:** 2026-07-10
+> **Last updated:** 2026-08-04
 > **Source repo:** `F:\Git\MCPtest`
 
 Reference documents:

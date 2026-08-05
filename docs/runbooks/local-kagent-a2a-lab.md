@@ -9,30 +9,30 @@ before using this runbook.
 
 ## Lab Status Summary
 
-As of July 17, 2026 the local kagent lab is in the following state:
+Do not use a runbook snapshot as current evidence. Read the
+[kagent evidence index](../../evidence/kagent/README.md) before beginning. The
+current capability decisions are L0-L5 and I0-I2 Proven; I3 Blocked; L6, L7,
+and I4 Not proven; and I5 Not attempted.
 
-- **Infrastructure:** 18/18 pods Running and Ready; 11/11 agents Accepted=True Ready=True.
-- **REST agent card:** Reachable and returns full agent metadata (works).
-- **A2A `message/stream`:** Proven for L4 via structured helper JSON (phase 5d).
-- **JSON-RPC `tasks/sendTask`:** Not exposed (`-32601`); empty-param probes may still error.
-- **RemoteMCPServer:** `kagent-tool-server` is `Accepted=True` (real MCP server deployed). `kagent-grafana-mcp` remains `Accepted=False` (no backing service).
-- **UI:** Reachable at `http://localhost:8080` (returns HTTP 200).
-- **Controller API:** Reachable at `http://localhost:8083`.
-- **L6:** Not proven ([phase 5e](../../evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md)).
+The next operational gate is the no-tool human Cursor I3 sequence below.
+Candidate B strict controller preflight is already recorded as qualified; the
+missing proof is the real Cursor second-call tool input. Do not request a
+Kubernetes tool during that gate, and do not treat helper success as I3.
 
 ## Current Local State
 
-Observed on this machine through July 17, 2026:
+Discover local state each time instead of assuming retained counts. Before a
+lab action, confirm:
 
-- Docker Desktop cluster (context: `docker-desktop`).
-- All 18 kagent pods are `Running` with complete readiness ratios (17 original
-  pods + `kagent-tool-server` runtime).
-- All agents including `k8s-a2a-agent` show `Accepted=True` and `Ready=True`.
-- `kagent-tool-server` RemoteMCPServer is `Accepted=True` -- a real MCP server (official kagent tools image) is deployed behind the service URL.
-- `kagent-grafana-mcp` RemoteMCPServer shows `Accepted=False` because no MCP server is deployed at its URL.
-- UI is reachable on `http://localhost:8080` via port-forward.
-- Controller REST API is reachable on `http://localhost:8083`.
-- `kagent-openai` secret is required for agents and must be created separately.
+- Kubernetes context is exactly `docker-desktop`;
+- the target Agent is Accepted/Ready and its observed generation matches;
+- the target `RemoteMCPServer`, Service, and EndpointSlice are ready;
+- the provider profile expected by the current phase is reconciled; and
+- the intended local port has one owned `kubectl port-forward` listener.
+
+Provider secrets must be created separately and must never be written to
+evidence. Unrelated degraded demo agents or servers must not be added to an
+allowlist merely to make a strict gate pass.
 
 ## Prerequisites
 
@@ -525,7 +525,8 @@ Cadence: exact preflight → Cursor work → exact postflight.
 9. Second `invoke_agent` must include that same `context_id` in the **tool-call
    input arguments**. A coherent second answer without argument evidence is not
    enough. If Cursor cannot expose second-call arguments, record
-   `I3-Cursor: Blocked` with reason `client context propagation not observable`.
+   `I3-Cursor: Blocked — second-call Cursor MCP tool-input arguments were not
+   observable in the acceptance environment`.
 10. Exact postflight with the same `--expected-inventory` command.
 11. Record dated evidence in
     `evidence/kagent/educational-practice-phase-6b-6d-closure.md`.
@@ -552,6 +553,43 @@ Evidence template fields (sanitized only):
 
 Codex may be recorded as I3-Codex after I3-Cursor. I5 requires both clients.
 I3 never implies L6.
+
+#### Close out the human Cursor session
+
+Do not roll back before the Cursor result is captured. After the interaction:
+
+1. run the exact postflight from step 10;
+2. restore the shared default ModelConfig and original sample `systemMessage`:
+
+   ```powershell
+   kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+     --patch-file config/kagent/k8s-a2a-agent-default-profile-rollback-patch.yaml
+   ```
+
+3. verify the Agent is Accepted/Ready and observed generation matches;
+4. identify the actual listener before stopping the forward:
+
+   ```powershell
+   Get-NetTCPConnection -LocalPort 8083 -State Listen |
+     Select-Object LocalAddress, LocalPort, OwningProcess
+   Get-Process -Id <owning-process-id>
+   Stop-Process -Id <owning-process-id>
+   ```
+
+   A PowerShell wrapper may own a child `kubectl` process while only the child
+   owns port 8083. Stop the verified listener and then the exact wrapper if it
+   remains; never kill processes by a broad name match.
+5. append one dated, sanitized addendum to the Phase 6B-6D evidence record.
+
+The decision branch is:
+
+- qualifying trace: request an I3 promotion review, synchronize the canonical
+  status owners, and keep I4/L6/I5/L7 unchanged; or
+- missing input visibility: append the exact Blocked wording above and leave
+  PR #3 draft.
+
+Any evidence or documentation commit changes the final SHA. Push that final SHA
+and require the complete `quality.yml` workflow before undrafting or merging.
 
 ## How to Observe Failures
 

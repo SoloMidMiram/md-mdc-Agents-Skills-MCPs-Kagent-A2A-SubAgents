@@ -54,10 +54,11 @@ Two paths matter today:
   `laptop-stable-v0.1` is tagged at `cdb7dc0`; this tree targets patch `laptop-stable-v0.1.1` (UTF-8 onboarding, narrative sync, bridge manifests).
 - **Active lab path**: local `kagent` on `docker-desktop` uses the controller's
   native `/mcp` surface (`list_agents` and `invoke_agent`). L4/L5 are Proven;
-  I0-I2 are Proven; I3 is Blocked (provider region policy; no Cursor I3 gate yet);
-  L6/L7 remain Not
-  proven. See the [canonical evidence index](evidence/kagent/README.md) for
-  dated status and capability decisions.
+  I0-I2 are Proven; Candidate B strict preflight qualified, but I3 remains
+  Blocked until a human Cursor trace proves second-call `context_id`
+  forwarding. L6/L7 and I4 remain Not proven; I5 is Not attempted. See the
+  [canonical evidence index](evidence/kagent/README.md) for dated status and
+  capability decisions.
 
 Use [docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
 for the learning path, [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/local-kagent-a2a-lab.md)
@@ -109,13 +110,23 @@ release checklist. Do not add a branch-local subroadmap.
 
 Current kagent priority order:
 
-1. **Two compatible prerequisites** — close no-tool I3 native delegation
-   through the controller's `/mcp` surface and harden discovery to a read-only
-   tool set; these may proceed in parallel, without a custom A2A bridge.
-2. **Read-only I4/L6 evidence** — only after both prerequisites, capture one
-   same-invocation Kubernetes result with a `kubectl` match.
-3. **Repeatability** — automate a clean-install workshop with restart, cleanup,
-   I5, and L7 evidence.
+1. **Publish the roadmap baseline when authorized** — commit the six coherent
+   documentation files on the current PR #3 branch, push the resulting SHA,
+   and require `quality.yml` for that exact revision. Do not confuse this
+   baseline run with the later final post-evidence run.
+2. **Close the active human I3 gate** — capture the Cursor context-forwarding
+   trace, postflight, rollback, and dated decision before disturbing the live
+   profile or port-forward.
+3. **Harden read-only discovery** — expose only `k8s_get_resources`, keep
+   least-privilege RBAC, and fail on any extra or mutation-capable tool.
+4. **Prove L6, then I4** — first obtain one direct A2A same-task tool proof;
+   then add a fail-closed join for a real Cursor invocation. A separate
+   `agent_mcp_trace.py` dispatch cannot prove I4.
+5. **Package repeatability** — after I4/L6, add Codex parity, clean bootstrap,
+   restart, owned-process cleanup, I5, and L7 evidence.
+
+The detailed phase and proposed PR boundaries are in the
+[hardened kagent implementation roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md#hardened-implementation-roadmap).
 
 ## Repository Map
 
@@ -172,4 +183,4 @@ Current kagent priority order:
 
 MIT - see [LICENSE](LICENSE).
 
-*Last updated: 2026-07-31*
+*Last updated: 2026-08-04*
