@@ -55,18 +55,17 @@ satisfy a required gate.
 
 ### Delivery Gate 0 — publish the roadmap baseline
 
-This is a publication gate, not the historical `phase_0_observe` learning
-phase. Preserve the six-document roadmap correction on the current
-`feat/kagent-native-mcp-federation` branch before beginning Phase 7
-implementation.
+This was a publication gate, not the historical `phase_0_observe` learning
+phase. It preserved the six-document roadmap correction on the
+`feat/kagent-native-mcp-federation` branch before Phase 7 implementation.
 
-Planned commit:
+Published commit:
 
 ```text
 docs(kagent): harden remaining phase and PR roadmap
 ```
 
-The coherent commit contains exactly:
+The coherent commit contained exactly:
 
 - `README.md`;
 - `docs/onboarding/GETTING-STARTED.md`;
@@ -75,7 +74,7 @@ The coherent commit contains exactly:
 - `docs/runbooks/local-kagent-a2a-lab.md`; and
 - `evidence/kagent/README.md`.
 
-When explicitly authorized, the publication sequence is:
+The authorized publication sequence was:
 
 ```powershell
 git status --short
@@ -95,13 +94,21 @@ git commit -m "docs(kagent): harden remaining phase and PR roadmap"
 git push
 ```
 
-Before publication, require `git diff --check`, Ruff, the deterministic kagent
-pytest suite, the documentation ownership/link audit, and an empty staging-area
-check before intentional staging. Staging, committing, pushing, and updating
-the hosted PR require explicit user authorization. After publication, record
-the pushed SHA and require `quality.yml` on that exact SHA. A green baseline run
-does not replace the final post-I3 evidence run if PR #3 receives another
-commit.
+Before publication, Gate 0 required `git diff --check`, Ruff, the deterministic
+kagent pytest suite, the documentation ownership/link audit, and an empty
+staging-area check before intentional staging. Staging, committing, pushing,
+and updating the hosted PR required explicit user authorization.
+
+**Published:** Gate 0 completed at `090ad52` on 2026-08-05
+(`docs(kagent): harden remaining phase and PR roadmap`), preceded by test
+harden `178ce58` (`test(kagent): stabilize Windows redirect loopback
+fixture`). Exact-SHA `quality.yml` passed on both the push run
+[30979059299](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979059299)
+and the pull_request run
+[30979061019](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979061019).
+The green baseline run does not replace the final post-I3 evidence run, and it
+promotes no capability: I3 remains Blocked until the human Cursor trace
+qualifies or a dated Blocked addendum records the reason.
 
 ### Dependency and safety chain
 

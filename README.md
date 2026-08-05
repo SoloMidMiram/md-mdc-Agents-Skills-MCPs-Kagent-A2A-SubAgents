@@ -110,20 +110,21 @@ release checklist. Do not add a branch-local subroadmap.
 
 Current kagent priority order:
 
-1. **Publish the roadmap baseline when authorized** — commit the six coherent
-   documentation files on the current PR #3 branch, push the resulting SHA,
-   and require `quality.yml` for that exact revision. Do not confuse this
-   baseline run with the later final post-evidence run.
-2. **Close the active human I3 gate** — capture the Cursor context-forwarding
+1. **Close the active human I3 gate** — capture the Cursor context-forwarding
    trace, postflight, rollback, and dated decision before disturbing the live
    profile or port-forward.
-3. **Harden read-only discovery** — expose only `k8s_get_resources`, keep
+2. **Harden read-only discovery** — expose only `k8s_get_resources`, keep
    least-privilege RBAC, and fail on any extra or mutation-capable tool.
-4. **Prove L6, then I4** — first obtain one direct A2A same-task tool proof;
+3. **Prove L6, then I4** — first obtain one direct A2A same-task tool proof;
    then add a fail-closed join for a real Cursor invocation. A separate
    `agent_mcp_trace.py` dispatch cannot prove I4.
-5. **Package repeatability** — after I4/L6, add Codex parity, clean bootstrap,
+4. **Package repeatability** — after I4/L6, add Codex parity, clean bootstrap,
    restart, owned-process cleanup, I5, and L7 evidence.
+
+The roadmap baseline was published on the PR #3 branch at `090ad52`
+(`docs(kagent): harden remaining phase and PR roadmap`); exact-SHA
+`quality.yml` passed on both the push and pull_request runs for that revision.
+Do not confuse that baseline run with the later final post-evidence run.
 
 The detailed phase and proposed PR boundaries are in the
 [hardened kagent implementation roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md#hardened-implementation-roadmap).

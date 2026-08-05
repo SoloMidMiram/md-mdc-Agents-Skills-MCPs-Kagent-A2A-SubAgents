@@ -145,6 +145,12 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   target-only I3 `systemMessage` patch produced strict exit 0. Cursor UI
   `context_id` forward trace still not captured. Rolled back to default
   profile. I3 remains Blocked; PR #3 stays draft.
+- 2026-08-05 Gate 0 publication: the six-document kagent roadmap baseline was
+  published at `090ad52` (`docs(kagent): harden remaining phase and PR
+  roadmap`), preceded by test harden `178ce58`. Exact-SHA `quality.yml`
+  passed on both the push run 30979059299 and the pull_request run
+  30979061019. Publication records no capability promotion: I3 remains
+  Blocked pending the human Cursor trace, and I4/L6/L7 are unchanged.
 
 ## Major Open Flaws
 

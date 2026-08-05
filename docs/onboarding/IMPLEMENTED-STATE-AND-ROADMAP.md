@@ -259,7 +259,7 @@ planning units and do not assert that a hosted PR exists.
 |-------|---------------|-------|------------|---------------------|
 | 0 | **Current-head release baseline** — select one immutable release SHA and run the full hosted workflow from `docs/laptop-stable-acceptance-plan.md`. | Open | Existing deterministic suites | Candidate SHA, local results, and same-SHA hosted Quality are recorded. |
 | 1 | **Stable Playwright patch release** — complete Windows install → verify → rollback → verify and tag `laptop-stable-v0.1.1`. | Open | 0 | Target-host acceptance and exact-SHA hosted Quality pass; the tag points to that SHA. |
-| 2 | **Kagent Delivery Gate 0 / roadmap-baseline publication** — preserve the six coherent documentation updates on the current PR #3 branch before Phase 7 implementation. | Awaiting intentional publication; all required local validation must be clean; publication is not authorized in this documentation task | Current six-file roadmap diff, empty staging area, and a clean required validation run | Intentional commit and pushed SHA, followed by exact-SHA `quality.yml`; no capability decision changes. |
+| 2 | **Kagent Delivery Gate 0 / roadmap-baseline publication** — preserved the six coherent documentation updates on the PR #3 branch before Phase 7 implementation. | **Published** at `090ad52` (`docs(kagent): harden remaining phase and PR roadmap`); no capability decision changes | Six-file roadmap diff, empty staging area, clean required validation, and preceding test harden `178ce58` | Pushed SHA `090ad52` with exact-SHA `quality.yml` green: push run [30979059299](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979059299) and pull_request run [30979061019](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979061019); no capability decision changes. |
 | 3 | **PR #3 / Phase 6 human Cursor I3 close-out** — capture the no-tool context-forwarding trace, postflight, rollback, and dated decision addendum. | Active human gate; I3 remains Blocked | Candidate B strict preflight and singleton inventory are already qualified | Qualifying Cursor trace or exact Blocked addendum; default profile restored; owned port-forward stopped; final pushed SHA passes `quality.yml` before undraft. |
 | 4 | **Proposed PR #4 / Phase 7A read-only hardening** — exact default-deny discovery plus least-privilege RBAC. | Planned | 3 closed or deliberately recorded Blocked; no temporary I3 profile remains | Only `k8s_get_resources` is advertised; forbidden names are absent; RBAC negative checks, manifest validation, security scan, and final-SHA hosted Quality pass. |
 | 5 | **Proposed PR #5 / Phase 7B terminal L6 proof** — one direct A2A task invokes the approved tool and returns `kubectl`-matching pod names. | Planned | 4 | Fresh `agent_mcp_trace.py` exit 0 with one task, exact server/tool/arguments, bounded source proof, returned names, and independent match. |
@@ -301,9 +301,10 @@ L6 or L7.
    declared).
 2. Perform the Windows acceptance round trip against that SHA and tag
    `laptop-stable-v0.1.1` only if every required gate passes.
-3. When authorized, publish the six-document kagent roadmap baseline on the
-   current branch and require `quality.yml` for that exact SHA. Any later I3
-   evidence commit creates a new final SHA and needs its own hosted run.
+3. Gate 0 is published at `090ad52` (`docs(kagent): harden remaining phase
+   and PR roadmap`) with exact-SHA `quality.yml` green on both the push and
+   pull_request runs. Any later I3 evidence commit creates a new final SHA and
+   needs its own hosted run.
 4. Close PR #3's human Cursor I3 gate: capture the trace, run postflight,
    restore the default profile, stop the actual port-forward child, append the
    dated result, and require final-SHA hosted Quality before undrafting.
