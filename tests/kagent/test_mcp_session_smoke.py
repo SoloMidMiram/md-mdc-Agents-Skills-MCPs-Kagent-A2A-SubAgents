@@ -37,8 +37,7 @@ def _live_http_server(
         server.server_close()
         thread.join(timeout=_SERVER_JOIN_TIMEOUT_SEC)
         assert not thread.is_alive(), (
-            f"HTTP server thread {thread.name!r} still alive after "
-            f"{_SERVER_JOIN_TIMEOUT_SEC}s join"
+            f"HTTP server thread {thread.name!r} still alive after {_SERVER_JOIN_TIMEOUT_SEC}s join"
         )
 
 
