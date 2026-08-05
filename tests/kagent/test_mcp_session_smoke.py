@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import sys
 import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -16,6 +18,24 @@ SCRIPT_DIR = ROOT / "scripts" / "kagent"
 sys.path.insert(0, str(SCRIPT_DIR))
 
 import mcp_session_smoke as smoke  # noqa: E402
+
+_SERVER_JOIN_TIMEOUT_SEC = 5.0
+
+
+@contextmanager
+def _live_http_server(
+    handler: type[BaseHTTPRequestHandler],
+) -> Iterator[ThreadingHTTPServer]:
+    """Bind a loopback server, serve in a joinable thread, and tear down fully."""
+    server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=server.serve_forever, name="mcp-session-smoke-http")
+    thread.start()
+    try:
+        yield server
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=_SERVER_JOIN_TIMEOUT_SEC)
 
 
 class FakeTransport:
@@ -672,10 +692,7 @@ def test_redirect_refused() -> None:
         def log_message(self, format: str, *args: Any) -> None:
             return
 
-    server = ThreadingHTTPServer(("127.0.0.1", 0), RedirectHandler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
+    with _live_http_server(RedirectHandler) as server:
         port = server.server_address[1]
         transport = smoke.DirectUrlTransport()
         with pytest.raises(smoke.ProtocolError, match="redirect refused"):
@@ -686,8 +703,6 @@ def test_redirect_refused() -> None:
                 body=b"{}",
                 timeout=5,
             )
-    finally:
-        server.shutdown()
 
 
 def test_invalid_session_id_non_ascii() -> None:
@@ -813,10 +828,7 @@ def test_integration_urllib_json_and_session_header() -> None:
         def log_message(self, format: str, *args: Any) -> None:
             return
 
-    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
+    with _live_http_server(Handler) as server:
         port = server.server_address[1]
         cfg = smoke.SessionConfig(
             url=f"http://127.0.0.1:{port}/mcp",
@@ -826,8 +838,6 @@ def test_integration_urllib_json_and_session_header() -> None:
         assert result.exit_code == smoke.ExitCode.SUCCESS
         assert result.cleanup == "unsupported"
         assert result.session_id_present
-    finally:
-        server.shutdown()
 
 
 def test_integration_sse_tools_call() -> None:
@@ -895,10 +905,7 @@ def test_integration_sse_tools_call() -> None:
         def log_message(self, format: str, *args: Any) -> None:
             return
 
-    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
+    with _live_http_server(Handler) as server:
         port = server.server_address[1]
         cfg = smoke.SessionConfig(
             url=f"http://127.0.0.1:{port}/mcp",
@@ -907,8 +914,6 @@ def test_integration_sse_tools_call() -> None:
         result = smoke.McpSessionClient(cfg).run()
         assert result.exit_code == smoke.ExitCode.SUCCESS
         assert result.cleanup == "deleted"
-    finally:
-        server.shutdown()
 
 
 def test_main_success_exit_code() -> None:
