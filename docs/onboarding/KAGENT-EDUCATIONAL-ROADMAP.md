@@ -23,8 +23,9 @@ roadmap. At the current checkpoint:
 
 - L0-L5 and I0-I2 are Proven;
 - Candidate B passed the strict controller preflight;
-- I3 remains Blocked until a real Cursor trace proves that the second
-  `invoke_agent` tool call forwarded the first call's `context_id`;
+- I3 remains Blocked at Cursor tool discovery (`tool_discovery` /
+  `KAGENT_MCP_TOOLS_NOT_EXPOSED`), with restoring real Cursor MCP server/tool
+  discovery as the next operational action before any re-apply;
 - L6, L7, and I4 remain Not proven; I5 remains Not attempted; and
 - direct MCP success remains server evidence only.
 
@@ -135,7 +136,7 @@ later phase merely because adjacent seams work.
 
 | Delivery unit | Branch | State | Entry gate | Exit gate | Explicit non-claim |
 |---------------|--------|-------|------------|-----------|--------------------|
-| PR #3 / Phase 6 | `feat/kagent-native-mcp-federation` | Active human gate | Candidate B strict preflight qualified; exact singleton inventory; controller forward active | Dated Cursor trace and postflight, or a dated Blocked addendum; rollback complete; final pushed SHA passes `quality.yml` before undraft | No Kubernetes tool use; no I4 or L6 |
+| PR #3 / Phase 6 | `feat/kagent-native-mcp-federation` | Active human gate | Candidate B strict preflight qualified; exact singleton inventory | Dated Cursor trace and postflight, or a dated Blocked addendum; rollback complete; final pushed SHA passes `quality.yml` before undraft | No Kubernetes tool use; no I4 or L6 |
 | Proposed PR #4 / Phase 7A | `feat/kagent-readonly-mcp-surface` | Planned | PR #3 is closed or deliberately left draft with a recorded blocker; no active I3 profile remains | `tools/list` equals the approved read-only set, forbidden tools are absent, RBAC remains least privilege, deterministic and live validation pass | Does not prove I3, I4, or L6 |
 | Proposed PR #5 / Phase 7B | `feat/kagent-direct-a2a-l6-proof` | Planned | Phase 7A is proven and a tool-enabled provider profile is qualified | One fresh `agent_mcp_trace.py` exit 0 for `pod` / `kagent`, with same-task tool evidence and independent `kubectl` match | Direct A2A L6 proof does not prove IDE I4 |
 | Proposed PR #6 / Phase 7C | `feat/kagent-cursor-i4-proof` | Planned | I3-Cursor and Phase 7B are proven; an external-invocation join mechanism exists | One real Cursor invocation is joined to the same A2A task, tool call, returned names, and `kubectl` result | A separate helper dispatch cannot substitute for I4 |

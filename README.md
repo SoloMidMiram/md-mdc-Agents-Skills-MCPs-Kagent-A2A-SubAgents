@@ -54,11 +54,10 @@ Two paths matter today:
   `laptop-stable-v0.1` is tagged at `cdb7dc0`; this tree targets patch `laptop-stable-v0.1.1` (UTF-8 onboarding, narrative sync, bridge manifests).
 - **Active lab path**: local `kagent` on `docker-desktop` uses the controller's
   native `/mcp` surface (`list_agents` and `invoke_agent`). L4/L5 are Proven;
-  I0-I2 are Proven; Candidate B strict preflight qualified, but I3 remains
-  Blocked until a human Cursor trace proves second-call `context_id`
-  forwarding. L6/L7 and I4 remain Not proven; I5 is Not attempted. See the
-  [canonical evidence index](evidence/kagent/README.md) for dated status and
-  capability decisions.
+  I0-I2 are Proven; I3-Cursor remains Blocked. L6/L7 and I4 remain Not proven;
+  I5 is Not attempted. See the
+  [canonical evidence index](evidence/kagent/README.md) for the current failure
+  stage, dated evidence, and next acceptance action.
 
 Use [docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
 for the learning path, [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/local-kagent-a2a-lab.md)

@@ -14,10 +14,13 @@ Do not use a runbook snapshot as current evidence. Read the
 current capability decisions are L0-L5 and I0-I2 Proven; I3 Blocked; L6, L7,
 and I4 Not proven; and I5 Not attempted.
 
-The next operational gate is the no-tool human Cursor I3 sequence below.
-Candidate B strict controller preflight is already recorded as qualified; the
-missing proof is the real Cursor second-call tool input. Do not request a
-Kubernetes tool during that gate, and do not treat helper success as I3.
+The next operational gate is the no-tool human Cursor I3 sequence below,
+beginning with server/tool discovery: the acceptance session's MCP catalog
+exposed neither the configured kagent server nor its tools (`tool_discovery` /
+`KAGENT_MCP_TOOLS_NOT_EXPOSED`). Do not re-apply Candidate B until the server
+and its `list_agents`/`invoke_agent` tools are visible. Classify failure at the
+earliest failed stage (taxonomy below), do not request a Kubernetes tool during
+that gate, and do not treat helper success as I3.
 
 ## Current Local State
 

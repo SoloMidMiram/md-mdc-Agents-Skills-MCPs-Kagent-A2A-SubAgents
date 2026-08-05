@@ -26,9 +26,9 @@ This repository is a portable MCP learning and implementation lab. It combines:
 The repo is past design-only kagent documentation. The authoritative dated
 status, capability decisions, implemented corrections, and open flaw ledger are
 maintained in `evidence/kagent/README.md`. In summary, L0-L5 and I0-I2 are
-Proven. Candidate B strict preflight qualified, but I3 remains Blocked on the
-human Cursor context-forwarding trace. L6, L7, and I4 remain Not proven; I5 is
-Not attempted.
+Proven. I3-Cursor remains Blocked — see `evidence/kagent/README.md` for the
+current failure stage, dated evidence, and next acceptance action. L6, L7, and
+I4 remain Not proven; I5 is Not attempted.
 
 Use these documents in order for cluster work:
 

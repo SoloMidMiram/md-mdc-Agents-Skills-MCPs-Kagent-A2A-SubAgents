@@ -152,10 +152,9 @@ was not reused. Phase 5B subsequently proved a direct, session-reusing call with
 L4 or L6. See `evidence/kagent/educational-practice-phase-5b-direct-mcp.md`.
 
 The parallel native IDE track is I0-I2 Proven, I3 Blocked, I4 Not proven, and
-I5 Not attempted. Candidate B has a qualifying strict controller preflight;
-the only remaining I3 gate is a real Cursor trace showing the second
-`invoke_agent` tool-call input forwarded the first call's `context_id`. The
-authoritative decision and blocker wording live in `evidence/kagent/README.md`.
+I5 Not attempted. I3-Cursor remains Blocked — see `evidence/kagent/README.md`
+for the current failure stage, dated evidence, and next acceptance action. The
+authoritative decision and blocker wording live there.
 
 ## How To Use What Exists Today
 
