@@ -395,3 +395,88 @@ Combined default-profile rollback applied (generation 15):
 preflight only. It does not prove I3-Cursor, I4, L6, or L7. Phase 7 remains
 deferred. A Candidate B failure or missing Cursor trace is not merge
 authorization for PR #3.
+
+## 2026-08-05 addendum — PR #3 I3 close-out (Blocked) + candidate teardown
+
+**Observed:** 2026-08-05, Asia/Tehran
+**Environment:** Docker Desktop Kubernetes context `docker-desktop`, namespace
+`kagent`; controller `0.9.11`; branch `feat/kagent-native-mcp-federation`;
+pre-test HEAD `79605e0`.
+**Scope:** PR #3 I3 acceptance close-out; Candidate B teardown; Phase 7
+remained deferred.
+
+### Run identity
+
+- Candidate profile live at start: `ide-safe-deepseek-model-config` (gen 17/17,
+  `Accepted=True`, `Ready=True`), I3 `systemMessage` first line
+  `You are a precise reply agent for bounded acceptance checks.`
+- Owned listener: PID 2584 = `kubectl port-forward -n kagent
+  svc/kagent-controller 8083:8083` (verified command), wrapper `pwsh.exe`
+  PID 94472.
+- Working tree clean; branch tracks `origin/feat/kagent-native-mcp-federation`.
+
+### Preflight (strict)
+
+```
+uv run python scripts/kagent/controller_mcp_smoke.py --output json \
+  --expected-inventory config/kagent/ide-safe-agent-inventory.txt --timeout 90
+```
+
+Exit `0`; `strictPreflightQualified=true`; `inventoryMatched=true`;
+`discoveredAgentCount=1` (`kagent/k8s-a2a-agent`); `unexpectedAgents=[]`;
+`agentContextContinuationSucceeded=true`; profile gen 17/17 Accepted/Ready.
+
+### Cursor MCP trace
+
+Not performed: this acceptance environment (a coding-agent session) does not
+expose `list_agents` / `invoke_agent` as callable Cursor MCP tools. Verified
+via the session MCP tool catalog (no `list_agents`, `invoke_agent`, kagent
+server, or `8083` controller tool present) and via MCP `mcp-find` (kagent
+server not in the gateway catalog). No raw `context_id` was ever captured, so
+no sanitization of a real trace was required.
+
+```text
+1) list_agents            → not callable in this environment
+2) invoke_agent #1        → not performed
+3) invoke_agent #2 input  → not performed
+4) postflight list_agents → not performed via Cursor tool interface
+```
+
+### Verdict
+
+```text
+I3 = Blocked
+reason_code = CURSOR_DID_NOT_EXPOSE_CONTEXT_ID
+reason = The qualifying Cursor MCP tools were not exposed to this acceptance
+environment, so the first invoke_agent could not be made and no context
+identifier could be observed or forwarded; second-call tool-input argument
+evidence required by the runbook could not be produced. Preflight/postflight
+success is controller diagnostic only, not I3.
+```
+
+### Postflight (strict)
+
+Same command as preflight; exit `0`; `strictPreflightQualified=true`;
+`inventoryMatched=true`; `discoveredAgentCount=1`; `unexpectedAgents=[]`.
+
+### Rollback
+
+Combined default-profile rollback applied via
+`config/kagent/k8s-a2a-agent-default-profile-rollback-patch.yaml`:
+
+- `spec.declarative.modelConfig` = `default-model-config`
+- original sample `systemMessage` restored (first line
+  `You are an expert Kubernetes agent that uses tools to help users.`)
+- generation 18 / observedGeneration 18; `Accepted=True`; `Ready=True`
+
+### Teardown
+
+- Owned listener PID 2584 (`kubectl port-forward` to `svc/kagent-controller`)
+  stopped; wrapper `pwsh.exe` PID 94472 stopped.
+- Port 8083 confirmed free; no orphaned `kubectl port-forward` process
+  remains.
+
+### Limitations
+
+No Cursor tool-call trace exists, so I3-Cursor remains **Blocked**. This
+addendum does not prove I3-Cursor, I4, L6, or L7. PR #3 remains draft.
