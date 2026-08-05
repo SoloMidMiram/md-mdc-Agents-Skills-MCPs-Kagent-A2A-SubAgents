@@ -532,6 +532,18 @@ Cadence: exact preflight → Cursor work → exact postflight.
     `evidence/kagent/educational-practice-phase-6b-6d-closure.md`.
     Never store secrets, raw MCP session ids, or raw `context_id` values.
 
+I3-Cursor Blocked reasons are classified at the earliest failed stage:
+
+- `tool_discovery`:
+  `KAGENT_MCP_TOOLS_NOT_EXPOSED`
+- `first_invoke_result`:
+  `CURSOR_DID_NOT_EXPOSE_CONTEXT_ID`
+- `second_invoke_trace`:
+  `SECOND_CALL_ARGUMENTS_NOT_OBSERVABLE`
+
+Do not assign a later-stage reason when the acceptance sequence did not reach
+that stage.
+
 Evidence template fields (sanitized only):
 
 - date, timezone, environment, controller version

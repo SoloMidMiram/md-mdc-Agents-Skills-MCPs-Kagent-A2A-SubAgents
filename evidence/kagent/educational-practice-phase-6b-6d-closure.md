@@ -444,14 +444,21 @@ no sanitization of a real trace was required.
 
 ### Verdict
 
+Classification correction, 2026-08-05: the original addendum correctly
+recorded that Cursor exposed no qualifying kagent MCP tools, but assigned a
+later context-ID-stage reason code. The observed facts and I3 Blocked verdict
+are unchanged; only the failure stage and reason code are corrected.
+
 ```text
 I3 = Blocked
-reason_code = CURSOR_DID_NOT_EXPOSE_CONTEXT_ID
-reason = The qualifying Cursor MCP tools were not exposed to this acceptance
-environment, so the first invoke_agent could not be made and no context
-identifier could be observed or forwarded; second-call tool-input argument
-evidence required by the runbook could not be produced. Preflight/postflight
-success is controller diagnostic only, not I3.
+failure_stage = tool_discovery
+reason_code = KAGENT_MCP_TOOLS_NOT_EXPOSED
+reason = The Cursor acceptance environment did not expose the configured
+kagent MCP server or its list_agents and invoke_agent tools: the session MCP
+tool catalog contained neither tool, and mcp-find returned no kagent server
+in the gateway catalog. The first qualifying invocation therefore could not
+be performed. Context-ID exposure and forwarding were not reached and remain
+untested. Preflight/postflight success is controller diagnostic only, not I3.
 ```
 
 ### Postflight (strict)
@@ -480,3 +487,4 @@ Combined default-profile rollback applied via
 
 No Cursor tool-call trace exists, so I3-Cursor remains **Blocked**. This
 addendum does not prove I3-Cursor, I4, L6, or L7. PR #3 remains draft.
+Context-ID exposure and forwarding were not reached and remain untested.
