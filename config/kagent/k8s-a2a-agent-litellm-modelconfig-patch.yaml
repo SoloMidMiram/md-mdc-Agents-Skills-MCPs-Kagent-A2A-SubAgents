@@ -1,0 +1,9 @@
+# Patch k8s-a2a-agent to use LiteLLM gateway ModelConfig (optional; PR2/PR3).
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: k8s-a2a-agent
+  namespace: kagent
+spec:
+  declarative:
+    modelConfig: litellm-gateway-model-config
