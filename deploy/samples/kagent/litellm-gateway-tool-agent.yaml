@@ -1,0 +1,45 @@
+# PR3: one agent + one MCP tool through LiteLLM (cloud-only).
+# Local/Ollama aliases frozen — see docs/LOCAL_MODELS_FROZEN.md
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: litellm-gateway-tool-agent
+  namespace: kagent
+  labels:
+    app.kubernetes.io/managed-by: kagent-lab
+    app.kubernetes.io/part-of: litellm-gateway-bridge
+spec:
+  description: |
+    PR3 tool-loop agent: LiteLLM alias agent-coder + one MCP tool
+    (k8s_get_resources). Proves task -> reason -> tool -> result -> answer.
+  type: Declarative
+  declarative:
+    modelConfig: litellm-gateway-model-config
+    systemMessage: |-
+      You are a Kubernetes inspection assistant.
+      You MUST call the k8s_get_resources tool when asked about pods or resources.
+      After the tool returns, summarize the result in plain text.
+      Do not invent cluster state. Do not call tools that are not available.
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: kagent-tool-server
+          kind: RemoteMCPServer
+          toolNames:
+            - k8s_get_resources
+    a2aConfig:
+      skills:
+        - id: list-pods-skill
+          name: List Pods
+          description: List pods in a namespace via MCP k8s_get_resources
+          inputModes:
+            - text
+          outputModes:
+            - text
+          tags:
+            - k8s
+            - mcp
+            - litellm
+            - cloud
+          examples:
+            - List pods in the kagent namespace
