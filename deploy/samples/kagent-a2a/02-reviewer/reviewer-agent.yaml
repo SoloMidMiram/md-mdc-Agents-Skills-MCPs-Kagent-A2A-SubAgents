@@ -1,0 +1,58 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: reviewer-agent
+  namespace: kagent
+  labels:
+    app.kubernetes.io/managed-by: kagent-lab
+    app.kubernetes.io/part-of: kagent-a2a-samples
+spec:
+  description: |
+    Educational reviewer agent for Lane A phase 2. Reviews a proposed plan JSON
+    artifact and returns a structured verdict. No MCP tools.
+  type: Declarative
+  declarative:
+    modelConfig: ide-safe-deepseek-model-config
+    systemMessage: |-
+      You are a software plan reviewer for educational exercises.
+
+      ## Input
+      The user message contains JSON with:
+      {
+        "request": "original task text",
+        "proposed_plan": { planner JSON object }
+      }
+
+      ## Output contract
+      Respond with exactly one JSON object and no surrounding prose:
+      {
+        "verdict": "approve" | "revise",
+        "findings": ["string"],
+        "missing_requirements": ["string"],
+        "required_changes": ["string"]
+      }
+
+      ## Rules
+      - Do not call tools.
+      - Base findings only on the provided plan and request.
+      - Use verdict "approve" when the plan is sufficient for a hello-world scope.
+      - Use verdict "revise" when material gaps remain.
+    a2aConfig:
+      skills:
+        - id: review-plan
+          name: Review Plan
+          description: Review a proposed implementation plan and return a verdict
+          inputModes:
+            - text
+          outputModes:
+            - text
+          tags:
+            - review
+            - education
+          examples:
+            - Review whether the proposed plan covers tests and acceptance criteria.
+---
+# Apply after planner-agent is Accepted/Ready:
+#   kubectl apply -f deploy/samples/kagent-a2a/02-reviewer/reviewer-agent.yaml
+# Cleanup:
+#   kubectl delete -f deploy/samples/kagent-a2a/02-reviewer/reviewer-agent.yaml

@@ -11,9 +11,13 @@ and kagent work into one dependency-ordered execution plan. The proposal must:
 
 - preserve the canonical stable-first delivery sequence;
 - keep kagent capability priorities distinct from portfolio/release priorities;
-- allow no-tool I3 delegation and native read-only discovery hardening to be
-  planned as compatible parallel prerequisites;
-- prohibit I4/L6 attempts until both prerequisites are satisfied; and
+- follow A2A-first direction in `docs/north-star.md` — Lane A education is the
+  default kagent priority after PR #3; Cursor I3 is Lane C interoperability
+  proof, not the education spine;
+- allow Lane A (A2A role examples), Lane S (read-only MCP), and Lane C (client
+  interop) to proceed in parallel where dependencies allow;
+- treat I3, L6, and I4 as strict, separate capability experiments that do not
+  block Lane A education; and
 - define how each completed or disputed prior phase is reviewed without
   retroactively rewriting evidence.
 
@@ -37,16 +41,17 @@ Read these in order before forming recommendations:
 
 1. `AGENTS.md`
 2. `constraints.md`
-3. `docs/DOCUMENTATION-ORGANIZATION.md`
-4. `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md`
-5. `docs/laptop-stable-acceptance-plan.md`
-6. `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`
-7. `evidence/kagent/README.md`
-8. `docs/reference/kagent-capability-matrix.md`
-9. `docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md`
-10. `.project-ai/memory/architecture-decisions.md`
-11. `REPO_MANIFEST.yaml`
-12. `pyproject.toml`, `uv.lock`, and `.github/workflows/quality.yml`
+3. `docs/north-star.md`
+4. `docs/DOCUMENTATION-ORGANIZATION.md`
+5. `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md`
+6. `docs/laptop-stable-acceptance-plan.md`
+7. `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`
+8. `evidence/kagent/README.md`
+9. `docs/reference/kagent-capability-matrix.md`
+10. `docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md`
+11. `.project-ai/memory/architecture-decisions.md`
+12. `REPO_MANIFEST.yaml`
+13. `pyproject.toml`, `uv.lock`, and `.github/workflows/quality.yml`
 
 Use repository code, tests, manifests, and executable configuration as higher
 authority than summaries. Separate observed facts from assumptions and cite the
@@ -78,13 +83,15 @@ require it:
 |------|------------------|--------------------|--------------------|
 | 0 | Current-head baseline: explicit PyYAML contract, correct coverage scope, immutable candidate SHA, and exact-SHA Quality | frozen dependency environment, applicable deterministic checks, required hosted `quality.yml` jobs | not a release tag |
 | 1 | Stable Playwright patch release | Windows install → verify → rollback → verify on the candidate SHA, plus exact-SHA CI | not kagent readiness or capability evidence |
-| 2a | Native no-tool I3 delegation | exact approved inventory, bounded IDE `invoke_agent`, and second-call context continuation | not Kubernetes tool use or L6 |
-| 2b | Native read-only discovery hardening | no mutation-capable tools in discovery, deterministic negative inventory test, retained restrictive RBAC | not I3, I4, or L6 |
-| 3 | One correlated read-only I4/L6 transaction, after both 2a and 2b | same invocation/task identity, bounded source/tool evidence, `agent_mcp_trace.py` success, and independent `kubectl` match | not repeatability or write authority |
-| 4 | I5/L7 workshop repeatability | fresh Docker Desktop run, restart check, supported-client acceptance, cleanup verification | not production readiness or write-enabled operation |
+| 2 | PR #3 federation foundation | I0–I2 proven; I3 Blocked recorded accurately; final SHA passes `quality.yml` | **Do not mark I3 Proven** on merge |
+| 3a | Lane A — A2A role examples (PR #5) | E1–E2 runnable; manifests under `deploy/samples/kagent-a2a/` | not MCP tools, I3, I4, or L6 |
+| 3b | Lane S — read-only MCP surface (PR #4) | default-deny discovery; only `k8s_get_resources`; restrictive RBAC | not I3, I4, L6, or A2A education |
+| 3c | Lane C — Cursor I3 interop (deferred) | exact approved inventory, bounded IDE `invoke_agent`, second-call `context_id` | not education gate; not L6 or I4 |
+| 4 | Strict L6 / I4 experiments (deferred) | L6: direct A2A tool proof; I4: same-invocation IDE join — separate tracks | not repeatability or write authority |
+| 5 | I5/L7 workshop repeatability | fresh Docker Desktop run, restart check, supported-client acceptance, cleanup verification | not production readiness or write-enabled operation |
 
-Explain whether 2a and 2b should be staffed in parallel or sequentially, but
-never schedule Gate 3 until both have qualifying evidence.
+Lanes 3a, 3b, and 3c may proceed in parallel after Gate 2 where dependencies
+allow. L6 and I4 (Gate 4) do not block Lane A education.
 
 ## Iterative Review and Revision Protocol
 

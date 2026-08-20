@@ -13,6 +13,7 @@ from the stable agentic-coding core.
 
 Architecture and problem handling shared by both lanes:
 
+- `docs/north-star.md` — A2A-first project direction (2026-08-07)
 - `docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md`
 - `docs/runbooks/educational-problem-manual.md`
 - `docs/templates/educational-problem-record.md`

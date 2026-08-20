@@ -7,7 +7,8 @@ This repository is a portable MCP learning and implementation lab. It combines:
 - host-level MCP setup for VS Code, Cursor, Codex CLI, and Continue
 - Playwright browser automation labs
 - Docker-based remote browser runtime docs
-- a local Kubernetes and `kagent` A2A lab
+- a local Kubernetes and `kagent` A2A lab — **A2A-first** per
+  [Project North Star](../north-star.md)
 
 ## What Works Today
 
@@ -27,15 +28,17 @@ The repo is past design-only kagent documentation. The authoritative dated
 status, capability decisions, implemented corrections, and open flaw ledger are
 maintained in `evidence/kagent/README.md`. In summary, L0-L5 and I0-I2 are
 Proven. I3-Cursor remains Blocked — see `evidence/kagent/README.md` for the
-current failure stage, dated evidence, and next acceptance action. L6, L7, and
-I4 remain Not proven; I5 is Not attempted.
+current failure stage. I3 is interoperability proof, not an A2A education gate.
+L6, L7, and I4 remain Not proven; I5 is Not attempted.
 
 Use these documents in order for cluster work:
 
-1. `evidence/kagent/README.md`
-2. `docs/reference/kagent-capability-matrix.md`
-3. `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`
-4. `docs/runbooks/local-kagent-a2a-lab.md`
+1. `docs/north-star.md`
+2. `evidence/kagent/README.md`
+3. `docs/reference/kagent-capability-matrix.md`
+4. `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`
+5. `docs/runbooks/kagent-a2a-examples.md`
+6. `docs/runbooks/local-kagent-a2a-lab.md`
 
 ## Quick Start
 

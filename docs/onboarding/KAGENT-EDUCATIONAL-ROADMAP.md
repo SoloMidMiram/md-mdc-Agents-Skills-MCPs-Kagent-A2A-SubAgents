@@ -1,18 +1,23 @@
 # kagent Educational Roadmap
 
-This document is a learning path for the local `kagent` lab. It separates what
-you can observe today from what still requires A2A dispatch and real MCP-backed
-tool execution.
+This document is a learning path for the local `kagent` lab. **Project direction**
+is defined in [Project North Star](../north-star.md) (2026-08-07): prove A2A
+workflows first; Cursor I3 is interoperability proof, not the education spine.
+
+It separates what you can observe today from what still requires A2A dispatch and
+real MCP-backed tool execution.
 
 It is intentionally educational. The project-wide engineering roadmap remains in
 `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md`.
 
 Canonical supporting documents:
 
+- **north star:** `docs/north-star.md`
 - educational-lane boundary: `docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md`
 - problem workflow: `docs/runbooks/educational-problem-manual.md`
 - capability definitions: `docs/reference/kagent-capability-matrix.md`
 - current evidence/status: `evidence/kagent/README.md`
+- E1–E5 examples: `docs/runbooks/kagent-a2a-examples.md`
 - documentation placement rules: `docs/DOCUMENTATION-ORGANIZATION.md`
 
 ## Where You Are Now
@@ -24,31 +29,46 @@ roadmap. At the current checkpoint:
 - L0-L5 and I0-I2 are Proven;
 - Candidate B passed the strict controller preflight;
 - I3 remains Blocked at Cursor tool discovery (`tool_discovery` /
-  `KAGENT_MCP_TOOLS_NOT_EXPOSED`), with restoring real Cursor MCP server/tool
-  discovery as the next operational action before any re-apply;
+  `KAGENT_MCP_TOOLS_NOT_EXPOSED`) — **interop proof, not an education gate**;
 - L6, L7, and I4 remain Not proven; I5 remains Not attempted; and
 - direct MCP success remains server evidence only.
 
-The immediate action is the human Cursor I3 gate. Do not re-run a qualifying
-strict preflight merely to create another invocation, do not request a
-Kubernetes tool during I3, and do not roll back the temporary I3 profile until
-the human result has been captured. Use this distinction throughout the lab:
-an accepted agent, a passing controller helper, and a tool-invoking agent are
-three different evidence claims.
+**Immediate priority (2026-08-07):** Lane A A2A education — execute E1
+(planner-only) and E2 (supervisor → planner → reviewer) after PR #3 merges.
+I3 close-out continues in Lane C as a parallel interoperability track.
+
+Use this distinction throughout the lab: an accepted agent, a passing controller
+helper, and a tool-invoking agent are three different evidence claims.
 
 ## Hardened Implementation Roadmap
 
-The target remains the controller's native northbound contract:
+The target is an **A2A educational core** with measured multi-agent workflows,
+read-only tool execution when needed, and later Cursor/Codex comparative evaluation.
 
 ```text
-Cursor or Codex
-  -> kagent controller /mcp
-  -> list_agents / invoke_agent
-  -> kagent A2A agent
-  -> one approved read-only Kubernetes MCP tool
-  -> Kubernetes API
-  -> tool-derived answer returned to the IDE
+A2A educational core (planner, reviewer, supervisor, docs agents)
+  ├─ Cursor interoperability (client under test, not gatekeeper)
+  ├─ Codex interoperability (first coding worker)
+  └─ worker/orchestrator experiments
+→ read-only tool execution (Lane S)
+→ measured multi-agent workflows (Lane A)
+→ Cursor/Codex comparative evaluation (Lanes C, B)
 ```
+
+**Current integration model** (not Cursor ←A2A→ Codex initially):
+
+```text
+Cursor or Codex (optional, later)
+  -> kagent controller /mcp (when used)
+  -> list_agents / invoke_agent
+  -> kagent A2A agents (planner, reviewer, supervisor, docs)
+  -> optional approved read-only MCP tool
+  -> measured workflow output
+```
+
+DeepSeek inside kagent powers planner/reviewer/docs/supervisor roles. Codex is
+the first automatable external coding worker (PR #7). Cursor is an interactive
+northbound client; I3 remains Blocked and does not block Lane A.
 
 No custom IDE-to-A2A bridge is planned. A new gateway is allowed only after a
 dated compatibility record proves that the native controller contract cannot
@@ -111,65 +131,68 @@ The green baseline run does not replace the final post-I3 evidence run, and it
 promotes no capability: I3 remains Blocked until the human Cursor trace
 qualifies or a dated Blocked addendum records the reason.
 
-### Dependency and safety chain
+### Dependency and safety chain (revised 2026-08-07)
 
 ```text
-Delivery Gate 0
-  |-- PR #3 / Phase 6: human Cursor I3 ---------------------|
-  `-- PR #4 / Phase 7A: read-only surface                  |
-          `-- PR #5 / Phase 7B: direct A2A L6 ------------|
-                                                               v
-                     PR #6 / Phase 7C: same-invocation Cursor I4
-                                                               |
-                                                               v
-                     PR #7 / Phase 8: Codex parity + I5/L7
+Delivery Gate 0 (published)
+  |
+  +-- PR #3 / Phase 6: federation foundation (I0-I2; I3 Blocked recorded)
+  |
+  +-- PR #4 / Lane A: A2A role examples              |
+  |                                                  |
+  +-- PR #5 / Lane S: read-only MCP surface --------+
+          |                                          |
+          +-- PR #6 / Lane B: benchmarks + OTel      |
+          |         |                                |
+          |         +-- PR #7: Codex worker adapter  |
+          |         +-- PR #8: Cursor interop spike  |
+          |                                          |
+          +-- PR #9: telegram capstone <-------------+
 ```
 
-The technical dependency is PR #4 → PR #5, with both PR #3 and PR #5 feeding
-PR #6. For one operator, use the safer execution order Gate 0 → PR #3 close-out
-→ PR #4 → PR #5 → PR #6 → PR #7. Static PR #4 design may begin earlier, but no
-Phase 7 cluster mutation may disturb the live I3 profile or port-forward.
+Lane A (PR #4) may start after PR #3 without waiting for I3, L6, or I4.
+PR #4 (education) and PR #5 (safety) may proceed in parallel after #3.
+PR #9 depends on PR #5 and PR #7.
+
+For one operator, preferred execution order after PR #3: **#4 → #6 → #7 → #9**,
+with **#5** and **#8** in parallel where safe. I3/L6/I4 close-out remains in
+Lane C as deferred capability experiments — see
+[Deferred capability experiments](#deferred-capability-experiments-l6-i3-i4).
 
 The proposed PR numbers are delivery units, not claims that hosted PRs already
-exist. Each unit must remain independently reviewable and must not absorb a
-later phase merely because adjacent seams work.
+exist. Each unit must remain independently reviewable.
 
 | Delivery unit | Branch | State | Entry gate | Exit gate | Explicit non-claim |
 |---------------|--------|-------|------------|-----------|--------------------|
-| PR #3 / Phase 6 | `feat/kagent-native-mcp-federation` | Active human gate | Candidate B strict preflight qualified; exact singleton inventory | Dated Cursor trace and postflight, or a dated Blocked addendum; rollback complete; final pushed SHA passes `quality.yml` before undraft | No Kubernetes tool use; no I4 or L6 |
-| Proposed PR #4 / Phase 7A | `feat/kagent-readonly-mcp-surface` | Planned | PR #3 is closed or deliberately left draft with a recorded blocker; no active I3 profile remains | `tools/list` equals the approved read-only set, forbidden tools are absent, RBAC remains least privilege, deterministic and live validation pass | Does not prove I3, I4, or L6 |
-| Proposed PR #5 / Phase 7B | `feat/kagent-direct-a2a-l6-proof` | Planned | Phase 7A is proven and a tool-enabled provider profile is qualified | One fresh `agent_mcp_trace.py` exit 0 for `pod` / `kagent`, with same-task tool evidence and independent `kubectl` match | Direct A2A L6 proof does not prove IDE I4 |
-| Proposed PR #6 / Phase 7C | `feat/kagent-cursor-i4-proof` | Planned | I3-Cursor and Phase 7B are proven; an external-invocation join mechanism exists | One real Cursor invocation is joined to the same A2A task, tool call, returned names, and `kubectl` result | A separate helper dispatch cannot substitute for I4 |
-| Proposed PR #7 / Phase 8 | `feat/kagent-native-workshop-i5-l7` | Planned | I4/L6 are proven on the read-only path | Fresh setup, restart, Cursor and Codex acceptance, cleanup, and final exact-SHA hosted Quality pass | Does not establish production readiness or write authority |
+| PR #3 / Phase 6 | `feat/kagent-native-mcp-federation` | Active — merge foundation | Gate 0 published; I0-I2 proven | I0-I2 evidenced; I3 Blocked recorded accurately; final SHA passes `quality.yml` | **Do not mark I3 Proven**; code merged ≠ capability proven |
+| PR #4 / Lane A | `edu/kagent-a2a-role-examples` | Active | PR #3 merged | Planner, reviewer, supervisor manifests; E1–E2 runnable | Does not prove MCP tools, I3, I4, or L6 |
+| PR #5 / Lane S | `feat/kagent-readonly-mcp-surface` | Planned | PR #3 merged | Default-deny discovery; only `k8s_get_resources`; RBAC least privilege | Does not prove I3, I4, L6, or A2A education |
+| PR #6 / Lane B | `eval/kagent-a2a-benchmarks` | Planned | PR #4 | Harness + OTel + baselines B0–B8 | Does not promote L6/I4 by itself |
+| PR #7 / Lane A/C | `feat/codex-worker-adapter` | Planned | PR #4, #6 | Codex local runner bridges planner→worker→reviewer (E4 subset) | Codex is not initially an A2A peer agent |
+| PR #8 / Lane C | `spike/cursor-worker-interop` | Planned | PR #4, #6 | Cursor client vs worker decision documented | Does not require I3 Proven |
+| PR #9 / capstone | `edu/telegram-orchestrated-capstone` | Planned | PR #5, PR #7 | E5 full workflow with evidence | Production readiness |
 
-### PR #3 / Phase 6 — close the human Cursor gate
+### PR #3 / Phase 6 — federation foundation (governance addendum 2026-08-07)
 
-Keep this slice no-tool and evidence-only:
+PR #3 delivers native federation foundation code and honest capability records:
 
-1. Use the already qualified Candidate B profile and active controller
-   port-forward for the human Cursor sequence in the runbook.
-   If that live session has ended, re-establish Candidate B and the exact
-   preflight through the runbook; otherwise do not re-apply or re-run them just
-   to create duplicate evidence.
-2. Capture only sanitized proof: server/tool inventory, singleton agent
-   inventory, first `context_id` presence, and whether the second tool-call
-   input forwarded the same value. Never retain the raw identifier.
-3. Run the exact postflight after the Cursor interaction.
-4. Restore the default agent profile and stop the actual `kubectl port-forward`
-   child process as well as any owning PowerShell wrapper.
-5. Append a dated evidence addendum; never rewrite the earlier observation.
+- **Merge when:** I0–I2 are proven and I3-Cursor Blocked is recorded accurately.
+- **Do not mark I3 Proven** on merge. I3 acceptance moves to a future Lane C PR.
+- I3 human trace capture remains valuable interoperability evidence but is **not**
+  a merge blocker for Lane A education.
 
-Close-out is deliberately binary:
+Historical no-tool I3 close-out procedure (when pursued in Lane C):
 
-- a qualifying trace permits an I3 promotion review; or
-- missing second-call input visibility records
-  `I3-Cursor: Blocked — second-call Cursor MCP tool-input arguments were not observable in the acceptance environment`.
+1. Use the qualified Candidate B profile and controller port-forward per runbook.
+2. Capture sanitized proof: inventory, `context_id` presence, second-call forwarding.
+3. Run postflight; restore default profile; stop owned port-forward processes.
+4. Append a dated evidence addendum; never rewrite earlier observations.
 
-Either result leaves I4, L6, I5, and L7 unchanged. PR #3 stays draft until its
-declared scope is met and its final pushed SHA—not an earlier local SHA—passes
-the complete `quality.yml` workflow.
+Close-out remains binary: qualifying trace → I3 promotion **review**; or dated
+Blocked addendum. Either result leaves I4, L6, I5, and L7 unchanged unless
+separately evidenced.
 
-### Proposed PR #4 / Phase 7A — make read-only discovery intrinsic
+### Proposed PR #5 / Lane S — make read-only discovery intrinsic
 
 Start with a bounded implementation spike. Inspect candidate runtime help and
 live `tools/list`; do not assume a flag or image is safe from its name. Select
@@ -202,7 +225,52 @@ Phase 7A completion requires deterministic tests, one live exact inventory,
 restrictive RBAC, a dated safety record, and a final pushed SHA with hosted
 Quality. Tool discovery hardening alone promotes no capability.
 
-### Proposed PR #5 / Phase 7B — prove L6 through direct A2A
+### Proposed PR #4 / Lane A — A2A role examples (E1–E3)
+
+Deliver educational agent manifests and harness stubs under
+`deploy/samples/kagent-a2a/` and `scripts/kagent/experiments/`:
+
+- **E1:** planner-only A2A (human → planner)
+- **E2:** supervisor → planner → reviewer (agent-as-tool)
+- **E3:** docs validator with sanitized repo bundle
+
+Runbook: `docs/runbooks/kagent-a2a-examples.md`. DeepSeek inside kagent powers
+in-cluster roles. No Cursor/Codex required for E1–E2.
+
+Exit gate: E1 and E2 execute with dated evidence in
+`evidence/kagent/experiments/`; deterministic offline tests pass.
+
+### Proposed PR #6 / Lane B — benchmarks and observability
+
+Implement `benchmark_a2a.py` and `collect_trace.py` with baselines B0–B8 and
+metrics documented in [Project North Star](../north-star.md). Export kagent OTel
+to Jaeger with separate client/controller/A2A/agent/LLM/tool latency.
+
+Exit gate: at least B0–B3 paired runs recorded; harness is deterministic offline.
+
+### Proposed PR #7 / Lane A/C — Codex worker adapter
+
+Bridge in-cluster planner/reviewer to an out-of-cluster Codex local runner for
+E4 (planner → Codex → reviewer). Codex is invoked via adapter, not as an initial
+A2A peer. Benchmark baseline B5.
+
+Exit gate: one measured E4 subset with dated evidence; adapter fail-closed on
+missing worker.
+
+### Proposed PR #8 / Lane C — Cursor interop spike
+
+Evaluate Cursor as northbound client vs potential worker role. I3 Blocked status
+may persist; spike documents decision without requiring symmetry with Codex.
+
+### Proposed PR #9 — telegram capstone (E5)
+
+Full E5 workflow after read-only MCP (PR #4) and Codex worker (PR #7).
+
+### Deferred capability experiments (L6, I3, I4)
+
+These remain **strict, separate experiments**. They do not block Lane A education.
+
+#### L6 — direct A2A tool proof (formerly PR #5 / Phase 7B)
 
 Use a tool-enabled agent profile. The Candidate B I3 `systemMessage` forbids
 tool calls and must not leak into this phase. Keep the transaction fixed to:
@@ -234,9 +302,10 @@ kubectl get pods -n kagent `
 ```
 
 This phase proves terminal A2A-to-tool execution only. It does not prove that a
-Cursor or Codex invocation caused that task.
+Cursor or Codex invocation caused that task. **Schedule after or parallel to
+Lane A** — not as project spine.
 
-### Proposed PR #6 / Phase 7C — join a real IDE invocation to I4
+#### I4 — same-invocation IDE join (formerly PR #6 / Phase 7C)
 
 This phase first closes an observability gap in the current implementation:
 `agent_mcp_trace.py` creates a new direct A2A task, while controller
@@ -266,10 +335,9 @@ evidence; recording only `invoke_agent` arguments is insufficient for I4.
 
 If no stable join key can be observed, record I4 Blocked and stop. A separate
 `agent_mcp_trace.py` success, a matching answer by coincidence, or a prompt-only
-correlation token is not enough. A qualifying record must make the I3 invocation
-itself satisfy the L6 same-task rules.
+correlation token is not enough. Direct A2A L6 ≠ Cursor/Codex I4.
 
-### Proposed PR #7 / Phase 8 — package the proven workflow
+#### I5/L7 — repeatable native workflow (formerly PR #7 / Phase 8)
 
 Only after Phase 7C succeeds, add the learner workflow:
 
@@ -297,12 +365,12 @@ the already repaired development machine is rehearsal, not promotion evidence.
 
 ### What not to do next
 
-- Do not jump from the roadmap commit directly to a Cursor pod-listing demo.
-  That would mix Cursor observability, A2A task identity, and MCP execution in
-  one undiagnosable failure surface.
+- Do not treat Cursor I3 as the mandatory spine before A2A education.
+- Do not assume Cursor ←A2A→ Codex as the first integration model.
+- Do not jump from roadmap publication directly to a Cursor pod-listing demo.
 - Do not use a separate `agent_mcp_trace.py` run as fake Cursor evidence.
 - Do not broaden discovery beyond the single approved tool for convenience.
-- Do not automate the workshop before one read-only I4 transaction works.
+- Do not mark I3 Proven when merging PR #3 foundation code.
 - Do not stage, commit, push, undraft, or merge until the applicable gate is
   complete and the user has authorized that external state change.
 

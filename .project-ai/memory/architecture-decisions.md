@@ -64,3 +64,34 @@ A2A translation layer redundant.
   are not the default Cursor/Codex integration seam.
 
 **Status:** Accepted
+
+---
+
+## 2026-08-07 — A2A-First North Star (Priority Pivot)
+
+**Context:** The project previously sequenced kagent work as Cursor I3 → read-only
+MCP → direct A2A L6 → Cursor I4 → Codex parity. Cursor I3 tool-discovery
+blockers delayed bounded multi-agent learning. Capability evidence (I0–I2 Proven,
+I3 Blocked) remains accurate; only priority and sequencing change.
+
+**Decision:**
+
+- **North star:** First prove and measure useful A2A workflows inside kagent.
+  Then attach Codex and Cursor as interchangeable clients/workers and compare them.
+- Organize kagent work into four planning lanes: A (A2A education), S (safety/MCP),
+  C (client interop), B (benchmarking). Lanes are not new capability numbering.
+- Lane A (planner, reviewer, supervisor, docs agents; E1–E5) is the default
+  priority after PR #3 foundation merges.
+- Cursor I3 remains useful interoperability proof but is **not** the project spine
+  and does not block A2A education.
+- PR #3 merges with I0–I2 proven and I3 limitation recorded; **do not mark I3
+  Proven** on merge. I3 acceptance moves to a future Lane C PR.
+- L6 and I4 remain strict, separate experiments; neither blocks basic A2A education.
+- Codex is the first automatable external coding worker; Cursor is an interactive
+  northbound client. Architectural symmetry is not required.
+- Current model: Cursor/Codex → MCP → kagent controller → A2A → kagent agents.
+  Codex/Cursor as A2A workers is a later experiment.
+
+**Status:** Accepted
+
+**Reference:** `docs/north-star.md`, `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`

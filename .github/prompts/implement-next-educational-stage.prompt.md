@@ -12,11 +12,12 @@ Read first:
 
 1. `AGENTS.md`
 2. `constraints.md`
-3. `docs/onboarding/EDUCATIONAL-PROJECTS.md`
-4. `docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md`
-5. `docs/runbooks/educational-problem-manual.md`
-6. `evidence/kagent/README.md`
-7. `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`
+3. `docs/north-star.md`
+4. `docs/onboarding/EDUCATIONAL-PROJECTS.md`
+5. `docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md`
+6. `docs/runbooks/educational-problem-manual.md`
+7. `evidence/kagent/README.md`
+8. `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`
 
 ## Objective
 
@@ -37,6 +38,9 @@ upgrading the live kagent controller or claiming L4/L6:
 
 ## Boundaries
 
+- Follow A2A-first direction in `docs/north-star.md`: Lane A education is the
+  default kagent priority after PR #3. Cursor I3, L6, and I4 are strict,
+  separate capability experiments — not prerequisites for A2A education.
 - Do not install, upgrade, or mutate the live kagent controller or Helm release.
 - Do not touch production or cloud resources.
 - Do not weaken RBAC, security checks, tests, or stable installer guarantees.

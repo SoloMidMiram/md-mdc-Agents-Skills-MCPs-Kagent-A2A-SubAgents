@@ -4,8 +4,10 @@ This runbook is the shortest path from a local Kubernetes cluster to a working
 kagent A2A lab: deploy, reconcile, verify, and inspect the sample A2A agent.
 
 For the phase-by-phase learning path and architecture guardrails, read
+[Project North Star](../north-star.md) and
 [kagent Educational Roadmap](../onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
-before using this runbook.
+before using this runbook. For E1–E5 A2A examples, see
+[kagent A2A examples](kagent-a2a-examples.md).
 
 ## Lab Status Summary
 
@@ -14,13 +16,19 @@ Do not use a runbook snapshot as current evidence. Read the
 current capability decisions are L0-L5 and I0-I2 Proven; I3 Blocked; L6, L7,
 and I4 Not proven; and I5 Not attempted.
 
-The next operational gate is the no-tool human Cursor I3 sequence below,
-beginning with server/tool discovery: the acceptance session's MCP catalog
+**Default lab priority (2026-08-07):** Lane A A2A education — execute E1–E2 per
+[north star](../north-star.md) and [kagent A2A examples](kagent-a2a-examples.md)
+after PR #3 foundation merges. I3 is Lane C interoperability proof, not the
+project spine.
+
+**Deferred Lane C — Cursor I3:** When pursuing Cursor interop, use the no-tool
+human I3 procedure below. Current blocker: the acceptance session's MCP catalog
 exposed neither the configured kagent server nor its tools (`tool_discovery` /
 `KAGENT_MCP_TOOLS_NOT_EXPOSED`). Do not re-apply Candidate B until the server
 and its `list_agents`/`invoke_agent` tools are visible. Classify failure at the
 earliest failed stage (taxonomy below), do not request a Kubernetes tool during
-that gate, and do not treat helper success as I3.
+that gate, and do not treat helper success as I3. This procedure does not block
+A2A education.
 
 ## Current Local State
 

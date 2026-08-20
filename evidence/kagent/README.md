@@ -152,6 +152,18 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
   30979061019. Publication records no capability promotion: I3 remains
   Blocked pending the human Cursor trace, and I4/L6/L7 are unchanged.
 
+## Direction Pivot Addendum (2026-08-07)
+
+Project priority and sequencing now follow [Project North Star](../../docs/north-star.md):
+
+- **North star:** Prove A2A workflows inside kagent first; attach Cursor/Codex later.
+- Cursor I3 is interoperability proof, **not** the education spine.
+- PR #3 merges with I0–I2 proven and I3 Blocked recorded; **do not mark I3 Proven**.
+- Lane A (E1–E5) is the default next work after PR #3; L6/I4 remain deferred.
+
+This addendum does not change any capability decision in the tables above.
+Historical phase evidence is preserved unchanged.
+
 ## Major Open Flaws
 
 | Priority | Flaw | Impact | Recommended closure evidence |
@@ -177,6 +189,7 @@ Helper: `scripts/kagent/mcp_session_smoke.py`. Tests: `tests/kagent/test_mcp_ses
 - [Phase 5E correlated agent-mediated MCP](educational-practice-phase-5e-agent-mediated-mcp.md)
 - [Phase 6 native MCP federation](educational-practice-phase-6-native-mcp-federation.md)
 - [Phase 6B–6D closure attempt](educational-practice-phase-6b-6d-closure.md)
+- [A2A experiment evidence](experiments/README.md)
 - [Problem: MCP session reuse](problems/2026-07-17-mcp-session-reuse.md)
 - [Problem: health profile overclaim](problems/2026-07-17-health-profile-overclaim.md)
 - [Problem: A2A dispatch compatibility](problems/2026-07-17-a2a-dispatch-compatibility.md)
