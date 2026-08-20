@@ -31,6 +31,8 @@ Primary docs:
 - [Educational problem manual](docs/runbooks/educational-problem-manual.md)
 - [kagent educational roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
 - [kagent evidence and current status](evidence/kagent/README.md)
+- [kagent PR2 LiteLLM gateway runbook](docs/runbooks/kagent-litellm-gateway.md)
+- [kagent PR2 LiteLLM runtime evidence](evidence/runtime/kagent-litellm-success.md)
 - [kagent A2A educational examples](docs/runbooks/kagent-a2a-examples.md)
 - [2026-08-20 evidence-based review](reports/2026-08-20-kagent-evidence-review.md)
 - [documentation organization guide](docs/DOCUMENTATION-ORGANIZATION.md)
@@ -46,6 +48,7 @@ Runbooks:
 - [Local Playwright lab](docs/runbooks/local-playwright-lab.md)
 - [Remote Playwright lab](docs/runbooks/remote-playwright-lab.md)
 - [Local kagent A2A lab](docs/runbooks/local-kagent-a2a-lab.md)
+- [kagent PR2 LiteLLM gateway](docs/runbooks/kagent-litellm-gateway.md)
 - [kagent A2A educational examples](docs/runbooks/kagent-a2a-examples.md)
 - [SSH concurrency fix](docs/runbooks/ssh-concurrency-fix.md)
 - [Troubleshooting](docs/runbooks/troubleshooting.md)
@@ -58,6 +61,10 @@ Two paths matter today:
   `laptop-stable-v0.1` is tagged at `cdb7dc0`; this tree targets patch `laptop-stable-v0.1.1` (UTF-8 onboarding, narrative sync, bridge manifests).
 - **Active lab path**: local `kagent` on `docker-desktop` — prove and measure
   bounded A2A workflows first, then attach Cursor and Codex as clients/workers.
+  The PR2 gateway checkpoint is the smaller prerequisite path:
+  `kagent ModelConfig -> LiteLLM /v1 -> agent-coder -> response`, with no MCP
+  tools, no multiple agents, and no local-model fallback. Its dated evidence
+  proves the gateway/model response path; the card gate remains pending.
   L4/L5 and I0-I2 are Proven; I3-Cursor remains Blocked (interop proof, not
   education gate). L6/L7 and I4 remain Not proven. See
   [north star](docs/north-star.md) for priority and
@@ -101,6 +108,8 @@ for the E1–E5 educational examples.
 | `scripts/kubernetes/validate.ps1` | Validate Kubernetes-related repo assets |
 | `scripts/kagent/check-kagent-health.ps1` | Inspect kagent pod/agent/RemoteMCPServer health |
 | `scripts/kagent/test-a2a-agent.py` | Fetch A2A agent card and test A2A dispatch |
+| `scripts/kagent/validate-litellm-gateway.py` | Offline-check the PR2 ModelConfig, no-tool agent, and evidence shape |
+| `scripts/kagent/apply-litellm-modelconfig.ps1` | Apply the PR2 LiteLLM Secret, ModelConfig, and smoke agent |
 | `scripts/kagent/controller_mcp_smoke.py` | Verify the bounded native controller MCP contract |
 
 ## kagent Roadmap

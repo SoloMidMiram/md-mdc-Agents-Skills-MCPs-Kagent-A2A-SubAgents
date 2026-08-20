@@ -36,6 +36,7 @@ For the kagent lane specifically:
 - `docs/reference/kagent-capability-matrix.md` defines L0-L7 and I0-I5;
 - `evidence/kagent/README.md` records the latest proven status and open flaws;
 - `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md` owns phase order and promotion gates;
+- `docs/runbooks/kagent-litellm-gateway.md` owns the bounded PR2 gateway smoke;
 - `docs/runbooks/kagent-a2a-examples.md` owns E1–E5 executable procedures;
 - `docs/runbooks/local-kagent-a2a-lab.md` owns cluster lab instructions.
 

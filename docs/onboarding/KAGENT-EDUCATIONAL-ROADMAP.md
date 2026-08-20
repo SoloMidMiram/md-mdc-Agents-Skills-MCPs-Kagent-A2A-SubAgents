@@ -40,6 +40,30 @@ I3 close-out continues in Lane C as a parallel interoperability track.
 Use this distinction throughout the lab: an accepted agent, a passing controller
 helper, and a tool-invoking agent are three different evidence claims.
 
+## Phase 2 / PR2 — LiteLLM gateway checkpoint (2026-08-20)
+
+This is intentionally smaller than the later A2A education and MCP tool-loop
+work. The gateway registry remains owned and frozen in the adjacent LLMLite
+repository; MCPtest consumes the `agent-coder` alias through one kagent
+`ModelConfig`.
+
+| Slice | Status | Evidence or boundary |
+|---|---|---|
+| Architecture separation | **Done** | `docs/north-star.md` and lane architecture |
+| Contract docs | **Done** | capability matrix, documentation ownership, runbook |
+| Schema draft | **Done** | LLMLite-owned `models/gateway_manifest.yaml` v1.2 |
+| Gateway runtime | **Proven** | LiteLLM `/v1/models` and chat probe returned HTTP 200 |
+| kagent → LiteLLM | **Proven for gateway path** | `agent-coder` returned a non-empty response through the no-tool smoke agent |
+| Single-agent file review | **Later** | `read_file` is a separate tool-enabled slice, not PR2 |
+| A2A / multiple agents | **Later** | No Agent-tool delegation in PR2 |
+| Local models | **Frozen** | Cloud-only `agent-coder`; no fallback to Ollama |
+
+The retained PR2 record does not contain the agent-card result (`card.accepted`
+and `card.deploymentReady` are null in the helper capture). The gateway/model
+success is therefore proven, but the complete five-gate single-agent acceptance
+must not be called complete until a `both` run captures the card and task in one
+record. Use [the PR2 gateway runbook](../runbooks/kagent-litellm-gateway.md).
+
 ## Hardened Implementation Roadmap
 
 The target is an **A2A educational core** with measured multi-agent workflows,

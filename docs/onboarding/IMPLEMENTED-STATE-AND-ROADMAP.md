@@ -138,6 +138,13 @@ Implemented and validated:
   (`KagentToolingValidation.Tests.ps1`). Those jobs passed in hosted Quality run
   30621076867 at `f18b906`, including the required Trivy policy scan.
 - `kagent-controller` REST API exposes agent card on port 8083
+- PR2 gateway slice: `deploy/samples/kagent/litellm-gateway-model-config.yaml`
+  points kagent only at LiteLLM `http://host.docker.internal:4000/v1`, alias
+  `agent-coder`, and Secret key `LITELLM_MASTER_KEY`; the no-tool smoke agent is
+  isolated in `deploy/samples/kagent/litellm-gateway-smoke-agent.yaml`
+- dated runtime evidence proves LiteLLM `/v1/models`, chat completion, and a
+  non-empty kagent response through `agent-coder`; the retained card gate is
+  still missing and `read_file` remains a later tool-enabled slice
 
 Current capability decisions, dated observations, corrections, and major flaws
 are canonical in `evidence/kagent/README.md`. L0-L5 are proven. L4 is supported
@@ -235,6 +242,9 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
   (I0-I2 Proven); Candidate B strict preflight is recorded, while the current
   I3-Cursor decision and remaining live-evidence gate are maintained in
   `evidence/kagent/README.md`
+- the PR2 gateway record still needs one retained `both` capture containing the
+  agent card result before the full five-gate single-agent acceptance can be
+  marked complete
 - agent-governance R1-R3/S1-S2 benchmark scoring and H1-H3 shadow measurement;
   artifacts exist, but no independently assessed comparison or ten-event hook
   sample supports promotion or blocking yet

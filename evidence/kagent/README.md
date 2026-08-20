@@ -164,6 +164,19 @@ Project priority and sequencing now follow [Project North Star](../../docs/north
 This addendum does not change any capability decision in the tables above.
 Historical phase evidence is preserved unchanged.
 
+## PR2 LiteLLM gateway addendum (2026-08-20)
+
+The bounded no-tool smoke agent uses only the `litellm-gateway-model-config`
+reference, the `agent-coder` alias, the LiteLLM `/v1` endpoint, and the
+`LITELLM_MASTER_KEY` Secret key. Dated runtime evidence records successful
+`/v1/models`, chat completion, model initialization, and a completed non-empty
+agent response. It does not add MCP tools, Agent tools, multiple agents, local
+models, or a capability promotion.
+
+The retained helper capture has null card fields, so the complete five-gate
+single-agent acceptance remains incomplete until a card-plus-task `both` record
+is captured. The later `read_file` review tool is intentionally outside PR2.
+
 ## Major Open Flaws
 
 | Priority | Flaw | Impact | Recommended closure evidence |
@@ -190,6 +203,7 @@ Historical phase evidence is preserved unchanged.
 - [Phase 6 native MCP federation](educational-practice-phase-6-native-mcp-federation.md)
 - [Phase 6B–6D closure attempt](educational-practice-phase-6b-6d-closure.md)
 - [A2A experiment evidence](experiments/README.md)
+- [PR2 LiteLLM gateway evidence](../runtime/kagent-litellm-success.md)
 - [Problem: MCP session reuse](problems/2026-07-17-mcp-session-reuse.md)
 - [Problem: health profile overclaim](problems/2026-07-17-health-profile-overclaim.md)
 - [Problem: A2A dispatch compatibility](problems/2026-07-17-a2a-dispatch-compatibility.md)
