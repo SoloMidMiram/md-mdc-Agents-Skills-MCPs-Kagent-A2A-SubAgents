@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: curl-litellm-probe
+  namespace: kagent
+spec:
+  restartPolicy: Never
+  containers:
+    - name: curl
+      image: curlimages/curl:8.5.0
+      env:
+        - name: LITELLM_MASTER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kagent-litellm
+              key: LITELLM_MASTER_KEY
+      command:
+        - /bin/sh
+        - -c
+        - |
+          # Do NOT use set -e: 172.18.0.1 often fails on Docker Desktop;
+          # chat must still run after models checks.
+          FAIL=0
+          echo "=== host.docker.internal models ==="
+          curl -sS -o /tmp/hdi.json -w "http=%{http_code} time=%{time_total}\n" \
+            -H "Authorization: Bearer ${LITELLM_MASTER_KEY}" \
+            "http://host.docker.internal:4000/v1/models" --max-time 20 \
+            || { echo "hdi_fail=$?"; FAIL=1; }
+          head -c 200 /tmp/hdi.json 2>/dev/null || true; echo
+          echo "=== 172.18.0.1 models (expect fail on Docker Desktop) ==="
+          curl -sS -o /tmp/gw.json -w "http=%{http_code} time=%{time_total}\n" \
+            -H "Authorization: Bearer ${LITELLM_MASTER_KEY}" \
+            "http://172.18.0.1:4000/v1/models" --max-time 5 \
+            || echo "gw_fail=$? (ignored)"
+          head -c 80 /tmp/gw.json 2>/dev/null || true; echo
+          # CLOUD-ONLY: agent-coder (DeepSeek). Never fall back to agent-fast/local.
+          echo "=== chat agent-coder (cloud-only) ==="
+          curl -sS -o /tmp/chat.json -w "http=%{http_code} time=%{time_total}\n" \
+            -H "Authorization: Bearer ${LITELLM_MASTER_KEY}" \
+            -H "Content-Type: application/json" \
+            "http://host.docker.internal:4000/v1/chat/completions" \
+            --max-time 180 \
+            -d '{"model":"agent-coder","messages":[{"role":"user","content":"Reply with exactly: GATEWAY_OK"}],"max_tokens":32}' \
+            || { echo "chat_coder_fail=$?"; FAIL=1; }
+          head -c 500 /tmp/chat.json 2>/dev/null || true; echo
+          if ! grep -q '"content":"[^"]' /tmp/chat.json 2>/dev/null; then
+            echo "CLOUD_EMPTY_OR_FAIL: no local fallback (policy 2026-08-20)"
+            FAIL=1
+          fi
+          echo "=== done FAIL=$FAIL ==="
+          exit $FAIL
