@@ -24,12 +24,15 @@ codex mcp list
 
 Primary docs:
 
+- [Project north star](docs/north-star.md) — A2A-first direction (2026-08-07)
 - [Getting started](docs/onboarding/GETTING-STARTED.md)
 - [Educational projects map](docs/onboarding/EDUCATIONAL-PROJECTS.md)
 - [Educational lanes architecture](docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md)
 - [Educational problem manual](docs/runbooks/educational-problem-manual.md)
 - [kagent educational roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
 - [kagent evidence and current status](evidence/kagent/README.md)
+- [kagent A2A educational examples](docs/runbooks/kagent-a2a-examples.md)
+- [2026-08-20 evidence-based review](reports/2026-08-20-kagent-evidence-review.md)
 - [documentation organization guide](docs/DOCUMENTATION-ORGANIZATION.md)
 - [Implemented work narrative](docs/onboarding/IMPLEMENTED-WORK-NARRATIVE.md)
 - [Implemented state and roadmap](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
@@ -43,6 +46,7 @@ Runbooks:
 - [Local Playwright lab](docs/runbooks/local-playwright-lab.md)
 - [Remote Playwright lab](docs/runbooks/remote-playwright-lab.md)
 - [Local kagent A2A lab](docs/runbooks/local-kagent-a2a-lab.md)
+- [kagent A2A educational examples](docs/runbooks/kagent-a2a-examples.md)
 - [SSH concurrency fix](docs/runbooks/ssh-concurrency-fix.md)
 - [Troubleshooting](docs/runbooks/troubleshooting.md)
 
@@ -52,17 +56,18 @@ Two paths matter today:
 
 - **Stable path**: user-level `playwright-global` registration across VS Code, Cursor, Codex, and Continue. Verified by repeatable install (`-WhatIf` first) / verify / rollback / verify round-trip, covered by 73+ Pester tests, and covered by CI configuration on push and pull_request.
   `laptop-stable-v0.1` is tagged at `cdb7dc0`; this tree targets patch `laptop-stable-v0.1.1` (UTF-8 onboarding, narrative sync, bridge manifests).
-- **Active lab path**: local `kagent` on `docker-desktop` uses the controller's
-  native `/mcp` surface (`list_agents` and `invoke_agent`). L4/L5 are Proven;
-  I0-I2 are Proven; I3-Cursor remains Blocked. L6/L7 and I4 remain Not proven;
-  I5 is Not attempted. See the
-  [canonical evidence index](evidence/kagent/README.md) for the current failure
-  stage, dated evidence, and next acceptance action.
+- **Active lab path**: local `kagent` on `docker-desktop` — prove and measure
+  bounded A2A workflows first, then attach Cursor and Codex as clients/workers.
+  L4/L5 and I0-I2 are Proven; I3-Cursor remains Blocked (interop proof, not
+  education gate). L6/L7 and I4 remain Not proven. See
+  [north star](docs/north-star.md) for priority and
+  [evidence index](evidence/kagent/README.md) for capability decisions.
 
-Use [docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
-for the learning path, [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/local-kagent-a2a-lab.md)
-for the cluster runbook, and [docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
-for the current repo-wide status.
+Use [docs/north-star.md](docs/north-star.md) for direction,
+[docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
+for phase/PR sequencing, [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/local-kagent-a2a-lab.md)
+for the cluster runbook, and [docs/runbooks/kagent-a2a-examples.md](docs/runbooks/kagent-a2a-examples.md)
+for the E1–E5 educational examples.
 
 ## What's Inside
 
@@ -100,33 +105,30 @@ for the current repo-wide status.
 
 ## kagent Roadmap
 
-The repository first establishes the exact-SHA baseline and closes the stable
-Playwright patch release in [the implemented state and roadmap](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md).
-The detailed kagent learning path and its promotion gates live in the
-[kagent educational roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md);
-the [stable acceptance plan](docs/laptop-stable-acceptance-plan.md) owns the
-release checklist. Do not add a branch-local subroadmap.
+**North star (2026-08-07):** First prove useful A2A workflows inside kagent,
+then attach Cursor and Codex as interchangeable clients/workers and compare
+them. Full direction: [docs/north-star.md](docs/north-star.md).
+
+The stable Playwright release checklist remains in
+[implemented state and roadmap](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md).
+kagent phase/PR sequencing lives in
+[kagent educational roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md).
 
 Current kagent priority order:
 
-1. **Close the active human I3 gate** — capture the Cursor context-forwarding
-   trace, postflight, rollback, and dated decision before disturbing the live
-   profile or port-forward.
-2. **Harden read-only discovery** — expose only `k8s_get_resources`, keep
-   least-privilege RBAC, and fail on any extra or mutation-capable tool.
-3. **Prove L6, then I4** — first obtain one direct A2A same-task tool proof;
-   then add a fail-closed join for a real Cursor invocation. A separate
-   `agent_mcp_trace.py` dispatch cannot prove I4.
-4. **Package repeatability** — after I4/L6, add Codex parity, clean bootstrap,
-   restart, owned-process cleanup, I5, and L7 evidence.
+1. **Merge PR #3 foundation** — I0–I2 proven; record I3-Cursor Blocked
+   accurately; do not mark I3 Proven.
+2. **Lane A — A2A education** (PR #4) — planner, reviewer, supervisor, docs
+   agents; execute E1–E2, then E4 with Codex worker (PR #7).
+3. **Lane S — read-only MCP** (PR #5) — default-deny one-tool safety in
+   parallel where dependencies allow.
+4. **Lane B — benchmarks** (PR #6) — harness, OTel, baselines B0–B8.
+5. **Lane C — client interop** (PR #8 spike) — Cursor as client under test;
+   I3/I4/L6 remain separate deferred experiments, not education blockers.
 
-The roadmap baseline was published on the PR #3 branch at `090ad52`
-(`docs(kagent): harden remaining phase and PR roadmap`); exact-SHA
-`quality.yml` passed on both the push and pull_request runs for that revision.
-Do not confuse that baseline run with the later final post-evidence run.
+Gate 0 baseline: `090ad52` (2026-08-05). Direction pivot addendum: 2026-08-07.
 
-The detailed phase and proposed PR boundaries are in the
-[hardened kagent implementation roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md#hardened-implementation-roadmap).
+PR boundaries: [hardened implementation roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md#hardened-implementation-roadmap).
 
 ## Repository Map
 
@@ -161,17 +163,19 @@ The detailed phase and proposed PR boundaries are in the
 ## Reading Order
 
 1. `docs/onboarding/GETTING-STARTED.md`
-2. `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`
-3. `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md`
-4. `docs/01-MCP-MENTAL-MODEL.md`
-5. `docs/reference/portable-settings-bundle.md`
-6. `docs/runbooks/local-playwright-lab.md`
-7. `docs/runbooks/remote-playwright-lab.md`
-8. `docs/runbooks/local-kagent-a2a-lab.md`
-9. `docs/architecture/SCALABLE-REFACTOR-PLAN.md`
-10. `docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md`
-11. `docs/04-KAGENT-INTEGRATION.md`
-12. `docs/runbooks/troubleshooting.md`
+2. `docs/north-star.md`
+3. `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`
+4. `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md`
+5. `docs/01-MCP-MENTAL-MODEL.md`
+6. `docs/reference/portable-settings-bundle.md`
+7. `docs/runbooks/local-playwright-lab.md`
+8. `docs/runbooks/remote-playwright-lab.md`
+9. `docs/runbooks/local-kagent-a2a-lab.md`
+10. `docs/runbooks/kagent-a2a-examples.md`
+11. `docs/architecture/SCALABLE-REFACTOR-PLAN.md`
+12. `docs/integrations/AI-TOOLING-INTEGRATION-PLAN.md`
+13. `docs/04-KAGENT-INTEGRATION.md`
+14. `docs/runbooks/troubleshooting.md`
 
 ## Key Concepts
 
@@ -183,4 +187,4 @@ The detailed phase and proposed PR boundaries are in the
 
 MIT - see [LICENSE](LICENSE).
 
-*Last updated: 2026-08-04*
+*Last updated: 2026-08-20*
