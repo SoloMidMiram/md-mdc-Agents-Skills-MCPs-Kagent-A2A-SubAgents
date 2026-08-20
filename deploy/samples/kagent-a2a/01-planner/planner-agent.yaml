@@ -12,7 +12,7 @@ spec:
     no MCP tools and no external client dependencies.
   type: Declarative
   declarative:
-    modelConfig: ide-safe-deepseek-model-config
+    modelConfig: litellm-gateway-model-config
     systemMessage: |-
       You are a software planning agent for educational exercises.
 

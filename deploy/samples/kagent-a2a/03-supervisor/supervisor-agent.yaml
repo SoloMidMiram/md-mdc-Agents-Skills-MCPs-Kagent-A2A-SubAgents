@@ -12,7 +12,7 @@ spec:
     reviewer-agent via kagent Agent tools (A2A). No MCP tools.
   type: Declarative
   declarative:
-    modelConfig: ide-safe-deepseek-model-config
+    modelConfig: litellm-gateway-model-config
     systemMessage: |-
       You are a bounded multi-agent supervisor for educational exercises.
 

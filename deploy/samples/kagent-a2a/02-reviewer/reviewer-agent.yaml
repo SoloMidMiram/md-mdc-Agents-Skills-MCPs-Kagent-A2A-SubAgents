@@ -12,7 +12,7 @@ spec:
     artifact and returns a structured verdict. No MCP tools.
   type: Declarative
   declarative:
-    modelConfig: ide-safe-deepseek-model-config
+    modelConfig: litellm-gateway-model-config
     systemMessage: |-
       You are a software plan reviewer for educational exercises.
 
