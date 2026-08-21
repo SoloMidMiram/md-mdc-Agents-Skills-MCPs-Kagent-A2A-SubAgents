@@ -64,6 +64,24 @@ success is therefore proven, but the complete five-gate single-agent acceptance
 must not be called complete until a `both` run captures the card and task in one
 record. Use [the PR2 gateway runbook](../runbooks/kagent-litellm-gateway.md).
 
+## Single-tool slice — tool-loop evidence gate (2026-08-21)
+
+The one-tool slice (`litellm-gateway-tool-agent` + `k8s_get_resources`) only
+proves what the retained evidence actually observed. The evidence helper
+(`capture-a2a-evidence.py`) now fails closed: a run passes only when the stream
+reaches `completed`, yields a non-empty final answer, **and** contains at least
+one tool call whose `id` exactly matches a tool result `id`
+(`matched_tool_pairs >= 1`). Completion plus non-empty text alone is no longer
+sufficient. This does **not** promote L6, which remains Not proven until a
+direct A2A task → `k8s_get_resources` → same-task returned names → `kubectl`
+match is evidenced.
+
+| Gate | Tool-loop run001 |
+|---|---|
+| Tool invoked (exact call/result pair) | Proven (`matched_tool_pairs=1`) |
+| Agent answered after the tool | Proven |
+| L6 promotion | Not proven (direct A2A→MCP→kubectl correlation still required) |
+
 ## Hardened Implementation Roadmap
 
 The target is an **A2A educational core** with measured multi-agent workflows,
