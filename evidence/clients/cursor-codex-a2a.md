@@ -10,8 +10,8 @@ Cursor/Codex → (terminal or MCP) → kagent controller `:8083` → `supervisor
 
 ## Docs
 
-- `F:/Git/MCPtest/docs/A2A_CLIENTS.md`
-- `F:/Git/MCPtest/docs/LOCAL_MODELS_FROZEN.md`
+- `docs/runbooks/kagent-a2a-clients.md`
+- `docs/LOCAL_MODELS_FROZEN.md`
 
 ## Re-run smoke from an IDE agent
 
