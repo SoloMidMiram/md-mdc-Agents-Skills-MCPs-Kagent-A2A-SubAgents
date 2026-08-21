@@ -260,16 +260,6 @@ entries:
     status: lab
     authority: true
 
-  - path: docs/LOCAL_MODELS_FROZEN.md
-    purpose: reference
-    status: lab
-    authority: true
-
-  - path: schemas/README.md
-    purpose: reference
-    status: lab
-    authority: false
-
   - path: docs/templates/educational-problem-record.md
     purpose: reference
     status: stable
@@ -330,6 +320,11 @@ entries:
     authority: false
 
   - path: evidence/runtime/kagent-litellm-success.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/runtime/a2a-raw-sse.txt
     purpose: reference
     status: lab
     authority: false
