@@ -260,6 +260,11 @@ entries:
     status: lab
     authority: true
 
+  - path: docs/LOCAL_MODELS_FROZEN.md
+    purpose: constraint
+    status: lab
+    authority: true
+
   - path: docs/templates/educational-problem-record.md
     purpose: reference
     status: stable
@@ -641,6 +646,11 @@ entries:
     authority: false
 
   - path: config/kagent/k8s-a2a-agent-ide-safe-modelconfig-patch.yaml
+    purpose: config
+    status: lab
+    authority: false
+
+  - path: config/kagent/k8s-a2a-agent-litellm-modelconfig-patch.yaml
     purpose: config
     status: lab
     authority: false

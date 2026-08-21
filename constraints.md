@@ -46,6 +46,18 @@ policies. These apply during manual work, automation, and CI.
 
 ---
 
+## Local-model freeze (repo-wide)
+
+Until the user explicitly lifts it, local / Ollama models are frozen across the
+repo. Live kagent work uses the cloud-only LiteLLM alias `agent-coder`; on cloud
+failure, record **BLOCKED** evidence instead of falling back to a local backend.
+This is the repository-wide policy (not Cursor-specific); `.cursor/rules/`
+holds Cursor's enforcement copy.
+
+**Reference:** `docs/LOCAL_MODELS_FROZEN.md`, `.cursor/rules/no-local-models.mdc`
+
+---
+
 ## Installer invariants
 
 - `scripts/install-global-playwright-mcp.ps1` must be **idempotent** —

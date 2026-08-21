@@ -5,6 +5,11 @@ alwaysApply: true
 
 # No local models (frozen)
 
+This rule is the **Cursor enforcement surface** for the repository-wide freeze
+policy documented in `docs/LOCAL_MODELS_FROZEN.md`. The policy is not Cursor-
+specific; local-model deviation must be recorded in the repo evidence, not
+silently re-scoped to one tool.
+
 Until the user explicitly says otherwise:
 
 - **Do not** point kagent `ModelConfig` / agents at `agent-fast`, `agent-review`, or any `local-*` / Ollama model.
@@ -12,4 +17,4 @@ Until the user explicitly says otherwise:
 - **Do not** fall back to local models when cloud fails — record BLOCKED evidence instead.
 - Config may still *describe* local backends; never invoke them.
 
-See also: `docs/LOCAL_MODELS_FROZEN.md` and LLMLite `docs/LOCAL_MODELS.md`.
+See also: `docs/LOCAL_MODELS_FROZEN.md` (canonical policy) and LLMLite `docs/LOCAL_MODELS.md`.
