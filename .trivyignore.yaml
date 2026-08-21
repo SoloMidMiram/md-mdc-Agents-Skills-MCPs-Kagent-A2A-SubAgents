@@ -16,3 +16,8 @@ misconfigurations:
       - deploy/base/kagent/kagent-tool-server-runtime.yaml
     expired_at: 2027-01-01
     statement: "ghcr.io/kagent-dev is the trusted upstream kagent registry (owner: kagent-dev-team)."
+  - id: KSV-0125
+    paths:
+      - deploy/samples/kagent/curl-litellm-probe.yaml
+    expired_at: 2027-01-01
+    statement: "curlimages/curl is the official curl container image on Docker Hub, required by the gateway probe (owner: kagent-dev-team)."
