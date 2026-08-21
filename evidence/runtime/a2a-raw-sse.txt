@@ -1,0 +1,15 @@
+id: b987f20a-bd0f-4ee8-9f0f-33f6aa6d6fa8
+data: {"jsonrpc":"2.0","id":"ba225e25-896f-4c0c-8e1b-042daa3042bc","result":{"kind":"status-update","contextId":"01a01f71-e5f8-7942-93d2-3912a0165147","final":false,"status":{"message":{"kind":"message","messageId":"b432f37d-6e95-409b-8fe5-677435213fc9","parts":[{"kind":"text","text":"Reply with exactly: PR2_GATEWAY_OK"}],"role":"user"},"state":"submitted","timestamp":"2026-08-20T13:52:33.283179684Z"},"taskId":"01a01f71-e5f8-777b-a25d-c78667baab2e"}}
+
+id: ec8d3a3e-678c-4986-b793-f3dc64f13de5
+data: {"jsonrpc":"2.0","id":"ba225e25-896f-4c0c-8e1b-042daa3042bc","result":{"kind":"status-update","contextId":"01a01f71-e5f8-7942-93d2-3912a0165147","final":false,"status":{"state":"working","timestamp":"2026-08-20T13:52:33.283183859Z"},"taskId":"01a01f71-e5f8-777b-a25d-c78667baab2e","metadata":{"adk_app_name":"kagent__NS__litellm_gateway_smoke_agent","adk_session_id":"01a01f71-e5f8-7942-93d2-3912a0165147","adk_user_id":"admin@kagent.dev"}}}
+
+id: fe35ed96-a029-40c3-8deb-67c8d85322b4
+data: {"jsonrpc":"2.0","id":"ba225e25-896f-4c0c-8e1b-042daa3042bc","result":{"kind":"status-update","contextId":"01a01f71-e5f8-7942-93d2-3912a0165147","final":false,"status":{"message":{"kind":"message","messageId":"01a01f71-fc6f-7426-8fed-0b8718a86824","contextId":"01a01f71-e5f8-7942-93d2-3912a0165147","metadata":{"adk_app_name":"kagent__NS__litellm_gateway_smoke_agent","adk_author":"litellm_gateway_smoke_agent","adk_invocation_id":"e-86fe83e7-8f55-47ce-82e2-53eb9a37920b","adk_session_id":"01a01f71-e5f8-7942-93d2-3912a0165147","adk_usage_metadata":{"candidatesTokenCount":6,"promptTokenCount":480},"adk_user_id":"admin@kagent.dev"},"parts":[{"kind":"text","text":"PR2_GATEWAY_OK"}],"role":"agent","taskId":"01a01f71-e5f8-777b-a25d-c78667baab2e"},"state":"working","timestamp":"2026-08-20T13:52:39.023272772Z"},"taskId":"01a01f71-e5f8-777b-a25d-c78667baab2e","metadata":{"adk_app_name":"kagent__NS__litellm_gateway_smoke_agent","adk_author":"litellm_gateway_smoke_agent","adk_invocation_id":"e-86fe83e7-8f55-47ce-82e2-53eb9a37920b","adk_session_id":"01a01f71-e5f8-7942-93d2-3912a0165147","adk_usage_metadata":{"candidatesTokenCount":6,"promptTokenCount":480},"adk_user_id":"admin@kagent.dev"}}}
+
+id: 0c68dfaa-14c5-49f0-9635-8bff8f26ebac
+data: {"jsonrpc":"2.0","id":"ba225e25-896f-4c0c-8e1b-042daa3042bc","result":{"kind":"artifact-update","artifact":{"artifactId":"01a01f71-fc6f-7451-8f3c-3032992b1782","parts":[{"kind":"text","text":"PR2_GATEWAY_OK"}]},"contextId":"01a01f71-e5f8-7942-93d2-3912a0165147","lastChunk":true,"taskId":"01a01f71-e5f8-777b-a25d-c78667baab2e"}}
+
+id: 416eee76-14c0-4d0f-a2d2-00eb9b81bcea
+data: {"jsonrpc":"2.0","id":"ba225e25-896f-4c0c-8e1b-042daa3042bc","result":{"kind":"status-update","contextId":"01a01f71-e5f8-7942-93d2-3912a0165147","final":true,"status":{"state":"completed","timestamp":"2026-08-20T13:52:39.023283791Z"},"taskId":"01a01f71-e5f8-777b-a25d-c78667baab2e","metadata":{"adk_app_name":"kagent__NS__litellm_gateway_smoke_agent","adk_invocation_id":"e-86fe83e7-8f55-47ce-82e2-53eb9a37920b","adk_session_id":"01a01f71-e5f8-7942-93d2-3912a0165147","adk_user_id":"admin@kagent.dev"}}}
+
