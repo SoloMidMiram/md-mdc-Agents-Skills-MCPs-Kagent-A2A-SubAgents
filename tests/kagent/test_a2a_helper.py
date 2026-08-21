@@ -182,6 +182,7 @@ def argparse_ns(**kwargs):
         "prompt": "List pods",
         "output": "json",
         "quiet": False,
+        "timeout": 60.0,
     }
     defaults.update(kwargs)
     return type("Args", (), defaults)()

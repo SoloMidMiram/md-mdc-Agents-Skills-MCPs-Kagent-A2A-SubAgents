@@ -5,9 +5,37 @@ metadata:
   namespace: kagent
 spec:
   restartPolicy: Never
+  securityContext:
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  volumes:
+    - name: tmp
+      emptyDir: {}
   containers:
     - name: curl
       image: curlimages/curl:8.5.0
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      resources:
+        requests:
+          cpu: 100m
+          memory: 64Mi
+        limits:
+          cpu: 500m
+          memory: 128Mi
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
       env:
         - name: LITELLM_MASTER_KEY
           valueFrom:
