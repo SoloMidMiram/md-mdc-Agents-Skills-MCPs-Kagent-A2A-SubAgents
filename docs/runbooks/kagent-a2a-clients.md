@@ -1,12 +1,13 @@
-# Cursor / Codex as A2A clients (PR6)
+# Cursor / Codex as A2A clients — wiring guide
 
-Cloud-only. Local models frozen — see `docs/LOCAL_MODELS_FROZEN.md`.
+This is a wiring guide, not an interoperability proof. It documents how to
+invoke the already-proven multi-agent A2A path from an IDE agent terminal. No
+real Cursor or Codex session has completed the I3/I4 pinning trace yet.
 
 ## Goal
 
 ```
-Cursor or Codex
-  → MCP tool surface (this lab)
+Cursor or Codex (terminal)
   → kagent supervisor-agent (A2A)
   → planner / reviewer (A2A Agent tools)
   → LiteLLM alias agent-coder (cloud)
@@ -27,16 +28,18 @@ Do **not** break the working A2A path. This adds a client surface and docs.
 
 ### A. Direct A2A from a script (lab default)
 
-Use `scripts/kagent/test-a2a-agent.py` or `scripts/kagent/capture-a2a-evidence.py` from Cursor Agent / Codex terminal tools. No extra MCP server required.
+Use `scripts/kagent/test-a2a-agent.py` from a Cursor Agent / Codex terminal
+tool. No extra MCP server required.
 
 ### B. Cursor MCP → kagent controller (optional)
 
-Point a small MCP server (or existing controller MCP smoke) at:
+Point a small MCP server (or the existing controller MCP smoke) at:
 
 - Health: `GET http://127.0.0.1:8083/health`
 - A2A: `POST http://127.0.0.1:8083/api/a2a/kagent/supervisor-agent` with `message/stream`
 
-Keep secrets out of MCP config: only controller URL + agent name. LiteLLM master key stays in the cluster Secret `kagent-litellm`.
+Keep secrets out of MCP config: only controller URL + agent name. The LiteLLM
+master key stays in the cluster Secret `kagent-litellm`.
 
 Existing smoke references:
 
@@ -45,18 +48,26 @@ Existing smoke references:
 
 ### C. Codex
 
-Same A2A JSON-RPC as above. Prefer supervisor for multi-agent; use `litellm-gateway-tool-agent` for single-tool loops.
+Same A2A JSON-RPC as above. Prefer the supervisor for multi-agent runs.
 
 ## Client checklist
 
 1. LiteLLM up with `-BindHost 0.0.0.0`
 2. `kubectl -n kagent port-forward svc/kagent-controller 8083:8083`
 3. Agents Ready: `supervisor-agent`, `planner-agent`, `reviewer-agent`
-4. Invoke cloud alias only (`agent-coder`)
-5. Timeout ≥ 300s for supervisor
+4. Invoke the cloud alias only (`agent-coder`)
+5. Timeout ≥ 300s for the supervisor
+
+## Evidence classification
+
+| Claim | Decision |
+|-------|----------|
+| Multi-agent A2A execution (supervisor → planner → reviewer) | Proven (L4) — `evidence/a2a/run001/` |
+| Cursor/Codex wiring guide | Documented (this runbook) |
+| Real Cursor/Codex interoperability | Not attempted / Not proven |
+| IDE-federation I3 | Blocked; I4 unproven |
 
 ## Evidence
 
-- PR2: `evidence/runtime/kagent-litellm-success.md`
-- PR3: `evidence/kagent/tool-loop-run001/`
-- PR4: `evidence/a2a/run001/`
+- Gateway path: `evidence/runtime/kagent-litellm-success.md`
+- Multi-agent A2A run: `evidence/a2a/run001/`

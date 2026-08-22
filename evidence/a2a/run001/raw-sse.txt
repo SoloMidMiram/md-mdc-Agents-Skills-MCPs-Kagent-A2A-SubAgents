@@ -24,4 +24,3 @@ data: {"jsonrpc":"2.0","id":"bacc5dfd-ea29-452b-9331-08230542dcd9","result":{"ki
 
 id: 71854b91-51a2-4da6-b3e5-0ef36e6ccb68
 data: {"jsonrpc":"2.0","id":"bacc5dfd-ea29-452b-9331-08230542dcd9","result":{"kind":"status-update","contextId":"01a01f77-5cc2-7c36-ae12-3962ec88bd82","final":true,"status":{"state":"completed","timestamp":"2026-08-20T13:58:52.363231848Z"},"taskId":"01a01f77-5cc2-7ab9-8827-3a99f8f0cb64","metadata":{"adk_app_name":"kagent__NS__supervisor_agent","adk_invocation_id":"e-c34b8fec-6838-46e7-a32d-9117c5ce53af","adk_session_id":"01a01f77-5cc2-7c36-ae12-3962ec88bd82","adk_user_id":"admin@kagent.dev"}}}
-

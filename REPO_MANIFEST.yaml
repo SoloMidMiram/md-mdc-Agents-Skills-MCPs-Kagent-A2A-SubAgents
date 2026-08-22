@@ -329,12 +329,17 @@ entries:
     status: lab
     authority: false
 
-  - path: evidence/clients/cursor-codex-a2a.md
+  - path: evidence/runtime/a2a-raw-sse.txt
     purpose: reference
     status: lab
     authority: false
 
-  - path: evidence/clients/eval-routing-pointer.md
+  - path: evidence/a2a/run001/*
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/clients/cursor-codex-a2a.md
     purpose: reference
     status: lab
     authority: false
