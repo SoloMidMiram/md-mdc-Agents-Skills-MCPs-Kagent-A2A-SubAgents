@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Capture A2A SSE stream and extract tool-loop / final text for evidence (no secrets)."""
+
 from __future__ import annotations
 
 import argparse
@@ -13,7 +14,9 @@ def parse_sse(body: str) -> list[dict]:
     """Parse an SSE body into a list of JSON payload dictionaries."""
     events: list[dict] = []
     for block in body.replace("\r\n", "\n").split("\n\n"):
-        data_lines = [ln[5:].lstrip() for ln in block.splitlines() if ln.startswith("data:")]
+        data_lines = [
+            ln[5:].lstrip() for ln in block.splitlines() if ln.startswith("data:")
+        ]
         if not data_lines:
             continue
         payload_txt = "\n".join(data_lines).strip()
@@ -67,15 +70,38 @@ def summarize_events(events: list[dict], prompt: str) -> dict:
                 if isinstance(part, dict) and part.get("kind") == "text":
                     texts.append(str(part.get("text")))
 
-    # Heuristic: detect tool name mentions in stream
-    joined = json.dumps(events)
-    tool_names = {c.get("name") for c in tool_calls if isinstance(c.get("name"), str)}
-    tool_mentioned = bool(tool_names) or "k8s_get_resources" in joined or "functionCall" in joined
+    # Structured correlation (no heuristic string search). A qualifying pair is a
+    # `k8s_get_resources` call bound to resource_type=pod / namespace=kagent whose
+    # id exactly matches a result carrying a non-empty response output.
+    def _qualified_call(call: dict) -> bool:
+        args = call.get("args")
+        return (
+            call.get("name") == "k8s_get_resources"
+            and isinstance(args, dict)
+            and args.get("resource_type") == "pod"
+            and args.get("namespace") == "kagent"
+        )
 
-    # Correlate tool call ids to tool result ids by exact id match.
-    call_ids = [c["id"] for c in tool_calls if isinstance(c.get("id"), str)]
-    result_ids = [r["id"] for r in tool_results if isinstance(r.get("id"), str)]
-    matched_pairs = len(set(call_ids) & set(result_ids))
+    def _qualified_result(result: dict) -> bool:
+        response = result.get("response")
+        if not isinstance(response, dict):
+            return False
+        output = response.get("output")
+        return result.get("name") == "k8s_get_resources" and bool(output)
+
+    call_ids = {
+        c["id"]
+        for c in tool_calls
+        if isinstance(c.get("id"), str) and _qualified_call(c)
+    }
+    result_ids = {
+        r["id"]
+        for r in tool_results
+        if isinstance(r.get("id"), str) and _qualified_result(r)
+    }
+    matched_pairs = len(call_ids & result_ids)
+
+    tool_mentioned = bool(tool_calls) or bool(tool_results)
 
     agent_texts = [t for t in texts if t and t.strip() and t.strip() != prompt]
     final_answer = agent_texts[-1] if agent_texts else ""
@@ -88,9 +114,15 @@ def summarize_events(events: list[dict], prompt: str) -> dict:
         "tool_calls": tool_calls[:20],
         "tool_results": tool_results[:20],
         "final_answer_preview": final_answer[:500],
-        # Fail closed: a completed run alone does not prove the tool loop. Require
-        # at least one exact id-correlated tool call/result pair plus a final answer.
-        "passed": matched_pairs >= 1 and final_state == "completed" and bool(final_answer),
+        # Fail closed: completion plus text alone is not enough. Require a
+        # non-empty task id, terminal completion, at least one exact
+        # name/args/result-correlated tool pair, and a non-empty final answer.
+        "passed": (
+            bool(task_id)
+            and final_state == "completed"
+            and matched_pairs >= 1
+            and bool(final_answer)
+        ),
     }
 
 
@@ -154,7 +186,10 @@ def main() -> int:
 
     (out / "tool-call.json").write_text(
         json.dumps(
-            {"tool_mentioned_in_stream": tool_mentioned, "calls": summary["tool_calls"]},
+            {
+                "tool_mentioned_in_stream": tool_mentioned,
+                "calls": summary["tool_calls"],
+            },
             indent=2,
         ),
         encoding="utf-8",

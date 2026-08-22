@@ -180,12 +180,16 @@ is captured. The later `read_file` review tool is intentionally outside PR2.
 ## Tool-loop fail-closed gate addendum (2026-08-21)
 
 The tool-loop evidence helper (`capture-a2a-evidence.py`) now fails closed on
-tool usage: a run passes only when the stream reaches `completed`, yields a
-non-empty final answer, **and** contains at least one tool call whose `id`
-exactly matches a tool result `id` (`matched_tool_pairs >= 1`). Completion plus
-non-empty text alone no longer sets `passed=true`. The dated
-[tool-loop run001](tool-loop-run001/README.md) satisfies the gate and remains
-PASS. Deterministic negative tests cover missing-result and id-mismatch cases.
+structured correlation: a run passes only with a non-empty task id, terminal
+`completed`, a non-empty final answer, **and** at least one correlated pair — a
+`k8s_get_resources` call bound to `resource_type=pod` / `namespace=kagent` whose
+`id` exactly matches a result carrying a non-empty `response.output`
+(`matched_tool_pairs >= 1`). Completion plus non-empty text alone no longer sets
+`passed=true`. The dated [tool-loop run001](tool-loop-run001/README.md) satisfies
+the gate and remains PASS at L4; L6 is not promoted (no independent `kubectl`
+match, bounded source proof, or dated promotion review). Deterministic negative
+tests cover missing-result, id-mismatch, wrong-tool-name, wrong-arguments,
+empty-result, and missing-task-id cases.
 
 ## Major Open Flaws
 

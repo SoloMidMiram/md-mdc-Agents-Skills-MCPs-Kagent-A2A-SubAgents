@@ -1,4 +1,4 @@
-# PR3 tool-loop run001
+# tool-loop run001
 
 **Status:** PASS (cloud-only, agent-coder via LiteLLM)
 **Agent:** litellm-gateway-tool-agent
@@ -13,9 +13,15 @@
 - raw-sse.txt — full stream (no secrets)
 
 ## Fail-closed gate
-PASS requires `final_state=completed`, a non-empty final answer, **and** at least
-one tool call whose `id` exactly matches a tool result `id` (`matched_tool_pairs >= 1`).
-Completion plus text alone is insufficient to prove the tool loop.
+PASS requires a non-empty task id, terminal `completed`, a non-empty final
+answer, **and** at least one correlated pair: a `k8s_get_resources` call bound
+to `resource_type=pod` / `namespace=kagent` whose `id` exactly matches a result
+carrying a non-empty `response.output` (`matched_tool_pairs >= 1`). Completion
+plus text alone is insufficient to prove the tool loop.
+
+This proves L4 A2A task completion for this run. It does not promote L6: the
+retained run has no independent `kubectl` match, no bounded source proof, and
+no dated promotion review.
 
 ## Flow
 task -> reason -> call k8s_get_resources -> result -> answer
