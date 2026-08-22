@@ -14,8 +14,8 @@ silently re-scoped to one tool.
 - Any `ollama/*` or `ollama_chat/*` LiteLLM backend
 
 ## Allowed for live lab smokes / A2A / evals
-- Cloud aliases only, preferably `agent-coder` → DeepSeek (`deepseek-chat`)
-- Other cloud models already in LiteLLM (OpenAI, Arvan, etc.) if needed
+- Cloud-only LiteLLM alias `agent-coder` → DeepSeek (`deepseek-chat`).
+- No other cloud alias is permitted while the freeze is in effect.
 
 ## If cloud fails
 Write **BLOCKED** evidence with the error. Do **not** fall back to Ollama/local.
