@@ -18,6 +18,7 @@ Canonical supporting documents:
 - capability definitions: `docs/reference/kagent-capability-matrix.md`
 - current evidence/status: `evidence/kagent/README.md`
 - E1–E5 examples: `docs/runbooks/kagent-a2a-examples.md`
+- A2A clients guide: `docs/runbooks/kagent-a2a-clients.md`
 - documentation placement rules: `docs/DOCUMENTATION-ORGANIZATION.md`
 
 ## Where You Are Now
@@ -81,6 +82,21 @@ match is evidenced.
 | Tool invoked (exact call/result pair) | Proven (`matched_tool_pairs=1`) |
 | Agent answered after the tool | Proven |
 | L6 promotion | Not proven (direct A2A→MCP→kubectl correlation still required) |
+## A2A / client slice — evidence vs interop claims (2026-08-21)
+
+Multi-agent A2A orchestration evidence lives under `evidence/a2a/`. The
+Cursor/Codex wiring guide is a **runbook**, not a client-interoperability proof:
+see [kagent A2A clients runbook](../runbooks/kagent-a2a-clients.md). The guide
+documents the working A2A path and how to invoke it from an IDE agent; it does
+**not** assert that a real Cursor/Codex session has completed the I3/I4 pinning
+trace. I3 remains Blocked and I4 unproven until a same-invocation
+IDE → A2A → MCP → Kubernetes join is captured.
+
+| Claim | Decision |
+|---|---|
+| Supervisor/planner/reviewer A2A orchestration evidence | Proven (dated `evidence/a2a/run001/`) |
+| Client wiring and re-run guidance | Documented (runbook, non-interop) |
+| Cursor/Codex client interoperability | Not proven (I3 Blocked, I4 unproven) |
 
 ## Hardened Implementation Roadmap
 

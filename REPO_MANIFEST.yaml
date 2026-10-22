@@ -208,6 +208,11 @@ entries:
     status: lab
     authority: true
 
+  - path: docs/runbooks/kagent-a2a-clients.md
+    purpose: runbook
+    status: lab
+    authority: true
+
   - path: docs/runbooks/kagent-litellm-gateway.md
     purpose: runbook
     status: lab
@@ -340,6 +345,16 @@ entries:
     authority: false
 
   - path: evidence/runtime/a2a-raw-sse.txt
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/a2a/run001/*
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: evidence/clients/cursor-codex-a2a.md
     purpose: reference
     status: lab
     authority: false

@@ -202,6 +202,15 @@ empty-result, and missing-task-id cases.
 | P2 | Repeated current-state prose remains in older docs | Runtime claims can drift | Replace copied snapshots with links to this index |
 | P2 | Empty-param `message/stream` probes still return `-32603` | Probe noise; not an L4 path | Keep probe observational; document pinned MessageSendParams only |
 
+## A2A / client addendum (2026-08-21)
+
+Multi-agent A2A orchestration evidence lives under `evidence/a2a/run001/` (dated
+supervisor/planner/reviewer run), classified **L4 only**. The Cursor/Codex wiring
+guide is a runbook, `docs/runbooks/kagent-a2a-clients.md`, and documents the
+working A2A path and how to invoke it from an IDE agent. It is **not**
+client-interoperability evidence: no real Cursor/Codex session has completed the
+I3/I4 pinning trace, so I3 remains Blocked and I4 unproven.
+
 ## Record Index
 
 - [Phases 0-2 evidence](educational-practice-phase-0-2.md)
@@ -218,6 +227,8 @@ empty-result, and missing-task-id cases.
 - [Phase 6B–6D closure attempt](educational-practice-phase-6b-6d-closure.md)
 - [A2A experiment evidence](experiments/README.md)
 - [Tool-loop run001](tool-loop-run001/README.md)
+- [Multi-agent A2A run001](../a2a/run001/final-answer.md)
+- [Cursor/Codex A2A client surface](../clients/cursor-codex-a2a.md)
 - [PR2 LiteLLM gateway evidence](../runtime/kagent-litellm-success.md)
 - [Problem: MCP session reuse](problems/2026-07-17-mcp-session-reuse.md)
 - [Problem: health profile overclaim](problems/2026-07-17-health-profile-overclaim.md)
