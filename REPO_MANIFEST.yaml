@@ -265,6 +265,11 @@ entries:
     status: lab
     authority: true
 
+  - path: schemas/README.md
+    purpose: reference
+    status: lab
+    authority: false
+
   - path: docs/templates/educational-problem-record.md
     purpose: reference
     status: stable
