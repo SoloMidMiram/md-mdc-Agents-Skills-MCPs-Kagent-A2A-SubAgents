@@ -177,6 +177,20 @@ The retained helper capture has null card fields, so the complete five-gate
 single-agent acceptance remains incomplete until a card-plus-task `both` record
 is captured. The later `read_file` review tool is intentionally outside PR2.
 
+## Tool-loop fail-closed gate addendum (2026-08-21)
+
+The tool-loop evidence helper (`capture-a2a-evidence.py`) now fails closed on
+structured correlation: a run passes only with a non-empty task id, terminal
+`completed`, a non-empty final answer, **and** at least one correlated pair — a
+`k8s_get_resources` call bound to `resource_type=pod` / `namespace=kagent` whose
+`id` exactly matches a result carrying a non-empty `response.output`
+(`matched_tool_pairs >= 1`). Completion plus non-empty text alone no longer sets
+`passed=true`. The dated [tool-loop run001](tool-loop-run001/README.md) satisfies
+the gate and remains PASS at L4; L6 is not promoted (no independent `kubectl`
+match, bounded source proof, or dated promotion review). Deterministic negative
+tests cover missing-result, id-mismatch, wrong-tool-name, wrong-arguments,
+empty-result, and missing-task-id cases.
+
 ## Major Open Flaws
 
 | Priority | Flaw | Impact | Recommended closure evidence |
@@ -203,6 +217,7 @@ is captured. The later `read_file` review tool is intentionally outside PR2.
 - [Phase 6 native MCP federation](educational-practice-phase-6-native-mcp-federation.md)
 - [Phase 6B–6D closure attempt](educational-practice-phase-6b-6d-closure.md)
 - [A2A experiment evidence](experiments/README.md)
+- [Tool-loop run001](tool-loop-run001/README.md)
 - [PR2 LiteLLM gateway evidence](../runtime/kagent-litellm-success.md)
 - [Problem: MCP session reuse](problems/2026-07-17-mcp-session-reuse.md)
 - [Problem: health profile overclaim](problems/2026-07-17-health-profile-overclaim.md)

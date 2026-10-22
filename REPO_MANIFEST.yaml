@@ -329,6 +329,11 @@ entries:
     status: lab
     authority: false
 
+  - path: evidence/kagent/tool-loop-run001/README.md
+    purpose: reference
+    status: lab
+    authority: false
+
   - path: evidence/runtime/kagent-litellm-success.md
     purpose: reference
     status: lab
@@ -509,6 +514,11 @@ entries:
     status: lab
     authority: false
 
+  - path: scripts/kagent/capture-a2a-evidence.py
+    purpose: script
+    status: lab
+    authority: false
+
   - path: deploy/samples/kagent-a2a/01-planner/planner-agent.yaml
     purpose: manifest
     status: lab
@@ -666,6 +676,11 @@ entries:
     authority: false
 
   - path: tests/kagent/test_litellm_gateway_validation.py
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: tests/kagent/test_capture_a2a_evidence.py
     purpose: test
     status: lab
     authority: false
