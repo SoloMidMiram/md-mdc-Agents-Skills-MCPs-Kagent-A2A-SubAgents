@@ -32,8 +32,8 @@ jobs:
       - name: Sync locked development environment
         run: uv sync --frozen --group dev
 
-      - name: Lint kagent Python code
-        run: uv run ruff check scripts/kagent tests/kagent
+      - name: Lint kagent and context Python code
+        run: uv run ruff check scripts/kagent tests/kagent scripts/context tests/context
 
       - name: Run deterministic Python tests
         # SDK tests run in their required isolated, exact-lock job below.
