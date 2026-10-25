@@ -15,6 +15,11 @@ orchestration and EVAL-01 remain proposed.
 
 From the repository root, with Git, uv and Python >=3.12:
 
+The pinned source commit must exist in local Git history. A depth-one clone
+cannot replay an ancestor it does not contain; fetch that exact commit explicitly
+before running offline, or use a full-history clone. The root CI job checks out
+full history so the real fixture is required rather than skipped.
+
 ```powershell
 uv run --frozen --group dev python scripts/context/build_packet.py `
   --repo . --spec tests/context/fixtures/lab-01.json --output ../lab01-context.json

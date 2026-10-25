@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # CTX-01 replays evidence at a pinned ancestor, not the checkout head.
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
