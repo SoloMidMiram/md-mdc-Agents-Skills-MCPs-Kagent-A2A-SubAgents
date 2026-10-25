@@ -113,7 +113,8 @@ def build_packet(repo: Path, spec: dict[str, Any]) -> dict[str, Any]:
         raise PacketError("claims must be a list of at most 100 entries")
     checked_claims = []
     for claim in claims:
-        if not isinstance(claim, dict) or claim.get("kind") not in {"recorded", "inference"}:
+        kind = claim.get("kind") if isinstance(claim, dict) else None
+        if not isinstance(kind, str) or kind not in {"recorded", "inference"}:
             raise PacketError("claims must declare recorded or inference kind")
         refs = strings(claim.get("source_ids"), "claim source_ids")
         if not refs or not set(refs) <= ids:
@@ -121,7 +122,7 @@ def build_packet(repo: Path, spec: dict[str, Any]) -> dict[str, Any]:
         checked_claims.append(
             {
                 "statement": text(claim.get("statement"), "claim"),
-                "kind": claim["kind"],
+                "kind": kind,
                 "source_ids": refs,
             }
         )

@@ -160,6 +160,14 @@ def test_byte_budget_and_revision_are_enforced(source_repo, monkeypatch):
         builder.build_packet(repo, spec)
 
 
+@pytest.mark.parametrize("kind", [[], {}])
+def test_malformed_claim_kind_is_rejected(source_repo, kind):
+    repo, spec = source_repo
+    spec["claims"][0]["kind"] = kind
+    with pytest.raises(builder.PacketError, match="recorded or inference"):
+        builder.build_packet(repo, spec)
+
+
 def test_cli_rejection_preserves_output_and_emits_no_packet(source_repo, tmp_path):
     repo, spec = source_repo
     input_path, output_path = tmp_path / "spec.json", tmp_path / "packet.json"
