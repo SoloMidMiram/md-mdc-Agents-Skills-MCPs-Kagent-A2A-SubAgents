@@ -1,0 +1,29 @@
+{
+  "revision": "a53bfb62f0421a7c28234f871af2bf449a11491f",
+  "sources": [
+    {
+      "path": "docs/reference/kagent-capability-matrix.md",
+      "sha256": "6de269f902267373ecf1d1fe5abc4f31d4e6f2fd9396d595790d4c8e7e6f4b91"
+    },
+    {
+      "path": "docs/reference/kagent-agent-mediated-mcp-evidence.md",
+      "sha256": "48ed3f5bb013ce3620934b24579e0c074a87c7da8f86f5bf9f6867316875d26f"
+    },
+    {
+      "path": "evidence/kagent/README.md",
+      "sha256": "d093b31e30fc269c08e36807cc3ff68944e06cb722da068ccac3c90dd39118fe"
+    },
+    {
+      "path": "evidence/kagent/educational-practice-phase-5d-trustworthy-a2a.md",
+      "sha256": "990238434609348e8a720f48f6eba20f8fc1996fd8e8093486d409ce7d616c27"
+    },
+    {
+      "path": "evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md",
+      "sha256": "3148f3b7178e247c961e58979353155bf60d2c87d38aeb0851ef179e11fe527a"
+    },
+    {
+      "path": "evidence/kagent/educational-practice-phase-5b-direct-mcp.md",
+      "sha256": "6ba61f8f468485dafb0a4fa420d890fc96a07bb381d15046c5ce5254fdeffd5e"
+    }
+  ]
+}
