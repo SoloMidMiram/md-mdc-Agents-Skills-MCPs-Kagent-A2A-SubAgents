@@ -4,6 +4,13 @@ This index is the canonical current-status summary for the local kagent
 educational lane. Detailed records remain dated snapshots and must not be edited
 to imply capabilities that were not observed.
 
+The isolated [official Python SDK experiment](../../scripts/kagent/experiments/README-a2a-sdk.md)
+has a separate native output profile and deterministic qualification lane.
+Its [2026-10-22 record](experiments/2026-10-22-a2a-sdk-interoperability.md)
+is retained as a historical observation, not current live acceptance. Repository
+integration and live SDK compatibility must be qualified independently; these
+files do not promote L6, I3, I4, or L7 or change legacy L4 dispatch acceptance.
+
 ## Latest Verified Status
 
 Environment observed through 2026-08-04: local Docker Desktop Kubernetes cluster,

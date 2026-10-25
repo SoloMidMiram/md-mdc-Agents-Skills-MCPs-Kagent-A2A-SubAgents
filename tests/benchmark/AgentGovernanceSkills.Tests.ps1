@@ -1,4 +1,6 @@
 BeforeAll {
+    $SkillNamePattern = "(?m)^name:\s*{0}\r?$"
+    $ManualSkillPattern = "(?m)^disable-model-invocation:\s*true\r?$"
     $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
     $ReviewSkillRoot = Join-Path $RepoRoot ".agents\skills\review-kagent-capability"
     $SyncSkillRoot = Join-Path $RepoRoot ".agents\skills\sync-educational-slice"
@@ -42,13 +44,39 @@ BeforeAll {
 }
 
 Describe "Agent-governance skill contracts" {
+    It "validates exact skill metadata for <Case> with <Ending>" -TestCases @(
+        foreach ($ending in @("LF", "CRLF")) {
+            $newline = if ($ending -eq "LF") { "`n" } else { "`r`n" }
+            foreach ($name in @("review-kagent-capability", "sync-educational-slice")) {
+                foreach ($case in @(
+                    @{ Case = "valid"; NameLine = "name: $name"; FlagLine = "disable-model-invocation: true"; Expected = $true },
+                    @{ Case = "wrong name"; NameLine = "name: other"; FlagLine = "disable-model-invocation: true"; Expected = $false },
+                    @{ Case = "missing name"; NameLine = "description: absent"; FlagLine = "disable-model-invocation: true"; Expected = $false },
+                    @{ Case = "name suffix"; NameLine = "name: $name-extra"; FlagLine = "disable-model-invocation: true"; Expected = $false },
+                    @{ Case = "false flag"; NameLine = "name: $name"; FlagLine = "disable-model-invocation: false"; Expected = $false },
+                    @{ Case = "missing flag"; NameLine = "name: $name"; FlagLine = "description: absent"; Expected = $false },
+                    @{ Case = "flag suffix"; NameLine = "name: $name"; FlagLine = "disable-model-invocation: true-extra"; Expected = $false }
+                )) {
+                    @{ Case = "$name $($case.Case)"; Ending = $ending; SkillName = $name;
+                        Raw = "---$newline$($case.NameLine)$newline$($case.FlagLine)$newline---$newline";
+                        Expected = $case.Expected }
+                }
+            }
+        }
+    ) {
+        param($Raw, $SkillName, $Expected)
+        $accepted = ($Raw -match ($SkillNamePattern -f [regex]::Escape($SkillName))) -and
+            ($Raw -match $ManualSkillPattern)
+        $accepted | Should -Be $Expected
+    }
+
     It "uses Cursor-supported manual-only project skill metadata" {
         foreach ($skillRoot in @($ReviewSkillRoot, $SyncSkillRoot)) {
             $skillPath = Join-Path $skillRoot "SKILL.md"
             $raw = Get-Content -Raw -LiteralPath $skillPath
-            $raw | Should -Match "(?m)^disable-model-invocation:\s*true$"
+            $raw | Should -Match $ManualSkillPattern
             $name = [IO.Path]::GetFileName($skillRoot)
-            $raw | Should -Match "(?m)^name:\s*$name$"
+            $raw | Should -Match ($SkillNamePattern -f [regex]::Escape($name))
             (Join-Path $skillRoot "scripts") | Should -Exist
         }
     }

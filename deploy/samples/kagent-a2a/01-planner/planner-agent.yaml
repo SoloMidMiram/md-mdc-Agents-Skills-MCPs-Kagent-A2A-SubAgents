@@ -48,8 +48,8 @@ spec:
             - Plan a minimal hello-world Telegram bot.
 ---
 # Prerequisites:
-#   1. Qualify DeepSeek: uv run python scripts/kagent/deepseek_provider_probe.py --output json
-#   2. kubectl apply -f deploy/samples/kagent/ide-safe-deepseek-model-config.yaml
+#   1. Qualify cloud-only agent-coder using docs/runbooks/kagent-litellm-gateway.md
+#   2. kubectl apply -f deploy/samples/kagent/litellm-gateway-model-config.yaml
 #   3. kubectl apply -f deploy/samples/kagent-a2a/01-planner/planner-agent.yaml
 # Cleanup:
 #   kubectl delete -f deploy/samples/kagent-a2a/01-planner/planner-agent.yaml

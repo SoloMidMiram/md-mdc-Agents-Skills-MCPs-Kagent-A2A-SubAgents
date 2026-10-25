@@ -1,5 +1,8 @@
 # Phase 2 — Reviewer Agent
 
+Active runs use only LiteLLM `agent-coder`; see `docs/LOCAL_MODELS_FROZEN.md`.
+A cloud failure is Blocked; local/Ollama fallback is forbidden.
+
 ## Learning objective
 
 Prove a direct A2A dispatch to a reviewer agent that validates a planner JSON
@@ -64,7 +67,7 @@ None.
 
 ## Evidence location
 
-`evidence/kagent/experiments/YYYY-MM-DD-phase2-reviewer.json`
+`evidence/kagent/experiments/YYYY-MM-DD-phase2-reviewer-<run-id>.json`
 
 ## Cleanup
 

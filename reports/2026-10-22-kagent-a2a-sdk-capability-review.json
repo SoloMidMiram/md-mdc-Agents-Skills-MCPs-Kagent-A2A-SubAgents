@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "1.0",
+  "review": {
+    "scope": "evidence/kagent/experiments/2026-10-22-a2a-sdk-interoperability.md and scripts/kagent/experiments/a2a_sdk_interop.py",
+    "observedAt": "2026-10-22T17:45:07Z",
+    "claims": [
+      {
+        "level": "L3",
+        "claim": "The official SDK can discover the existing kagent Agent Card live.",
+        "classification": "Blocked",
+        "sources": [
+          "evidence/kagent/experiments/2026-10-22-a2a-sdk-interoperability.md#Live attempt"
+        ],
+        "rationale": "The documented controller listener was unavailable and kubectl was not installed, so no live card response could be obtained.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "L4",
+        "claim": "The official Python SDK completed an end-to-end A2A request against k8s-a2a-agent.",
+        "classification": "Not proven",
+        "sources": [
+          "evidence/kagent/experiments/2026-10-22-a2a-sdk-interoperability.md#Result",
+          "tests/kagent/experiments/test_a2a_sdk_interop.py::test_official_sdk_stream_records_task_and_status_correlation"
+        ],
+        "rationale": "The SDK-backed SSE round trip uses an in-memory HTTP transport; the live command exited 3 during card discovery before dispatch.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "L4",
+        "claim": "The deterministic interoperability test is live kagent dispatch evidence.",
+        "classification": "Not proven",
+        "sources": [
+          "evidence/kagent/experiments/2026-10-22-a2a-sdk-interoperability.md#Capability classification"
+        ],
+        "rationale": "Synthetic task IDs, transitions, and response IDs demonstrate client behavior but do not cross the existing A2A endpoint.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "L6",
+        "claim": "The SDK A2A task caused a real MCP tool invocation and returned tool-derived output.",
+        "classification": "Not attempted",
+        "sources": [
+          "scripts/kagent/experiments/a2a_sdk_interop.py",
+          "evidence/kagent/experiments/2026-10-22-a2a-sdk-interoperability.md#Result"
+        ],
+        "rationale": "This client intentionally collects no agent/controller tool trace and no MCP result; A2A communication is explicitly not treated as MCP execution.",
+        "promotionCriteriaChecked": true
+      }
+    ],
+    "hardFindings": [],
+    "softObservations": [
+      "The kagent details endpoint does not expose a standard well-known Agent Card in the documented path, so the experiment records whether protocolVersion came from the card or the pinned controller compatibility profile.",
+      "No Kubernetes manifest, Cursor configuration, existing script, or runtime resource was changed by this experiment."
+    ],
+    "verdict": {
+      "claimsChecked": 4,
+      "proven": 0,
+      "notProven": 2,
+      "blocked": 1,
+      "notAttempted": 1,
+      "currentStatusChanged": false,
+      "summary": "The isolated SDK client and deterministic protocol/correlation tests are complete, but the live interoperability gate is blocked by the unavailable local controller listener. No L4 or L6 promotion is justified, and MCP execution remains an explicit non-claim."
+    }
+  }
+}

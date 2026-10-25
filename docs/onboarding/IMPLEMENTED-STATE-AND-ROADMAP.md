@@ -269,16 +269,16 @@ planning units and do not assert that a hosted PR exists.
 | 0 | **Current-head release baseline** — select one immutable release SHA and run the full hosted workflow from `docs/laptop-stable-acceptance-plan.md`. | Open | Existing deterministic suites | Candidate SHA, local results, and same-SHA hosted Quality are recorded. |
 | 1 | **Stable Playwright patch release** — complete Windows install → verify → rollback → verify and tag `laptop-stable-v0.1.1`. | Open | 0 | Target-host acceptance and exact-SHA hosted Quality pass; the tag points to that SHA. |
 | 2 | **Kagent Delivery Gate 0 / roadmap-baseline publication** — preserved the six coherent documentation updates on the PR #3 branch before Phase 7 implementation. | **Published** at `090ad52` (`docs(kagent): harden remaining phase and PR roadmap`); no capability decision changes | Six-file roadmap diff, empty staging area, clean required validation, and preceding test harden `178ce58` | Pushed SHA `090ad52` with exact-SHA `quality.yml` green: push run [30979059299](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979059299) and pull_request run [30979061019](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979061019); no capability decision changes. |
-| 3 | **PR #3 / Phase 6 human Cursor I3 close-out** — capture the no-tool context-forwarding trace, postflight, rollback, and dated decision addendum. | Active human gate; I3 remains Blocked | Candidate B strict preflight and singleton inventory are already qualified | Qualifying Cursor trace or exact Blocked addendum; default profile restored; owned port-forward stopped; final pushed SHA passes `quality.yml` before undraft. |
-| 4 | **Proposed PR #4 / Phase 7A read-only hardening** — exact default-deny discovery plus least-privilege RBAC. | Planned | 3 closed or deliberately recorded Blocked; no temporary I3 profile remains | Only `k8s_get_resources` is advertised; forbidden names are absent; RBAC negative checks, manifest validation, security scan, and final-SHA hosted Quality pass. |
-| 5 | **Proposed PR #5 / Phase 7B terminal L6 proof** — one direct A2A task invokes the approved tool and returns `kubectl`-matching pod names. | Planned | 4 | Fresh `agent_mcp_trace.py` exit 0 with one task, exact server/tool/arguments, bounded source proof, returned names, and independent match. |
-| 6 | **Proposed PR #6 / Phase 7C Cursor I4 proof** — join one real Cursor call to the same qualifying A2A task and tool result without dispatching a helper task. | Planned | I3-Cursor and 5 | A fail-closed external-invocation join plus one real same-invocation Cursor → agent → MCP → Kubernetes record. |
-| 7 | **Proposed PR #7 / Phase 8 parity and workshop** — Codex parity, clean bootstrap, restart/recovery, tracked process cleanup, and fresh acceptance. | Planned | 6 | Fresh Docker Desktop run qualifies both clients, I5, and L7; cleanup is verified; final pushed SHA passes hosted Quality. |
+| 3 | RECON-01 / federation and gateway integration | Local rehearsal only | Verified hosted heads | Stable IDs, preserved evidence, cloud-only examples, exact candidate checks. |
+| 4 | EVID-01 / evidence integrity | Active | RECON-01 | Negative regressions and validated recorder/harness; no capability promotion. |
+| 5 | A2A-01 / pinned SDK validation | Next | EVID-01 | SDK 0.3.26 isolated tests, then bounded live result or Blocked record. |
+| 6 | CTX-01 / cited context; SAFE-01 / exact MCP surface | Planned | EVID-01; A2A-01 for transport | Source-linked context; exact server-side safety before tools. |
+| 7 | WORKER-01, EVAL-01, OPS-01 | Planned | Validated contracts and required safety | Bounded worker, comparable measurements, owned cleanup. |
 
-The kagent delivery units are deliberately sequential for a single operator.
-Design investigation may occur earlier, but Phase 7 must not mutate the live
-cluster while the current human I3 session and temporary provider profile are
-awaiting close-out.
+North Star's A2A-first direction supersedes Cursor-I3-first ordering. I3 remains
+Blocked and proceeds independently; I4 still requires I3 plus same-invocation
+L6 evidence. See [integration workstreams](../reference/integration-workstreams.md)
+for historical proposed-number mappings. No cluster mutation is authorized here.
 
 ### Architecture decision for the IDE lane
 
@@ -314,10 +314,7 @@ L6 or L7.
    and PR roadmap`) with exact-SHA `quality.yml` green on both the push and
    pull_request runs. Any later I3 evidence commit creates a new final SHA and
    needs its own hosted run.
-4. Close PR #3's human Cursor I3 gate: capture the trace, run postflight,
-   restore the default profile, stop the actual port-forward child, append the
-   dated result, and require final-SHA hosted Quality before undrafting.
-5. Implement the kagent units in order: read-only discovery, direct A2A L6,
-   external same-invocation Cursor I4 correlation, then Codex parity and the
-   fresh I5/L7 workshop. Do not treat a separate `agent_mcp_trace.py` dispatch
-   as IDE correlation, and do not build a custom IDE-to-A2A bridge.
+4. Complete RECON-01, then EVID-01 and A2A-01. Preserve the independent
+   Cursor I3 blocker; do not make it the prerequisite for A2A education.
+5. Follow stable workstream dependencies for CTX-01, SAFE-01, WORKER-01,
+   EVAL-01, and OPS-01. Direct MCP and separate helper tasks do not prove I4.

@@ -1,5 +1,8 @@
 # E2 — Supervisor Agent (multi-agent A2A)
 
+Active runs use only LiteLLM `agent-coder`; see `docs/LOCAL_MODELS_FROZEN.md`.
+A cloud failure is Blocked; local/Ollama fallback is forbidden.
+
 ## Learning objective
 
 Prove genuine kagent-native multi-agent delegation: supervisor invokes
@@ -63,7 +66,7 @@ Composite JSON with `summary`, `plan`, `review`, and `verdict`.
 
 ## Evidence location
 
-`evidence/kagent/experiments/YYYY-MM-DD-e2-supervisor.json`
+`evidence/kagent/experiments/YYYY-MM-DD-e2-supervisor-<run-id>.json`
 
 ## Cleanup
 

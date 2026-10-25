@@ -1,5 +1,8 @@
 # E1 — Planner Agent
 
+Active runs use only LiteLLM `agent-coder`; see `docs/LOCAL_MODELS_FROZEN.md`.
+A cloud failure is Blocked; local/Ollama fallback is forbidden.
+
 ## Learning objective
 
 Prove a single bounded A2A dispatch to an in-cluster planner agent that returns a
@@ -8,8 +11,8 @@ structured JSON plan without MCP tools or external clients.
 ## Prerequisites
 
 - Local kagent lab on `docker-desktop` ([local kagent A2A lab](../../../../docs/runbooks/local-kagent-a2a-lab.md))
-- DeepSeek qualified: `uv run python scripts/kagent/deepseek_provider_probe.py --output json`
-- `ide-safe-deepseek-model-config` applied and Accepted
+- Cloud-only `agent-coder` qualified via the LiteLLM gateway runbook
+- `litellm-gateway-model-config` applied and Accepted
 
 ## Input
 
@@ -57,7 +60,7 @@ JSON object with keys: `goal`, `constraints`, `files`, `acceptance_criteria`,
 
 ## Evidence location
 
-`evidence/kagent/experiments/YYYY-MM-DD-e1-planner.json`
+`evidence/kagent/experiments/YYYY-MM-DD-e1-planner-<run-id>.json`
 
 ## Cleanup
 
@@ -68,7 +71,7 @@ kubectl delete -f deploy/samples/kagent-a2a/01-planner/planner-agent.yaml
 ## Commands
 
 ```powershell
-kubectl apply -f deploy/samples/kagent/ide-safe-deepseek-model-config.yaml
+kubectl apply -f deploy/samples/kagent/litellm-gateway-model-config.yaml
 kubectl apply -f deploy/samples/kagent-a2a/01-planner/planner-agent.yaml
 python scripts/kagent/experiments/run_a2a_example.py `
   --agent planner-agent `

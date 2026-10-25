@@ -23,7 +23,7 @@ These are **not** capability levels — L0–L7 and I0–I5 remain defined in
 | Lane | Question | Primary artifacts |
 |------|----------|-------------------|
 | **A — A2A Education** | Can kagent agents delegate useful bounded work? | `deploy/samples/kagent-a2a/`, `scripts/kagent/experiments/`, E1–E5 |
-| **S — Safety / MCP** | Can agents use only explicitly approved tools? | PR #5 read-only surface, RBAC, default-deny discovery |
+| **S — Safety / MCP** | Can agents use only explicitly approved tools? | SAFE-01 read-only surface, RBAC, default-deny discovery |
 | **C — Client Interop** | Can Cursor and Codex enter the same workflow reliably? | Controller `/mcp`, I-track, client configs |
 | **B — Benchmarking** | Latency, reliability, cost, quality per architecture? | Baselines B0–B8, OTel/Jaeger traces |
 

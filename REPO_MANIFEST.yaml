@@ -736,3 +736,64 @@ entries:
     purpose: reference
     status: historical
     authority: false
+
+  - path: docs/reference/integration-workstreams.md
+    purpose: reference
+    status: lab
+    authority: true
+
+  # Isolated official SDK experiment; native output is not educational 1.1.
+  - path: tests/kagent/test_quality_workflow.py
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/a2a_sdk_interop.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/a2a_sdk_requirements.in
+    purpose: config
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/a2a_sdk_requirements.lock
+    purpose: config
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/README-a2a-sdk.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: tests/kagent/experiments/test_a2a_sdk_interop.py
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: tests/kagent/experiments/test_a2a_sdk_transport.py
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: tests/kagent/experiments/test_a2a_sdk_repairs.py
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: tests/kagent/experiments/test_a2a_sdk_cleanup.py
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: evidence/kagent/experiments/2026-10-22-a2a-sdk-interoperability.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: reports/2026-10-22-kagent-a2a-sdk-capability-review.json
+    purpose: reference
+    status: lab
+    authority: false

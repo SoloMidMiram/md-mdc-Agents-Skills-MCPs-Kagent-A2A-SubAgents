@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import math
 import sys
 import time
 from dataclasses import dataclass, field
@@ -25,7 +26,8 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[3]
 A2A_PATH = Path(__file__).resolve().parents[1] / "test-a2a-agent.py"
 _spec = importlib.util.spec_from_file_location("kagent_test_a2a_agent", A2A_PATH)
-assert _spec is not None and _spec.loader is not None
+if _spec is None or _spec.loader is None:
+    raise RuntimeError("shared A2A helper could not be loaded")
 a2a = importlib.util.module_from_spec(_spec)
 sys.modules["kagent_test_a2a_agent"] = a2a
 _spec.loader.exec_module(a2a)
@@ -34,14 +36,15 @@ EXPERIMENTS_DIR = Path(__file__).resolve().parent
 _contracts_spec = importlib.util.spec_from_file_location(
     "kagent_experiment_contracts", EXPERIMENTS_DIR / "contracts.py"
 )
-assert _contracts_spec is not None and _contracts_spec.loader is not None
+if _contracts_spec is None or _contracts_spec.loader is None:
+    raise RuntimeError("experiment contracts could not be loaded")
 contracts = importlib.util.module_from_spec(_contracts_spec)
 sys.modules["kagent_experiment_contracts"] = contracts
 _contracts_spec.loader.exec_module(contracts)
 ContractError = contracts.ContractError
 validate_artifact = contracts.validate_artifact
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 DEFAULT_CONTROLLER = a2a.DEFAULT_CONTROLLER
 DEFAULT_NAMESPACE = a2a.DEFAULT_NAMESPACE
 
@@ -57,19 +60,21 @@ class ExampleRunResult:
     duration_ms: int
     pass_: bool
     reason: str
+    observed_at: str = field(default_factory=a2a.utc_now_iso)
+    request_id: str | None = None
     artifact: dict[str, Any] | None = None
     artifact_summary: dict[str, Any] = field(default_factory=dict)
     card_accepted: bool | None = None
     card_deployment_ready: bool | None = None
     non_claims: list[str] = field(
-        default_factory=lambda: ["L6", "I3", "I4", "MCP", "Codex", "Cursor"]
+        default_factory=lambda: ["L6", "I3", "I4", "L7", "MCP", "Codex", "Cursor"]
     )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload = {
             "schemaVersion": SCHEMA_VERSION,
             "example": self.example,
-            "observedAt": a2a.utc_now_iso(),
+            "observedAt": self.observed_at,
             "agents": [self.agent],
             "target": {
                 "namespace": self.namespace,
@@ -77,10 +82,12 @@ class ExampleRunResult:
                 "controller": a2a.sanitize_controller_origin(self.controller),
             },
             "taskId": self.task_id,
+            "requestId": self.request_id,
             "dispatchState": self.dispatch_state,
             "durationMs": self.duration_ms,
             "pass": self.pass_,
             "reason": self.reason,
+            "artifact": self.artifact,
             "card": {
                 "accepted": self.card_accepted,
                 "deploymentReady": self.card_deployment_ready,
@@ -88,6 +95,11 @@ class ExampleRunResult:
             "artifactSummary": self.artifact_summary,
             "nonClaims": self.non_claims,
         }
+        contracts.validate_evidence_payload(payload)
+        sanitized = contracts.sanitize_evidence(payload)
+        if not isinstance(sanitized, dict):
+            raise ContractError("sanitized evidence must be an object")
+        return sanitized
 
 
 def _example_id_for_agent(agent: str) -> str:
@@ -120,6 +132,8 @@ def poll_task_until_terminal(
     poll_interval: float = 2.0,
 ) -> dict[str, Any]:
     """Poll ``tasks/get`` until the task reaches a terminal state."""
+    if not isinstance(task_id, str) or not task_id.strip():
+        raise a2a.GateError("polling requires a task ID")
     deadline = time.perf_counter() + timeout
     envelope = {
         "jsonrpc": "2.0",
@@ -128,36 +142,34 @@ def poll_task_until_terminal(
         "params": {"id": task_id},
     }
     body = json.dumps(envelope).encode()
-    last_task: dict[str, Any] | None = None
-    while time.perf_counter() < deadline:
+    while (now := time.perf_counter()) < deadline:
         resp = transport.request(
             "POST",
             url,
             headers={"Content-Type": "application/json", "Accept": "application/json"},
             body=body,
-            timeout=min(30.0, timeout),
+            timeout=min(30.0, deadline - now),
         )
         if resp.status >= 400:
             raise a2a.TransportFailure(f"tasks/get HTTP {resp.status}", error_kind="http_error")
-        decoded = json.loads(resp.body.decode("utf-8"))
-        if not isinstance(decoded, dict):
-            raise a2a.GateError("tasks/get response must be an object")
-        if "error" in decoded:
-            err = decoded["error"]
-            raise a2a.GateError(
-                f"tasks/get error code={err.get('code')}: {err.get('message', '')}"
-            )
-        task = decoded.get("result")
+        try:
+            decoded = json.loads(resp.body.decode("utf-8"))
+        except (ValueError, UnicodeError) as exc:
+            raise a2a.GateError("tasks/get response must be JSON") from exc
+        task, err, _matched = a2a.validate_jsonrpc_response(envelope["id"], decoded)
+        if err is not None:
+            raise a2a.GateError("tasks/get returned a JSON-RPC error")
         if not isinstance(task, dict):
             raise a2a.GateError("tasks/get result must be a task object")
-        last_task = task
+        if task.get("id") != task_id:
+            raise a2a.GateError("tasks/get task ID mismatch")
         state, _text = extract_text_from_task(task)
-        if state in {"completed", "failed", "canceled", "cancelled", "rejected"}:
+        if state not in contracts.TASK_STATES:
+            raise a2a.GateError("tasks/get returned an unrecognized state")
+        if state in contracts.TERMINAL_STATES:
             return task
-        time.sleep(poll_interval)
-    if last_task is None:
-        raise a2a.GateError("tasks/get polling timed out before first response")
-    return last_task
+        time.sleep(min(poll_interval, max(0.0, deadline - time.perf_counter())))
+    raise a2a.GateError("tasks/get polling timed out without terminal completion")
 
 
 def extract_response_text(events: list[dict[str, Any]], task_id: str | None) -> str:
@@ -169,27 +181,15 @@ def extract_response_text(events: list[dict[str, Any]], task_id: str | None) -> 
         result = obj.get("result")
         if not isinstance(result, dict):
             continue
-        if task_id and result.get("taskId") not in {None, task_id}:
+        event_task = result.get("taskId") or (
+            result.get("id") if result.get("kind") == "task" else None
+        )
+        if not task_id or event_task != task_id:
             continue
         status = result.get("status") if isinstance(result.get("status"), dict) else {}
         if str(status.get("state", "")).lower() != "completed":
             continue
         message = status.get("message") if isinstance(status.get("message"), dict) else {}
-        for part in message.get("parts") or []:
-            if isinstance(part, dict) and isinstance(part.get("text"), str):
-                chunks.append(part["text"])
-    if chunks:
-        return "\n".join(chunks)
-
-    # Fallback: any agent-role text part in stream order
-    for obj in events:
-        result = obj.get("result") if isinstance(obj, dict) else None
-        if not isinstance(result, dict):
-            continue
-        status = result.get("status") if isinstance(result.get("status"), dict) else {}
-        message = status.get("message") if isinstance(status.get("message"), dict) else {}
-        if message.get("role") not in {"agent", "model"}:
-            continue
         for part in message.get("parts") or []:
             if isinstance(part, dict) and isinstance(part.get("text"), str):
                 chunks.append(part["text"])
@@ -225,6 +225,9 @@ def run_example(
 ) -> ExampleRunResult:
     transport = a2a.DirectUrlTransport()
     example_id = example or _example_id_for_agent(agent)
+    contracts.validate_example(example_id, agent)
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise ContractError("timeout must be finite and positive")
     started = time.perf_counter()
     result = ExampleRunResult(
         example=example_id,
@@ -261,17 +264,36 @@ def run_example(
             transport, url, prompt, timeout=timeout
         )
         task_id, state, _kind = a2a.select_dispatch_from_events(request_id, events)
+        result.request_id = request_id
+        if not isinstance(task_id, str) or not task_id.strip():
+            raise a2a.GateError("dispatch requires a task ID")
+        for event in events:
+            source, error, _matched = a2a.validate_jsonrpc_response(request_id, event)
+            if error is not None or not isinstance(source, dict):
+                raise a2a.GateError("invalid dispatch event")
+            event_task = source.get("taskId") or (
+                source.get("id") if source.get("kind") == "task" else None
+            )
+            if event_task != task_id:
+                raise a2a.GateError("dispatch stream task ID mismatch")
+            status = source.get("status", {})
+            if not isinstance(status, dict):
+                raise a2a.GateError("dispatch status must be an object")
+            if status.get("state") in contracts.TERMINAL_STATES - {"completed"}:
+                raise a2a.GateError("dispatch stream contains a failed terminal state")
         result.task_id = task_id
         result.dispatch_state = state
 
         terminal_task = poll_task_until_terminal(
-            transport, url, task_id, timeout=timeout
+            transport, url, task_id, timeout=max(0.0, timeout - (time.perf_counter() - started))
         )
+        if terminal_task.get("id") != task_id:
+            raise a2a.GateError("terminal task ID mismatch")
         terminal_state, response_text = extract_text_from_task(terminal_task)
         result.dispatch_state = terminal_state
-        if terminal_state == "failed":
+        if terminal_state != "completed":
             result.duration_ms = int((time.perf_counter() - started) * 1000)
-            result.reason = response_text.strip() or "task failed without agent message"
+            result.reason = f"task did not complete: {terminal_state}"
             return result
         if not response_text.strip():
             response_text = extract_response_text(events, task_id)
@@ -281,18 +303,21 @@ def run_example(
             return result
 
         artifact: dict[str, Any] | None = None
-        if not skip_contract:
-            artifact = validate_artifact(agent, response_text)
-            result.artifact = artifact
-            result.artifact_summary = summarize_artifact(agent, artifact)
+        if skip_contract:
+            raise ContractError("contract validation skipped; diagnostic only")
+        artifact = validate_artifact(agent, response_text)
+        result.artifact = artifact
+        result.artifact_summary = summarize_artifact(agent, artifact)
 
         result.duration_ms = int((time.perf_counter() - started) * 1000)
         result.pass_ = True
-        result.reason = "A2A dispatch accepted with valid structured artifact"
+        result.reason = "A2A task completed with valid structured artifact"
+        result.to_dict()  # Apply the recorder's success gates before returning success.
         return result
     except (a2a.GateError, a2a.TransportFailure, ContractError) as exc:
+        result.pass_ = False
         result.duration_ms = int((time.perf_counter() - started) * 1000)
-        result.reason = str(exc)
+        result.reason = contracts.sanitize_evidence(str(exc))
         return result
 
 
@@ -308,7 +333,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--skip-contract",
         action="store_true",
-        help="Accept dispatch without JSON contract validation",
+        help="Inspect dispatch without contract validation (never an accepted example)",
     )
     parser.add_argument("--output", choices=("human", "json"), default="human")
     return parser.parse_args(argv)
@@ -333,25 +358,30 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return a2a.ExitCode.USAGE
 
-    run = run_example(
-        agent=args.agent,
-        prompt=prompt,
-        controller=controller,
-        namespace=args.namespace,
-        example=args.example,
-        timeout=args.timeout,
-        skip_contract=args.skip_contract,
-    )
+    try:
+        run = run_example(
+            agent=args.agent,
+            prompt=prompt,
+            controller=controller,
+            namespace=args.namespace,
+            example=args.example,
+            timeout=args.timeout,
+            skip_contract=args.skip_contract,
+        )
+    except ContractError as exc:
+        print(f"error: {contracts.sanitize_evidence(str(exc))}", file=sys.stderr)
+        return int(a2a.ExitCode.USAGE)
 
     if args.output == "json":
         print(json.dumps(run.to_dict(), indent=2))
     else:
         prefix = "[PASS]" if run.pass_ else "[FAIL]"
         print(f"{prefix} {run.example} agent={run.agent} task={run.task_id}")
-        print(f"  reason: {run.reason}")
+        print(f"  reason: {contracts.sanitize_evidence(run.reason)}")
         print(f"  durationMs: {run.duration_ms}")
         if run.artifact_summary:
-            print(f"  artifactSummary: {json.dumps(run.artifact_summary)}")
+            summary = contracts.sanitize_evidence(run.artifact_summary)
+            print(f"  artifactSummary: {json.dumps(summary)}")
 
     return a2a.ExitCode.SUCCESS if run.pass_ else a2a.ExitCode.GATE
 

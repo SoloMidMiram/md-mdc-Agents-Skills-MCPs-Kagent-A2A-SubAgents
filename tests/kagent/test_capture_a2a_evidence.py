@@ -21,9 +21,7 @@ GOOD_ARGS = {"namespace": "kagent", "resource_type": "pod"}
 WRONG_ARGS = {"namespace": "kagent", "resource_type": "deployment"}
 
 
-def _status(
-    msg_parts: list[dict], state: str | None = None, task_id: str = "task1"
-) -> dict:
+def _status(msg_parts: list[dict], state: str | None = None, task_id: str = "task1") -> dict:
     return {
         "jsonrpc": "2.0",
         "id": "req1",

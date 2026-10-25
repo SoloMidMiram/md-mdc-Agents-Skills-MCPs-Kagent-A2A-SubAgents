@@ -4,7 +4,7 @@ This runbook owns executable procedures for the A2A-first educational sequence
 defined in [Project North Star](../north-star.md). Capability decisions remain in
 `evidence/kagent/README.md`; this document owns commands and pass/fail criteria.
 
-**Status:** E1–E2 manifests and harness ship in PR #4 (`edu/kagent-a2a-role-examples`).
+**Status:** E1–E2 manifests and harness ship in EDU-01 (`edu/kagent-a2a-role-examples`).
 
 ---
 
@@ -12,9 +12,9 @@ defined in [Project North Star](../north-star.md). Capability decisions remain i
 
 - Local `kagent` on `docker-desktop` per [local kagent A2A lab](local-kagent-a2a-lab.md)
 - L4 A2A dispatch proven (see evidence index)
-- DeepSeek qualified and `ide-safe-deepseek-model-config` applied
-- For E3+: read-only MCP surface from PR #5 when tool access is required
-- For E4/E5: Codex local runner (PR #7) — not required for E1–E2
+- Cloud-only LiteLLM `agent-coder` qualified and `litellm-gateway-model-config` applied
+- For E3+: read-only MCP surface from SAFE-01 when tool access is required
+- For E4/E5: Codex local runner (WORKER-01) — not required for E1–E2
 
 ---
 
@@ -36,8 +36,9 @@ Manifest paths: `deploy/samples/kagent-a2a/01-planner` … `05-telegram-capstone
 ## Apply order (E1–E2)
 
 ```powershell
-uv run python scripts/kagent/deepseek_provider_probe.py --output json
-kubectl apply -f deploy/samples/kagent/ide-safe-deepseek-model-config.yaml
+uv run python scripts/kagent/validate-litellm-gateway.py --json
+# Follow the gateway runbook to qualify the cloud alias and create its Secret.
+kubectl apply -f deploy/samples/kagent/litellm-gateway-model-config.yaml
 kubectl apply -f deploy/samples/kagent-a2a/01-planner/planner-agent.yaml
 kubectl apply -f deploy/samples/kagent-a2a/02-reviewer/reviewer-agent.yaml
 kubectl apply -f deploy/samples/kagent-a2a/03-supervisor/supervisor-agent.yaml
@@ -66,7 +67,10 @@ python scripts/kagent/experiments/record_experiment.py `
 **Pass:** Structured planner response; one A2A task id; exit 0.  
 **Fail closed:** Missing task id, provider error, or timeout.
 
-**Evidence:** `evidence/kagent/experiments/YYYY-MM-DD-e1-planner.json`
+**Evidence:** `evidence/kagent/experiments/YYYY-MM-DD-e1-planner-<run-id>.json`.
+The recorder validates v1.1 evidence, retains genuine failures, and creates each
+record exclusively. Recorder exit 0 means the record was saved; inspect its
+`acceptance.passed` field for the example outcome.
 
 ---
 
@@ -115,7 +119,7 @@ python scripts/kagent/experiments/record_experiment.py `
 
 **Safety:** Bundle is read-only; no live cluster mutation. Uses Lane S allowlist when MCP is involved.
 
-**Planned:** PR #4 docs-agent sample + PR #5 read-only tool surface.
+**Planned:** EDU-01 docs-agent sample + SAFE-01 read-only tool surface.
 
 ---
 
@@ -127,7 +131,7 @@ python scripts/kagent/experiments/record_experiment.py `
 kagent planner (A2A) → Codex local runner → kagent reviewer (A2A)
 ```
 
-Codex is **not** initially a peer A2A agent. It is invoked via the worker adapter (PR #7).
+Codex is **not** initially a peer A2A agent. It is invoked via the worker adapter (WORKER-01).
 
 **Benchmark baseline:** B5 (see north star).
 
@@ -138,7 +142,7 @@ Codex is **not** initially a peer A2A agent. It is invoked via the worker adapte
 **Objective:** Full orchestrated workflow integrating planner, reviewer, supervisor,
 docs validation, tests, and human deploy approval.
 
-**Depends on:** PR #5 (safety), PR #7 (Codex worker), prior E1–E4 evidence.
+**Depends on:** SAFE-01 (safety), WORKER-01 (Codex worker), prior E1–E4 evidence.
 
 ---
 

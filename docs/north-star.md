@@ -1,5 +1,9 @@
 # Project North Star
 
+Current engineering order (2026-10-22): RECON-01 → EVID-01 → A2A-01.
+The integration is a local rehearsal; hosted merge/CI approval is separate.
+New workflow evidence waits for integrity validation; I3 remains independent.
+
 **Effective:** 2026-08-07  
 **Status:** Active direction (supersedes Cursor-I3-as-spine planning)  
 **Canonical owners:** This document (direction); `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md` (phase/PR sequencing); `evidence/kagent/README.md` (capability decisions)
@@ -54,7 +58,7 @@ These lanes organize work. They are **not** new capability numbering — keep L0
 | Lane | Question | Primary artifacts |
 |------|----------|-------------------|
 | **A — A2A Education** | Can kagent agents delegate useful bounded work? | `deploy/samples/kagent-a2a/`, `scripts/kagent/experiments/`, E1–E5 examples |
-| **S — Safety / MCP** | Can agents use only explicitly approved tools? | PR #5 read-only surface, RBAC, default-deny discovery |
+| **S — Safety / MCP** | Can agents use only explicitly approved tools? | SAFE-01 read-only surface, RBAC, default-deny discovery |
 | **C — Client Interop** | Can Cursor and Codex enter the same workflow reliably? | Controller `/mcp`, I-track evidence, client configs |
 | **B — Benchmarking** | Latency, reliability, cost, quality per architecture? | `scripts/kagent/experiments/benchmark_a2a.py`, baselines B0–B8, OTel traces |
 
@@ -80,7 +84,7 @@ Human or IDE client (Cursor / Codex)
 
 | System | Role | Notes |
 |--------|------|-------|
-| Codex | Automatable coding worker (first external worker) | PR #7 adapter; local runner outside K8s for early experiments |
+| Codex | Automatable coding worker (first external worker) | WORKER-01 adapter; local runner outside K8s for early experiments |
 | Cursor | Interactive northbound client | I3 remains Blocked at tool discovery; interoperability proof, not education gate |
 | DeepSeek (in kagent) | In-cluster planner/reviewer/docs/supervisor | Bounded A2A roles before external worker attachment |
 
@@ -119,8 +123,8 @@ These precede Cursor I3 close-out, direct A2A L6 tool proof, and I4 correlation 
 deploy/samples/kagent-a2a/
   01-planner/ … 05-telegram-capstone/   # role manifests per example
 scripts/kagent/experiments/
-  run_a2a_example.py, record_experiment.py, contracts.py  # PR #4 Lane A
-  benchmark_a2a.py, collect_trace.py                      # PR #6 (planned)
+  run_a2a_example.py, record_experiment.py, contracts.py  # EDU-01 Lane A
+  benchmark_a2a.py, collect_trace.py                      # EVAL-01 (planned)
 tests/kagent/experiments/               # deterministic harness tests
 docs/runbooks/kagent-a2a-examples.md    # E1–E5 procedures
 evidence/kagent/experiments/            # dated experiment records
@@ -132,17 +136,17 @@ E1–E2 manifests and harness are implemented on branch `edu/kagent-a2a-role-exa
 
 ## PR Roadmap (revised from commit `543f83d` baseline)
 
-Proposed PR numbers are planning units. They do not assert hosted PRs exist.
+Stable workstream IDs identify planned work; hosted PR numbers identify actual reviews. See [integration workstreams](reference/integration-workstreams.md).
 
 | PR | Branch | Purpose | Depends on |
 |----|--------|---------|------------|
 | **#3** (current) | `feat/kagent-native-mcp-federation` | Native federation foundation; I0–I2 proven; honest I3 blocker recorded | Gate 0 (`090ad52`) |
-| **#4** | `edu/kagent-a2a-role-examples` | Planner, reviewer, supervisor manifests; E1–E2 harness (Lane A) | #3 |
-| **#5** | `feat/kagent-readonly-mcp-surface` | Default-deny one-tool safety (Lane S) | #3 |
-| **#6** | `eval/kagent-a2a-benchmarks` | Benchmark harness + OTel + paired baselines B0–B8 (Lane B) | #4 |
-| **#7** | `feat/codex-worker-adapter` | Codex coding-worker bridge (Lane A/C) | #4, #6 |
-| **#8** | `spike/cursor-worker-interop` | Cursor client vs worker decision (Lane C) | #4, #6 |
-| **#9** | `edu/telegram-orchestrated-capstone` | Full E5 capstone | #5, #7 |
+| **EDU-01** | `edu/kagent-a2a-role-examples` | Planner, reviewer, supervisor manifests; E1–E2 harness (Lane A) | #3 |
+| **SAFE-01** | `feat/kagent-readonly-mcp-surface` | Default-deny one-tool safety (Lane S) | #3 |
+| **EVAL-01** | `eval/kagent-a2a-benchmarks` | Benchmark harness + OTel + paired baselines B0–B8 (Lane B) | EDU-01 |
+| **WORKER-01** | `feat/codex-worker-adapter` | Codex coding-worker bridge (Lane A/C) | EDU-01, EVAL-01 |
+| **INTEROP-01** | `spike/cursor-worker-interop` | Cursor client vs worker decision (Lane C) | EDU-01, EVAL-01 |
+| **CAPSTONE-01** | `edu/telegram-orchestrated-capstone` | Full E5 capstone | SAFE-01, WORKER-01 |
 
 ### PR #3 governance (2026-08-07 addendum)
 

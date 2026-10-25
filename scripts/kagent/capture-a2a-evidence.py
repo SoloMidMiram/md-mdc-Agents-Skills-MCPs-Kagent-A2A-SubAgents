@@ -14,9 +14,7 @@ def parse_sse(body: str) -> list[dict]:
     """Parse an SSE body into a list of JSON payload dictionaries."""
     events: list[dict] = []
     for block in body.replace("\r\n", "\n").split("\n\n"):
-        data_lines = [
-            ln[5:].lstrip() for ln in block.splitlines() if ln.startswith("data:")
-        ]
+        data_lines = [ln[5:].lstrip() for ln in block.splitlines() if ln.startswith("data:")]
         if not data_lines:
             continue
         payload_txt = "\n".join(data_lines).strip()
@@ -89,15 +87,9 @@ def summarize_events(events: list[dict], prompt: str) -> dict:
         output = response.get("output")
         return result.get("name") == "k8s_get_resources" and bool(output)
 
-    call_ids = {
-        c["id"]
-        for c in tool_calls
-        if isinstance(c.get("id"), str) and _qualified_call(c)
-    }
+    call_ids = {c["id"] for c in tool_calls if isinstance(c.get("id"), str) and _qualified_call(c)}
     result_ids = {
-        r["id"]
-        for r in tool_results
-        if isinstance(r.get("id"), str) and _qualified_result(r)
+        r["id"] for r in tool_results if isinstance(r.get("id"), str) and _qualified_result(r)
     }
     matched_pairs = len(call_ids & result_ids)
 

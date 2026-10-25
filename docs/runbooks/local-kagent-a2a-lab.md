@@ -1,5 +1,9 @@
 # Local kagent + A2A Lab
 
+Current policy: [cloud-only LiteLLM](../LOCAL_MODELS_FROZEN.md) supersedes
+legacy Ollama/direct-provider setup below. Active E1/E2 procedures are in
+[A2A examples](kagent-a2a-examples.md); do not execute frozen examples.
+
 This runbook is the shortest path from a local Kubernetes cluster to a working
 kagent A2A lab: deploy, reconcile, verify, and inspect the sample A2A agent.
 
