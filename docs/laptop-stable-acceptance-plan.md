@@ -103,12 +103,25 @@ These are explicitly excluded from the laptop-stable v0.1 gate:
 - **Remote Docker browser** (`server/compose.yaml`) — requires Linux server
 - **SSH tunnel concurrency** (`docs/05-SSH-CONCURRENCY-FIX.md`) — server-side hardening, operational, not install-time correctness
 - **kagent / Kubernetes MCP** (`docs/runbooks/local-kagent-a2a-lab.md`) — lab active (not production baseline)
-- **A2A task dispatch** — available via REST card discovery; JSON-RPC tasks/sendTask requires a2a-cli
+- **A2A task dispatch** — historical L4 uses the existing `message/stream` helper; REST card discovery alone is metadata, and legacy `tasks/sendTask` is not the qualified path. See the canonical evidence index.
 - **Functional MCP invocation across all 5 surfaces** — requires interactive editor sessions; structural/production-path tests prove config correctness
 - **Node.js version upgrade** (23 → 24 LTS) — deploy-time, not install-time
 - **Dev container reproducibility** (pip install uv) — Linux dev environment, not Windows target
 
 ---
+
+## Current security and quality qualification boundary
+
+Use [dependency-security.md](runbooks/dependency-security.md). Dependency locks,
+complete third-party inventories, advisory source freshness and exact-head CI
+must be qualified before acceptance. Image advisory scans are distinct from the
+required repository policy and do not establish zero upstream image CVEs.
+
+The quality wrappers now fail closed and target the actual `scripts/kagent`
+code, with coverage precision 2 and the unchanged 80% threshold. This correction
+does not certify the full quality wrapper or erase existing typing/coverage
+work. Its actual outcome must be recorded; a security-only pass is not a stable
+release approval. Target-host install/verify/rollback remains a separate gate.
 
 ## Release Checklist
 

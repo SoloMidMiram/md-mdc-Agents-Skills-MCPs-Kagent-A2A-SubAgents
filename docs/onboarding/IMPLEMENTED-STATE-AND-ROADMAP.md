@@ -13,6 +13,15 @@ It answers four questions:
 3. What is only partially working?
 4. What should be stabilized or refactored next?
 
+## Branch and evidence scope
+
+This security lane is based on main `3c99181`, not the unmerged PR #9 stack.
+[Dependency security](../runbooks/dependency-security.md) owns audit procedures;
+the [contradiction register](../reference/contradiction-register.md) records
+claim/source/correction links. SDK, native-federation and context-builder work
+on other branches is not implicitly included. Existing runtime observations
+remain dated evidence; none was re-run by security qualification.
+
 ## Current Implemented State
 
 ### Host-level MCP setup
@@ -105,7 +114,9 @@ Primary artifacts:
 
 ### Local kagent path
 
-Implemented and validated:
+Implemented helpers and historically recorded runtime observations follow.
+These bullets do not assert that the cluster or provider is running now.
+Revalidate the approved target before a separately authorized live experiment:
 
 - local `kagent` CRDs installed
 - local `kagent` controller and UI running in `docker-desktop`
@@ -129,9 +140,9 @@ Implemented and validated:
   `Register-PSRepository -Default` when absent before Pester installation on
   Windows Server 2025. Hosted Quality run 30621076867 passed at `f18b906` on
   2026-07-31, and follow-up Quality run 30621919672 passed all jobs at the
-  exact pre-merge head `94031ff`. The current pre-merge documentation update is
-  a docs-only delta from that verified head and remains subject to its hosted
-  final confirmation before merge.
+  exact pre-merge head `94031ff`. Those dated runs are
+  historical context; it is not CI evidence for a later security commit.
+  Each remediation head requires its own hosted confirmation.
 - fail-closed Kubernetes manifest validation (`scripts/kubernetes/validate.ps1
   -Strict`) and Trivy policy scanning (`scripts/security/scan.ps1 -Required`)
   with pinned validator installation (kubeconform v0.6.7, kube-linter v0.7.1,
@@ -276,8 +287,9 @@ L6 or L7.
 
 ## Recommended Next Steps
 
-1. Complete the two deterministic integrity repairs before treating strict
-   health or streaming results as dependable gates.
+1. Preserve the already implemented missing-CRD and multiline-SSE regressions.
+   Run the current head's full required workflow and security inventory gates;
+   old CI results are not current vulnerability qualification.
 2. Replace the mutation-advertising runtime before requesting an agent to use
    Kubernetes tools.
 3. Capture the single live L6 record, while independently recording controller

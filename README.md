@@ -52,12 +52,24 @@ Two paths matter today:
 
 - **Stable path**: user-level `playwright-global` registration across VS Code, Cursor, Codex, and Continue. Verified by repeatable install (`-WhatIf` first) / verify / rollback / verify round-trip, covered by 73+ Pester tests, and covered by CI configuration on push and pull_request.
   `laptop-stable-v0.1` is tagged at `cdb7dc0`; this tree targets patch `laptop-stable-v0.1.1` (UTF-8 onboarding, narrative sync, bridge manifests).
-- **Active lab path**: local `kagent` and A2A on `docker-desktop`; see the [canonical evidence index](evidence/kagent/README.md) for dated status and capability decisions.
+- **Educational lab path**: `kagent` and A2A on `docker-desktop`; runtime observations are historical, not a fresh health check; see the [canonical evidence index](evidence/kagent/README.md) for dated status and capability decisions.
 
 Use [docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
 for the learning path, [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/local-kagent-a2a-lab.md)
 for the cluster runbook, and [docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
 for the current repo-wide status.
+
+## Security and branch scope
+
+Use the [dependency security runbook](docs/runbooks/dependency-security.md) and
+[contradiction register](docs/reference/contradiction-register.md) for the current
+security qualification boundary and corrected documentation claims.
+
+This branch starts from main `3c99181`. The SDK integration (#9), retained LAB-01
+(#10) and CTX-01 builder (#13) are separate unmerged reviews. Their files and
+runtime claims are not shipped here by this security correction. See issue #11
+for maintainer-controlled integration; no merge, release tag or live experiment
+is authorized by a passing dependency audit.
 
 ## What's Inside
 
@@ -77,7 +89,7 @@ for the current repo-wide status.
 | Browser automation | `docs/runbooks/local-playwright-lab.md`, `docs/runbooks/remote-playwright-lab.md`, `server/` | Stable |
 | Host configuration portability | `config/templates/`, `docs/reference/portable-settings-bundle.md` | Stable |
 | AI tooling scaffold | `.vscode/settings.json`, `config/integrations/`, `docs/ai-tooling.md` | Implemented |
-| Local Kubernetes and `kagent` | `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`, `docs/runbooks/local-kagent-a2a-lab.md`, `deploy/base/kagent/`, `deploy/samples/kagent/` | A2A sample agent accepted and ready |
+| Local Kubernetes and `kagent` | `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`, `docs/runbooks/local-kagent-a2a-lab.md`, `deploy/base/kagent/`, `deploy/samples/kagent/` | Historical L4/L5 evidence; L6/L7 remain unproven |
 
 ### Scripts
 
@@ -100,8 +112,8 @@ The detailed roadmap lives in
 Current priority order:
 
 1. **Release truthfulness** — fix CI/reporting gaps before tagging `laptop-stable-v0.1.1`.
-2. **A2A task dispatch** — prove real task delivery separately from card inspection and method probing.
-3. **Real MCP execution behind kagent** — deploy a lightweight MCP server and prove one tool invocation through the agent path.
+2. **A2A qualification** — preserve recorded L4 dispatch evidence; qualify new clients separately from card inspection, method probes and live MCP execution.
+3. **Agent-mediated MCP execution** — use the existing runtime and prove one correlated tool invocation through the agent path (L6).
 4. **Repeatable kagent install** — pin versions and automate the Docker Desktop lab setup.
 5. **Repository stabilization** — validate the manifest, update stale architecture docs, and retire compatibility stubs when safe.
 
