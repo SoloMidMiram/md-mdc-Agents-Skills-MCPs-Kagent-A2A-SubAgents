@@ -797,3 +797,23 @@ entries:
     purpose: reference
     status: lab
     authority: false
+
+  - path: scripts/security/audit_dependencies.py
+    purpose: script
+    status: stable
+    authority: false
+
+  - path: tests/security/test_dependency_audit.py
+    purpose: test
+    status: stable
+    authority: false
+
+  - path: docs/runbooks/dependency-security.md
+    purpose: runbook
+    status: stable
+    authority: false
+
+  - path: reports/security/*
+    purpose: reference
+    status: stable
+    authority: false

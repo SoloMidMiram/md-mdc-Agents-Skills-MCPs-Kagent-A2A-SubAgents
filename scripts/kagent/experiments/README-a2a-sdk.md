@@ -19,8 +19,8 @@ an A2A server.
 From the repository root:
 
 ```bash
-uv venv --python 3.13 .venv/a2a-sdk
-uv pip sync --python .venv/a2a-sdk/bin/python \
+uv venv --python 3.13.15 .venv/a2a-sdk
+uv pip sync --require-hashes --python .venv/a2a-sdk/bin/python \
   scripts/kagent/experiments/a2a_sdk_requirements.lock
 ```
 
@@ -71,10 +71,11 @@ SDK against a loopback HTTP/SSE fixture:
 PYTHONDONTWRITEBYTECODE=1 "$SDK_PYTHON" -m pytest -p no:cacheprovider -q \
   tests/kagent/experiments/test_a2a_sdk_interop.py \
   tests/kagent/experiments/test_a2a_sdk_transport.py \
-  tests/kagent/experiments/test_a2a_sdk_repairs.py
+  tests/kagent/experiments/test_a2a_sdk_repairs.py \
+  tests/kagent/experiments/test_a2a_sdk_cleanup.py
 ```
 
-Use the qualified external Linux Python 3.13 environment and the unchanged
+Use the qualified external Python 3.13.15 environment and the reviewed exact
 lock for this qualification. Do not install the experiment into the root
 project's environment. The environment creation example above is general
 setup guidance, not a request to modify an existing `.venv`.
@@ -159,3 +160,28 @@ SDK objects are patched. A green root lane alone is insufficient qualification.
 
 The [historical SDK record](../../../evidence/kagent/experiments/2026-10-22-a2a-sdk-interoperability.md)
 is preserved as originally recorded. Its claims are not a new live observation.
+
+## Dependency security correction (2026-11)
+
+The isolated lock upgrades only `pyasn1` 0.6.4 → 0.6.5. The SDK remains 0.3.26,
+pytest remains 9.0.3 and the other 31 package versions are retained. Generated
+SHA-256 hashes are now enforced at installation. Universal compilation adds
+Windows-only colorama 0.4.6, fixing the previously incomplete Windows dependency
+set (33 installed on Windows; 32 on CPython Linux). Both native evidence 1.0 and
+educational evidence 1.1 remain unchanged and distinct.
+
+Regenerate with the qualified uv 0.7.22 toolchain, preserving the existing lock:
+
+```bash
+uv pip compile --universal --python-version 3.13 \
+  scripts/kagent/experiments/a2a_sdk_requirements.in \
+  --output-file scripts/kagent/experiments/a2a_sdk_requirements.lock \
+  --upgrade-package pyasn1==0.6.5 --generate-hashes
+```
+
+[Dependency security procedures](../../../docs/runbooks/dependency-security.md)
+require all 33 platform-union pins to appear in the current advisory result, without skips.
+An audit service failure is not a clean scan. PR #9's inherited root lock still
+requires the separate main-security correction; this SDK PR does not claim the
+whole integration baseline is secure or approved. See issue #11. No cluster,
+model, MCP, Context7, worker or CTX-01 implementation is changed here.

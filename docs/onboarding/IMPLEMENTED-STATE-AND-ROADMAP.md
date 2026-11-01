@@ -13,6 +13,16 @@ It answers four questions:
 3. What is only partially working?
 4. What should be stabilized or refactored next?
 
+## Current security and branch qualification
+
+Draft PR #9 publishes the reconciled integration; its October 25 CI is a dated
+observation, not current dependency-security acceptance. The SDK security lane
+changes only pyasn1's package version and enforces generated artifact hashes;
+main's independent root security correction must also be accepted before the
+whole baseline can advance. See [dependency security](../runbooks/dependency-security.md)
+and #11. #10/#13 remain stacked unmerged reviews; no historical evidence or
+runtime capability level is changed by these corrections.
+
 ## Current Implemented State
 
 ### Host-level MCP setup
@@ -105,7 +115,9 @@ Primary artifacts:
 
 ### Local kagent path
 
-Implemented and validated:
+Implemented helpers and dated runtime observations follow; these are not a fresh
+cluster/provider check performed by dependency qualification:
+
 
 - local `kagent` CRDs installed
 - local `kagent` controller and UI running in `docker-desktop`
@@ -269,7 +281,7 @@ planning units and do not assert that a hosted PR exists.
 | 0 | **Current-head release baseline** — select one immutable release SHA and run the full hosted workflow from `docs/laptop-stable-acceptance-plan.md`. | Open | Existing deterministic suites | Candidate SHA, local results, and same-SHA hosted Quality are recorded. |
 | 1 | **Stable Playwright patch release** — complete Windows install → verify → rollback → verify and tag `laptop-stable-v0.1.1`. | Open | 0 | Target-host acceptance and exact-SHA hosted Quality pass; the tag points to that SHA. |
 | 2 | **Kagent Delivery Gate 0 / roadmap-baseline publication** — preserved the six coherent documentation updates on the PR #3 branch before Phase 7 implementation. | **Published** at `090ad52` (`docs(kagent): harden remaining phase and PR roadmap`); no capability decision changes | Six-file roadmap diff, empty staging area, clean required validation, and preceding test harden `178ce58` | Pushed SHA `090ad52` with exact-SHA `quality.yml` green: push run [30979059299](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979059299) and pull_request run [30979061019](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979061019); no capability decision changes. |
-| 3 | RECON-01 / federation and gateway integration | Local rehearsal only | Verified hosted heads | Stable IDs, preserved evidence, cloud-only examples, exact candidate checks. |
+| 3 | RECON-01 / federation and gateway integration | Published draft #9; current security acceptance pending | Verified hosted heads | Stable IDs, preserved evidence, cloud-only examples, exact candidate checks. |
 | 4 | EVID-01 / evidence integrity | Active | RECON-01 | Negative regressions and validated recorder/harness; no capability promotion. |
 | 5 | A2A-01 / pinned SDK validation | Next | EVID-01 | SDK 0.3.26 isolated tests, then bounded live result or Blocked record. |
 | 6 | CTX-01 / cited context; SAFE-01 / exact MCP surface | Planned | EVID-01; A2A-01 for transport | Source-linked context; exact server-side safety before tools. |

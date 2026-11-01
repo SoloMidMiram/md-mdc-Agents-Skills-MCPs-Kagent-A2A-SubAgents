@@ -53,6 +53,15 @@ Runbooks:
 - [SSH concurrency fix](docs/runbooks/ssh-concurrency-fix.md)
 - [Troubleshooting](docs/runbooks/troubleshooting.md)
 
+## Dependency security scope
+
+The SDK security correction is stacked on draft #9, not based on main. It keeps
+SDK 0.3.26 and all 31 unrelated SDK package versions, updates pyasn1 to 0.6.5,
+and enforces generated artifact hashes. Main's root correction is a separate
+PR; this branch alone does not qualify the entire integration. See the
+[dependency security runbook](docs/runbooks/dependency-security.md) and issue #11.
+No Context7, coding worker, live Kagent, L6/L7 or I3/I4 claim follows from it.
+
 ## Current State
 
 Two paths matter today:
