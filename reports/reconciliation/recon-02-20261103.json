@@ -3,7 +3,7 @@
   "date_local": "2026-11-03",
   "timezone": "Asia/Tehran",
   "mission": "RECON-02 controlled combined candidate; no acceptance into main",
-  "source_revision_note": "Reviewed parents and exact lock hashes identify inputs. Candidate PR records final source SHA and exact-head CI; no circular self-revision claim.",
+  "source_revision_note": "Reviewed parents and exact lock hashes identify inputs. Candidate PR records final source SHA and exact-head CI; no circular self-revision claim. Native clean-clone Python/SDK tests executed at merge 05dc7af; later qualification-only changes do not alter code/locks. Final source and checkout identities are recorded in the PR.",
   "parents": [
     "7cb921ced229817a088415161c81d29ccf15ea03",
     "17312a75e6b44c2431ef4b8b5f38cedd693c6e65"
@@ -1830,6 +1830,95 @@
       "stdout_excerpt": "les/kagent/litellm-gateway-smoke-agent.yaml        \u2502 kubernetes \u2502        -        \u2502    -    \u2502         0         \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 deploy/samples/kagent/litellm-gateway-tool-agent.yaml         \u2502 kubernetes \u2502        -        \u2502    -    \u2502         0         \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\nLegend:\n- '-': Not scanned\n- '0': Clean (no security findings detected)\n\n=== Security scan complete ===\r\n",
       "stderr_excerpt": " try '--scanners vuln,misconfig' to disable secret scanning\n2026-11-03T00:57:40+03:30\tINFO\t[secret] Please see https://trivy.dev/docs/v0.72/guide/scanner/secret#recommendation for faster secret detection\n2026-11-03T00:57:42+03:30\tINFO\tNumber of language-specific files\tnum=1\n2026-11-03T00:57:42+03:30\tINFO\t[uv] Detecting vulnerabilities...\n2026-11-03T00:57:42+03:30\tINFO\tDetected config files\tnum=13\n",
       "record_sha256": "f13d4f5942b5eabf4ac4792db0c3ae050705bc1f85133af05fe686129cd31538"
+    },
+    {
+      "command": "combined-lint-final",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "scripts/kagent",
+        "tests/kagent",
+        "scripts/security/audit_dependencies.py",
+        "tests/security",
+        "tests/reconciliation"
+      ],
+      "started_at": "2026-11-02T21:46:12.178872+00:00",
+      "finished_at": "2026-11-02T21:46:12.285781+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "All checks passed!\n",
+      "stderr_excerpt": "",
+      "record_sha256": "70bfc0284440b45b1d884b89a44f736eb0a03b78c861135ba577ef0d04980612"
+    },
+    {
+      "command": "new-contract-tests-final",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/reconciliation"
+      ],
+      "started_at": "2026-11-02T21:46:12.286473+00:00",
+      "finished_at": "2026-11-02T21:46:13.417990+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "...                                                                      [100%]\r\n3 passed in 0.75s\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "8beb13a3148ff3f5ccdb4144691ad3a6f99d2dcd8c2fa81d865044017f3723ed"
+    },
+    {
+      "command": "strict-typing-final",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "-m",
+        "mypy",
+        "--python-executable",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\sdk-windows\\Scripts\\python.exe",
+        "scripts/kagent/experiments/a2a_sdk_interop.py",
+        "scripts/security/audit_dependencies.py",
+        "tests/reconciliation/test_combined_integration.py"
+      ],
+      "started_at": "2026-11-02T21:46:13.418871+00:00",
+      "finished_at": "2026-11-02T21:46:14.334227+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "Success: no issues found in 3 source files\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "2823863e23a47c58cfce19e0c0f1e8340715d611e3b2a63e86603af2f9d31aa8"
+    },
+    {
+      "command": "ubuntu-clean-clone-qualification",
+      "argv": [
+        "wsl",
+        "-d",
+        "Ubuntu",
+        "--",
+        "bash",
+        "/mnt/c/Users/cebit.ir/Documents/ChatGPT/md mdc Agents-Skills-MCP-Kagent A2A-SubAgents/recon-02-20261103/linux-validate.sh"
+      ],
+      "started_at": "2026-11-02T21:44:51.473844+00:00",
+      "finished_at": "2026-11-02T21:45:24.642303+00:00",
+      "exit_code": 2,
+      "stdout_excerpt": "........................................................................ [ 23%]\n........................................................................ [ 47%]\n........................................................................ [ 70%]\n........................................................................ [ 94%]\n.................                                                        [100%]\n305 passed in 2.89s\n",
+      "stderr_excerpt": "vate with: source /home/solomidmiram/.cache/recon-02-20261103/sdk-env/bin/activate\nUsing Python 3.13.15 environment at: /home/solomidmiram/.cache/recon-02-20261103/sdk-env\nerror: Failed to fetch: `https://pypi.org/simple/a2a-sdk/`\n  Caused by: Request failed after 3 retries\n  Caused by: error sending request for url (https://pypi.org/simple/a2a-sdk/)\n  Caused by: client error (Connect)\n  Caused by: dns error\n  Caused by: failed to lookup address information: Temporary failure in name resolution\n",
+      "record_sha256": "19674af43e60dedead5f35ce12e478466b78e99c23dc4f0115113aadfaa69c9c"
+    },
+    {
+      "command": "ubuntu-sdk-offline-hash-qualification",
+      "argv": [
+        "wsl",
+        "-d",
+        "Ubuntu",
+        "--",
+        "bash",
+        "/mnt/c/Users/cebit.ir/Documents/ChatGPT/md mdc Agents-Skills-MCP-Kagent A2A-SubAgents/recon-02-20261103/linux-sdk-offline.sh"
+      ],
+      "started_at": "2026-11-02T21:47:20.684218+00:00",
+      "finished_at": "2026-11-02T21:47:43.016352+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "=========================\ntests/kagent/experiments/test_a2a_sdk_cleanup.py: 1 warning\ntests/kagent/experiments/test_a2a_sdk_interop.py: 1 warning\ntests/kagent/experiments/test_a2a_sdk_repairs.py: 17 warnings\ntests/kagent/experiments/test_a2a_sdk_transport.py: 27 warnings\n  /home/solomidmiram/.cache/recon-02-20261103/candidate/scripts/kagent/experiments/a2a_sdk_interop.py:602: DeprecationWarning: A2AClient is deprecated and will be removed in a future version. Use ClientFactory to create a client with a JSON-RPC transport.\n    client = A2AClient(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n74 passed, 46 warnings in 5.69s\nSuccess: no issues found in 3 source files\n",
+      "stderr_excerpt": "+ opentelemetry-api==1.45.1\n + packaging==26.3\n + pluggy==1.7.0\n + proto-plus==1.29.0\n + protobuf==7.36.2\n + pyasn1==0.6.5\n + pyasn1-modules==0.4.2\n + pycparser==3.12\n + pydantic==2.14.1\n + pydantic-core==2.50.1\n + pygments==2.21.0\n + pytest==9.0.3\n + requests==2.34.2\n + typing-extensions==4.16.0\n + typing-inspection==0.4.4\n + urllib3==2.8.0\nUsing Python 3.13.15 environment at: /home/solomidmiram/.cache/recon-02-20261103/sdk-env\nChecked 32 packages in 347ms\nAll installed packages are compatible\n",
+      "record_sha256": "9fda131c3d41ec1eb6aa23480d91d3a4b81347e4560c2344e63bc87f0a2a3d75"
     }
   ],
   "windows": {
@@ -1850,7 +1939,18 @@
       "invalid": 0
     }
   },
-  "ubuntu": "pending native clean-clone qualification after initial candidate commit",
+  "ubuntu": {
+    "qualified_code_revision": "05dc7afde1d838e7618a814b40304e2a094ed112",
+    "python": "3.13.15",
+    "root_tests": 305,
+    "sdk_tests": 74,
+    "sdk_skipped": 0,
+    "strict_typing_sources": 3,
+    "installed_sdk_pins": 32,
+    "clean_git_status": true,
+    "initial_online_sdk_install": "DNS lookup failed; no package policy change",
+    "successful_sdk_install": "uv 0.7.22 pip sync --offline --require-hashes, then pip check; all exact cached artifacts enforced by the reviewed lock. Hosted CI must also qualify an online install."
+  },
   "debt": {
     "historical_main": {
       "formatting_differences": 3,
@@ -1875,5 +1975,37 @@
     "No live Kagent/Context7/MCP/model/worker action; L6/L7/I3/I4 unchanged.",
     "No merge to main or an existing PR branch, retarget, force push, closure, undraft or final automated code review."
   ],
-  "acceptance": "Offline/security candidate qualification only; broader quality debt and maintainer/runtime acceptance remain separate."
+  "acceptance": "Offline/security candidate qualification only; broader quality debt and maintainer/runtime acceptance remain separate.",
+  "structure": {
+    "manifest_entries": 162,
+    "missing": [],
+    "unowned_new_files": [],
+    "broken_relative_links": [],
+    "workflow_jobs": [
+      "kagent-python",
+      "kagent-sdk",
+      "kagent-kubernetes",
+      "kagent-security",
+      "evaluation"
+    ],
+    "changed_paths": [
+      ".github/workflows/quality.yml",
+      "README.md",
+      "REPO_MANIFEST.yaml",
+      "docs/laptop-stable-acceptance-plan.md",
+      "docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md",
+      "docs/reference/contradiction-register.md",
+      "docs/reference/integration-workstreams.md",
+      "docs/runbooks/dependency-security.md",
+      "reports/reconciliation/recon-02-20261103.json",
+      "reports/security/main-20261101.json",
+      "scripts/kagent/experiments/README-a2a-sdk.md",
+      "scripts/security/scan.ps1",
+      "tests/kagent/KagentToolingValidation.Tests.ps1",
+      "tests/reconciliation/test_combined_integration.py",
+      "tests/security/QualityWrappers.Tests.ps1",
+      "uv.lock"
+    ]
+  },
+  "hosted_ci": "Pending publication; required root OSV and SDK PyPI gates retained, no result inferred from local OSV or previous PR heads."
 }
