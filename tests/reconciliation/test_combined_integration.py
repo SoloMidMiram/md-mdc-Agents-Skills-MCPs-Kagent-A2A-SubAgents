@@ -77,13 +77,13 @@ def test_all_conflicting_pester_contracts_keep_their_own_failure_gate() -> None:
 
 
 def test_original_lab01_sources_and_retained_copies_remain_reproducible() -> None:
-    manifest = json.loads(git("show", f"{LAB}:{EVIDENCE}/source-manifest.json"))
+    manifest = json.loads(git("cat-file", "blob", f"{LAB}:{EVIDENCE}/source-manifest.json"))
     revision = manifest["revision"]
     assert revision == "a53bfb62f0421a7c28234f871af2bf449a11491f"
     assert len(manifest["sources"]) == 6
     git("merge-base", "--is-ancestor", revision, "HEAD")
     for source in manifest["sources"]:
-        original = git("show", f"{revision}:{source['path']}")
-        retained = git("show", f"{LAB}:{EVIDENCE}/sources/{source['path']}")
+        original = git("cat-file", "blob", f"{revision}:{source['path']}")
+        retained = git("cat-file", "blob", f"{LAB}:{EVIDENCE}/sources/{source['path']}")
         assert original == retained
         assert hashlib.sha256(original).hexdigest() == source["sha256"]

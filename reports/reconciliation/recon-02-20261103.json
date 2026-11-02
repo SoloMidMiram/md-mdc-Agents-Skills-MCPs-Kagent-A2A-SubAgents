@@ -2007,5 +2007,11 @@
       "uv.lock"
     ]
   },
-  "hosted_ci": "Pending publication; required root OSV and SDK PyPI gates retained, no result inferred from local OSV or previous PR heads."
+  "hosted_ci": "Pending publication; required root OSV and SDK PyPI gates retained, no result inferred from local OSV or previous PR heads.",
+  "windows_clean_clone_initial_failure": {
+    "cause": "git show rev:path performs filesystem stat/disambiguation and fails Filename too long in a deeper Windows checkout",
+    "correction": "Use git cat-file blob for immutable manifest and evidence bytes; no Windows setting change, fixture relaxation or CTX edit.",
+    "initial_source": "0c4eea13b06911ecba676bc7b28464456dd0e96c",
+    "corrected_candidate": "See final PR source and clean-clone qualification record"
+  }
 }
