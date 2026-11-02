@@ -181,7 +181,8 @@ uv pip compile --universal --python-version 3.13 \
 
 [Dependency security procedures](../../../docs/runbooks/dependency-security.md)
 require all 33 platform-union pins to appear in the current advisory result, without skips.
-An audit service failure is not a clean scan. PR #9's inherited root lock still
-requires the separate main-security correction; this SDK PR does not claim the
-whole integration baseline is secure or approved. See issue #11. No cluster,
+An audit service failure is not a clean scan. The original SDK-only
+correction does not certify #9's inherited root. RECON-02 includes the reviewed
+main correction and separately qualifies its actual combined tree; it remains
+a review candidate, not maintainer or runtime approval. See issue #11. No cluster,
 model, MCP, Context7, worker or CTX-01 implementation is changed here.

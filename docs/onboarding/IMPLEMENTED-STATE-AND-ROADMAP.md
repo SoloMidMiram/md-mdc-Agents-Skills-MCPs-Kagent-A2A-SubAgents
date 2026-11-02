@@ -13,15 +13,19 @@ It answers four questions:
 3. What is only partially working?
 4. What should be stabilized or refactored next?
 
-## Current security and branch qualification
+## Combined candidate and evidence scope
 
-Draft PR #9 publishes the reconciled integration; its October 25 CI is a dated
-observation, not current dependency-security acceptance. The SDK security lane
-changes only pyasn1's package version and enforces generated artifact hashes;
-main's independent root security correction must also be accepted before the
-whole baseline can advance. See [dependency security](../runbooks/dependency-security.md)
-and #11. #10/#13 remain stacked unmerged reviews; no historical evidence or
-runtime capability level is changed by these corrections.
+RECON-02 combines #14 (`17312a75`) and #15 (`7cb921ce`) in a separate branch
+without rewriting either reviewed history or changing main/#9/#10/#13.
+[Dependency security](../runbooks/dependency-security.md) owns procedures;
+the [contradiction register](../reference/contradiction-register.md) records
+claim/source/correction links and the five conflict resolutions. The
+[combined qualification](../../reports/reconciliation/recon-02-20261103.json)
+records actual checks; the candidate PR identifies its final SHA and hosted CI.
+No combined or maintainer acceptance follows from the two older green heads.
+#10's retained LAB-01 evidence and #13's implementation are not imported here;
+the pinned LAB-01 sources are checked through preserved Git history. CTX-01
+correctness stays under #12/#13. No live capability level is promoted.
 
 ## Current Implemented State
 
@@ -115,9 +119,9 @@ Primary artifacts:
 
 ### Local kagent path
 
-Implemented helpers and dated runtime observations follow; these are not a fresh
-cluster/provider check performed by dependency qualification:
-
+Implemented helpers and historically recorded runtime observations follow.
+These bullets do not assert that the cluster or provider is running now.
+Revalidate the approved target before a separately authorized live experiment:
 
 - local `kagent` CRDs installed
 - local `kagent` controller and UI running in `docker-desktop`
@@ -143,6 +147,7 @@ cluster/provider check performed by dependency qualification:
   2026-07-31, and follow-up Quality run 30621919672 passed all jobs at the
   exact pre-merge head `94031ff`. That revision is now part of merged PR #1
   and remains historical CI context rather than an active merge gate.
+  Each later candidate needs its own hosted tests and fresh security audits.
 - fail-closed Kubernetes manifest validation (`scripts/kubernetes/validate.ps1
   -Strict`) and Trivy policy scanning (`scripts/security/scan.ps1 -Required`)
   with pinned validator installation (kubeconform v0.6.7, kube-linter v0.7.1,
@@ -316,17 +321,12 @@ L6 or L7.
 
 ## Recommended Next Steps
 
-1. Complete the remaining current-head checklist items: name one immutable
-   candidate SHA, record local deterministic results for it, and trigger full
-   `quality.yml` for that exact SHA (PyYAML and coverage contracts are already
-   declared).
-2. Perform the Windows acceptance round trip against that SHA and tag
-   `laptop-stable-v0.1.1` only if every required gate passes.
-3. Gate 0 is published at `090ad52` (`docs(kagent): harden remaining phase
-   and PR roadmap`) with exact-SHA `quality.yml` green on both the push and
-   pull_request runs. Any later I3 evidence commit creates a new final SHA and
-   needs its own hosted run.
-4. Complete RECON-01, then EVID-01 and A2A-01. Preserve the independent
-   Cursor I3 blocker; do not make it the prerequisite for A2A education.
-5. Follow stable workstream dependencies for CTX-01, SAFE-01, WORKER-01,
-   EVAL-01, and OPS-01. Direct MCP and separate helper tasks do not prove I4.
+1. Complete RECON-02's actual combined-tree qualification and record the
+   immutable candidate, parent SHAs, conflict decisions and current audit data.
+2. Obtain maintainer acceptance/dispositions under #11; review the included
+   #3–#8 ancestry without merging their implementation twice.
+3. Preserve and replay/requalify #10/#13 against the accepted parent. Keep
+   #12's CTX correctness repairs independently reviewable.
+4. Clear stable target-host acceptance and the existing quality debt separately
+   before any release/tag decision. Preserve EVID-01/A2A-01 and the other stable
+   workstream prerequisites; no new live operation is authorized by this plan.

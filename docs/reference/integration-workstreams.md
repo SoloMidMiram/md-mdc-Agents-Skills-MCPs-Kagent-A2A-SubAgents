@@ -66,8 +66,12 @@ be replayed and still needs its separately tracked correctness fixes. Do not
 close or retarget #3–#8 or merge the containing history without a maintainer
 integration decision under #11. See [dependency security](../runbooks/dependency-security.md).
 
-The single [contradiction register](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/blob/17312a75e6b44c2431ef4b8b5f38cedd693c6e65/docs/reference/contradiction-register.md)
-lives in the main-security lane. This immutable link identifies the reviewed
-correction record until the maintainer integrates it; this branch keeps no duplicate.
-See the [SDK qualification record](../../reports/security/sdk-20261101.json) for
-the dependency inventory, actual checks and inherited root blocker.
+The single [contradiction register](contradiction-register.md) is now included
+in RECON-02 through main's reviewed history. The separate original
+[SDK qualification record](../../reports/security/sdk-20261101.json) remains a
+dated SDK-only observation, including its inherited root blocker. The
+[combined qualification](../../reports/reconciliation/recon-02-20261103.json)
+records this candidate's checks. RECON-02 preserves #14/#15 as ancestors and
+leaves maintainer acceptance of their original targets to issue #11. #10 and
+#13 remain separate descendants requiring replay/requalification; no CTX code
+or retained LAB-01 answer is imported or rewritten.

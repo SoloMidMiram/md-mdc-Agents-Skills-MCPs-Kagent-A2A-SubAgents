@@ -13,8 +13,9 @@ freshness. A historical clean scan is not current acceptance.
   additionally owns the isolated SDK. Its correction is
   `fix/a2a-sdk-dependency-security-202611` → `integration/pub-01-qualified-a2a`.
 - SDK 0.3.26, its Python 3.13.15 runtime and its test dependencies stay outside
-  the root environment. The SDK branch's inherited root pin still requires the
-  separate main correction before the whole integration can be accepted.
+  the root environment. The original SDK-only branch still needs the separate main correction.
+  RECON-02 combines both reviewed histories; its own tests/audits/CI and
+  maintainer acceptance are required before integration.
 - PR #10's dated evidence stays unchanged. PR #13 requires parent-replay and its
   separate correctness fixes under issue #12; security fixes do not establish
   correct context citations or authorize CTX-02/EVAL-01/live A2A.
@@ -50,11 +51,11 @@ live service queries, not Trivy database snapshots. `working_file_sha256` hashes
 the actual input bytes; use Git blob hashes separately when comparing LF and
 CRLF checkouts. CI retains the complete result as an artifact.
 
-Main's corrected required Trivy policy includes development dependencies and
-retains vulnerability, secret and misconfiguration scanners. The existing SDK
-integration's required filesystem policy remains at its original scope until
-the main correction is integrated; its explicit SDK advisory gate covers the
-otherwise unmapped lock. Do not describe either lane as qualifying the other.
+RECON-02 retains main's corrected required Trivy policy, including development
+dependencies and vulnerability, secret and misconfiguration scanners. Its root
+and SDK advisory gates both remain enforced and upload complete inventories.
+The original SDK-only branch's narrower scan is not the policy of this combined
+candidate. Qualify the actual combined tree; neither earlier lane certifies it.
 Keep path-scoped exceptions and severity/exit enforcement intact. Upstream image
 scans are advisory, not a claim of zero image vulnerabilities.
 

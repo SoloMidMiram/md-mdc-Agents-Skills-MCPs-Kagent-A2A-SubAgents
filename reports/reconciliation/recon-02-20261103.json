@@ -1,0 +1,1879 @@
+{
+  "schema_version": "1.0",
+  "date_local": "2026-11-03",
+  "timezone": "Asia/Tehran",
+  "mission": "RECON-02 controlled combined candidate; no acceptance into main",
+  "source_revision_note": "Reviewed parents and exact lock hashes identify inputs. Candidate PR records final source SHA and exact-head CI; no circular self-revision claim.",
+  "parents": [
+    "7cb921ced229817a088415161c81d29ccf15ea03",
+    "17312a75e6b44c2431ef4b8b5f38cedd693c6e65"
+  ],
+  "base_pr9": "a53bfb62f0421a7c28234f871af2bf449a11491f",
+  "conflict_resolutions": [
+    {
+      "path": ".github/workflows/quality.yml",
+      "hunk": 1,
+      "resolution": "      - name: Run legacy benchmark tests (Pester 3.4.0)\n        shell: pwsh\n        run: |\n          Import-Module Pester -RequiredVersion 3.4.0 -Force\n          $result = Invoke-Pester -Path tests/benchmark/AgentGovernanceBenchmark.Tests.ps1 -PassThru\n          if ($result.FailedCount -gt 0 -or $result.TotalCount -eq 0) { exit 1 }\n\n      - name: Run skill and hook contracts (Pester 5.7.1)\n        shell: pwsh\n        run: |\n          Import-Module Pester -RequiredVersion 5.7.1 -Force\n          $result = Invoke-Pester -Path @('tests/benchmark/AgentGovernanceSkills.Tests.ps1','tests/benchmark/CursorGovernanceHooks.Tests.ps1') -PassThru\n          if ($result.FailedCount -gt 0 -or $result.TotalCount -eq 0) { exit 1 }\n\n      - name: Verify quality wrapper failures stop validation\n        shell: pwsh\n        run: |\n          Import-Module Pester -RequiredVersion 3.4.0 -Force\n          $result = Invoke-Pester -Path .\\tests\\security\\QualityWrappers.Tests.ps1 -PassThru\n"
+    },
+    {
+      "path": "REPO_MANIFEST.yaml",
+      "hunk": 1,
+      "resolution": "  - path: docs/reference/integration-workstreams.md\n    purpose: reference\n    status: lab\n    authority: true\n\n  # Isolated official SDK experiment; native output is not educational 1.1.\n  - path: tests/kagent/test_quality_workflow.py\n    purpose: test\n    status: lab\n    authority: false\n\n  - path: scripts/kagent/experiments/a2a_sdk_interop.py\n    purpose: script\n    status: lab\n    authority: false\n\n  - path: scripts/kagent/experiments/a2a_sdk_requirements.in\n    purpose: config\n    status: lab\n    authority: false\n\n  - path: scripts/kagent/experiments/a2a_sdk_requirements.lock\n    purpose: config\n    status: lab\n    authority: false\n\n  - path: scripts/kagent/experiments/README-a2a-sdk.md\n    purpose: reference\n    status: lab\n    authority: false\n\n  - path: tests/kagent/experiments/test_a2a_sdk_interop.py\n    purpose: test\n    status: lab\n    authority: false\n\n  - path: tests/kagent/experiments/test_a2a_sdk_transport.py\n    purpose: test\n    status: lab\n    authority: false\n\n  - path: tests/kagent/experiments/test_a2a_sdk_repairs.py\n    purpose: test\n    status: lab\n    authority: false\n\n  - path: tests/kagent/experiments/test_a2a_sdk_cleanup.py\n    purpose: test\n    status: lab\n    authority: false\n\n  - path: evidence/kagent/experiments/2026-10-22-a2a-sdk-interoperability.md\n    purpose: reference\n    status: lab\n    authority: false\n\n  - path: reports/2026-10-22-kagent-a2a-sdk-capability-review.json\n    purpose: reference\n    status: lab\n    authority: false\n\n"
+    },
+    {
+      "path": "REPO_MANIFEST.yaml",
+      "hunk": 2,
+      "resolution": "\n  - path: docs/reference/contradiction-register.md\n    purpose: reference\n    status: stable\n    authority: true\n\n  - path: tests/security/QualityWrappers.Tests.ps1\n    purpose: test\n    status: stable\n    authority: false\n"
+    },
+    {
+      "path": "README.md",
+      "hunk": 1,
+      "resolution": "- **Educational lab path**: local `kagent` on `docker-desktop` \u2014 prove and measure\n  bounded A2A workflows first, then attach Cursor and Codex as clients/workers.\n  The PR2 gateway checkpoint is the smaller prerequisite path:\n  `kagent ModelConfig -> LiteLLM /v1 -> agent-coder -> response`, with no MCP\n  tools, no multiple agents, and no local-model fallback. Its dated evidence\n  proves the gateway/model response path; the card gate remains pending.\n  These runtime observations are historical, not a fresh cluster health check.\n  Dated L4/L5 and I0-I2 evidence is Proven; I3-Cursor remains Blocked (interop proof, not\n  education gate). L6/L7 and I4 remain Not proven. See\n  [north star](docs/north-star.md) for priority and\n  [evidence index](evidence/kagent/README.md) for capability decisions.\n"
+    },
+    {
+      "path": "README.md",
+      "hunk": 2,
+      "resolution": "| Local Kubernetes and `kagent` | `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`, `docs/runbooks/local-kagent-a2a-lab.md`, `deploy/base/kagent/`, `deploy/samples/kagent/` | Historical L4/L5 and I0-I2 evidence; I3 Blocked; L6/L7/I4 unproven |\n"
+    },
+    {
+      "path": "README.md",
+      "hunk": 3,
+      "resolution": "Current priority order uses the existing stable workstream IDs:\n\n1. **RECON-01 / RECON-02** \u2014 review the combined security candidate, qualify\n   its actual tree and obtain explicit maintainer dispositions for #9/#3\u2013#8.\n2. **EVID-01 / A2A-01** \u2014 preserve evidence integrity and the isolated SDK\n   contract; live interoperability remains a separately authorized gate.\n3. **CTX-01 / SAFE-01** \u2014 keep #12/#13 correctness repairs separate from\n   security integration; require the exact read-only surface before tools.\n4. **WORKER-01 / EVAL-01 / OPS-01** \u2014 advance only after their accepted\n   prerequisites; retain I3/I4/L6/L7 as independent evidence requirements.\n\nGate 0 baseline `090ad52` and the 2026-08-07 direction pivot remain historical.\nUse the [integration crosswalk](docs/reference/integration-workstreams.md) and\n[kagent educational roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)\nfor ownership; included ancestor PRs are not independent changes to merge twice.\n"
+    },
+    {
+      "path": "docs/laptop-stable-acceptance-plan.md",
+      "hunk": 1,
+      "resolution": "## Current-Head Baseline Checklist\n\nThis is a short preparation gate, not a second roadmap and not release\nevidence. Complete it before selecting the patch SHA.\n\n| Check | Required result |\n|-------|-----------------|\n| PyYAML contract | \u2705 Direct pinned `pyyaml==6.0.3` in the `dev` group; frozen uv environment imports it for workflow YAML validation. Windows pip install retained for Pester/config validation. |\n| Coverage scope | \u2705 `tool.coverage.run.source` and `scripts/quality/python-full.ps1` target `scripts/kagent` (no `src/` package yet). |\n| Gate 0 local bar | \u2705 Frozen `uv sync --group dev`, PyYAML import, `ruff check` on `scripts/kagent`/`tests/kagent`, `ruff format --check .`, `pytest -q tests/kagent`, `audit-slice -RequireEmptyStaging`, and `git diff --check`. |\n| Exact candidate | \u2b1c One immutable commit SHA is named as the release candidate. |\n| Local deterministic checks | \u2b1c Ruff, Python tests, Pester evaluation, strict Kubernetes validation, required Trivy scan, and integration-scaffold checks have recorded results for that SHA. |\n| Hosted confirmation | \u2b1c All required `quality.yml` jobs are green for that same SHA; historical runs do not substitute. |\n\nDo not tag from this checklist alone: Gate B's Windows target-host round trip is\nstill required.\n\n### Full-quality wrapper (not a Gate 0 pass criterion)\n\n`scripts/quality/python-full.ps1` and `scripts/quality/python-fast.ps1` are\nfail-closed (`$LASTEXITCODE` checked after every native step). The full wrapper\nis **not** currently green and must not be treated as a release gate until the\ndebts below are cleared. Observed on 2026-08-01 (local Windows, Python 3.12.12):\n\n| Check | Observed result |\n|-------|-----------------|\n| Mypy (`uv run mypy scripts/kagent`) | Exit 1 \u2014 26 errors in 3 files |\n| Coverage | Total 79.88% under `fail_under` 80 with `precision = 2`. After that config: `uv run pytest -q tests/kagent --cov=scripts/kagent` exits 1; `uv run coverage report --precision=2 --fail-under=80` exits 2. `python-full.ps1` runs the explicit coverage-report step after pytest. |\n| Bandit (`uv run bandit -r scripts/kagent -q`) | Exit 1 \u2014 14 Low / 0 Medium / 0 High |\n| Pip-audit (`uv run pip-audit` via `python-full.ps1`) | Timed out in the observed environment on 2026-08-01; not classified as flaky without repeat evidence |\n\nGate 0 acceptance remains the checklist bar above. Do not claim the full-quality\ngate passes.\n\n## Current security and quality qualification boundary\n\nUse [dependency-security.md](runbooks/dependency-security.md). Dependency locks,\ncomplete third-party inventories, advisory source freshness and exact-head CI\nmust be qualified before acceptance. Image advisory scans are distinct from the\nrequired repository policy and do not establish zero upstream image CVEs.\n\nThe quality wrappers now fail closed and target the actual `scripts/kagent`\ncode, with coverage precision 2 and the unchanged 80% threshold. This correction\ndoes not certify the full quality wrapper or erase existing typing/coverage\nwork. Its actual outcome must be recorded; a security-only pass is not a stable\nrelease approval. Target-host install/verify/rollback remains a separate gate.\n"
+    },
+    {
+      "path": "docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md",
+      "hunk": 1,
+      "resolution": "## Combined candidate and evidence scope\n\nRECON-02 combines #14 (`17312a75`) and #15 (`7cb921ce`) in a separate branch\nwithout rewriting either reviewed history or changing main/#9/#10/#13.\n[Dependency security](../runbooks/dependency-security.md) owns procedures;\nthe [contradiction register](../reference/contradiction-register.md) records\nclaim/source/correction links and the five conflict resolutions. The\n[combined qualification](../../reports/reconciliation/recon-02-20261103.json)\nrecords actual checks; the candidate PR identifies its final SHA and hosted CI.\nNo combined or maintainer acceptance follows from the two older green heads.\n#10's retained LAB-01 evidence and #13's implementation are not imported here;\nthe pinned LAB-01 sources are checked through preserved Git history. CTX-01\ncorrectness stays under #12/#13. No live capability level is promoted.\n"
+    },
+    {
+      "path": "docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md",
+      "hunk": 2,
+      "resolution": "Implemented helpers and historically recorded runtime observations follow.\nThese bullets do not assert that the cluster or provider is running now.\nRevalidate the approved target before a separately authorized live experiment:\n"
+    },
+    {
+      "path": "docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md",
+      "hunk": 3,
+      "resolution": "  exact pre-merge head `94031ff`. That revision is now part of merged PR #1\n  and remains historical CI context rather than an active merge gate.\n  Each later candidate needs its own hosted tests and fresh security audits.\n"
+    },
+    {
+      "path": "docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md",
+      "hunk": 4,
+      "resolution": "1. Complete RECON-02's actual combined-tree qualification and record the\n   immutable candidate, parent SHAs, conflict decisions and current audit data.\n2. Obtain maintainer acceptance/dispositions under #11; review the included\n   #3\u2013#8 ancestry without merging their implementation twice.\n3. Preserve and replay/requalify #10/#13 against the accepted parent. Keep\n   #12's CTX correctness repairs independently reviewable.\n4. Clear stable target-host acceptance and the existing quality debt separately\n   before any release/tag decision. Preserve EVID-01/A2A-01 and the other stable\n   workstream prerequisites; no new live operation is authorized by this plan.\n"
+    }
+  ],
+  "source_preservation": {
+    "uv.lock": {
+      "from": "17312a75e6b44c2431ef4b8b5f38cedd693c6e65",
+      "sha256": "1e10a85930d63ea2d052cc306f7db8cad6bd4c6fd6a90f7e9bf165d837cd28b6",
+      "identical": true
+    },
+    "scripts/kagent/experiments/a2a_sdk_requirements.lock": {
+      "from": "7cb921ced229817a088415161c81d29ccf15ea03",
+      "sha256": "61a53d9f5b54c09741f2de8bbc797399f5ba95b1d8d683e6dd9877674a4ca96d",
+      "identical": true
+    },
+    "lab01": [
+      {
+        "path": "docs/reference/kagent-capability-matrix.md",
+        "sha256": "6de269f902267373ecf1d1fe5abc4f31d4e6f2fd9396d595790d4c8e7e6f4b91",
+        "candidate_content_unchanged": true
+      },
+      {
+        "path": "docs/reference/kagent-agent-mediated-mcp-evidence.md",
+        "sha256": "48ed3f5bb013ce3620934b24579e0c074a87c7da8f86f5bf9f6867316875d26f",
+        "candidate_content_unchanged": true
+      },
+      {
+        "path": "evidence/kagent/README.md",
+        "sha256": "d093b31e30fc269c08e36807cc3ff68944e06cb722da068ccac3c90dd39118fe",
+        "candidate_content_unchanged": true
+      },
+      {
+        "path": "evidence/kagent/educational-practice-phase-5d-trustworthy-a2a.md",
+        "sha256": "990238434609348e8a720f48f6eba20f8fc1996fd8e8093486d409ce7d616c27",
+        "candidate_content_unchanged": true
+      },
+      {
+        "path": "evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md",
+        "sha256": "3148f3b7178e247c961e58979353155bf60d2c87d38aeb0851ef179e11fe527a",
+        "candidate_content_unchanged": true
+      },
+      {
+        "path": "evidence/kagent/educational-practice-phase-5b-direct-mcp.md",
+        "sha256": "6ba61f8f468485dafb0a4fa420d890fc96a07bb381d15046c5ce5254fdeffd5e",
+        "candidate_content_unchanged": true
+      }
+    ],
+    "formatting_lineage": [
+      {
+        "path": "scripts/kagent/test-a2a-agent.py",
+        "matches_reviewed_integration": true,
+        "differs_from_original_main": true
+      },
+      {
+        "path": "tests/kagent/test_a2a_helper.py",
+        "matches_reviewed_integration": true,
+        "differs_from_original_main": true
+      },
+      {
+        "path": "tests/kagent/test_agent_mcp_trace.py",
+        "matches_reviewed_integration": true,
+        "differs_from_original_main": true
+      }
+    ],
+    "typing_inputs_unchanged_from_sdk": true
+  },
+  "root_advisory": {
+    "schema_version": "1.0",
+    "observed_at": "2026-11-02T21:34:22.389341+00:00",
+    "input": "uv.lock",
+    "working_file_sha256": "d70feea477f147d8a9d1817238284875b87b13000776b53a9ac88e9eb1ad2f83",
+    "scanner": {
+      "name": "pip-audit",
+      "version": "2.10.1",
+      "service": "osv",
+      "data": "live advisory-service query; not a Trivy DB snapshot"
+    },
+    "packages": [
+      {
+        "name": "ast-serialize",
+        "version": "0.6.0"
+      },
+      {
+        "name": "bandit",
+        "version": "1.9.4"
+      },
+      {
+        "name": "boolean-py",
+        "version": "5.0"
+      },
+      {
+        "name": "cachecontrol",
+        "version": "0.14.4"
+      },
+      {
+        "name": "certifi",
+        "version": "2026.10.19"
+      },
+      {
+        "name": "cfgv",
+        "version": "3.5.0"
+      },
+      {
+        "name": "charset-normalizer",
+        "version": "3.4.9"
+      },
+      {
+        "name": "colorama",
+        "version": "0.4.6"
+      },
+      {
+        "name": "coverage",
+        "version": "7.15.2"
+      },
+      {
+        "name": "cyclonedx-python-lib",
+        "version": "11.11.0"
+      },
+      {
+        "name": "defusedxml",
+        "version": "0.7.1"
+      },
+      {
+        "name": "distlib",
+        "version": "0.4.3"
+      },
+      {
+        "name": "filelock",
+        "version": "4.2.1"
+      },
+      {
+        "name": "identify",
+        "version": "2.6.19"
+      },
+      {
+        "name": "idna",
+        "version": "3.18"
+      },
+      {
+        "name": "iniconfig",
+        "version": "2.3.0"
+      },
+      {
+        "name": "librt",
+        "version": "0.13.0"
+      },
+      {
+        "name": "license-expression",
+        "version": "30.4.4"
+      },
+      {
+        "name": "markdown-it-py",
+        "version": "4.2.0"
+      },
+      {
+        "name": "mdurl",
+        "version": "0.1.2"
+      },
+      {
+        "name": "msgpack",
+        "version": "1.2.3"
+      },
+      {
+        "name": "mypy",
+        "version": "2.3.0"
+      },
+      {
+        "name": "mypy-extensions",
+        "version": "1.1.0"
+      },
+      {
+        "name": "nodeenv",
+        "version": "1.10.0"
+      },
+      {
+        "name": "packageurl-python",
+        "version": "0.17.6"
+      },
+      {
+        "name": "packaging",
+        "version": "26.3"
+      },
+      {
+        "name": "pathspec",
+        "version": "1.1.1"
+      },
+      {
+        "name": "pip",
+        "version": "26.2.2"
+      },
+      {
+        "name": "pip-api",
+        "version": "0.0.34"
+      },
+      {
+        "name": "pip-audit",
+        "version": "2.10.1"
+      },
+      {
+        "name": "pip-requirements-parser",
+        "version": "32.0.1"
+      },
+      {
+        "name": "platformdirs",
+        "version": "4.10.0"
+      },
+      {
+        "name": "pluggy",
+        "version": "1.6.0"
+      },
+      {
+        "name": "pre-commit",
+        "version": "4.6.0"
+      },
+      {
+        "name": "py-serializable",
+        "version": "2.1.0"
+      },
+      {
+        "name": "pygments",
+        "version": "2.20.0"
+      },
+      {
+        "name": "pyparsing",
+        "version": "3.3.2"
+      },
+      {
+        "name": "pytest",
+        "version": "9.1.1"
+      },
+      {
+        "name": "pytest-cov",
+        "version": "7.1.0"
+      },
+      {
+        "name": "python-discovery",
+        "version": "1.6.1"
+      },
+      {
+        "name": "pyyaml",
+        "version": "6.0.3"
+      },
+      {
+        "name": "requests",
+        "version": "2.34.2"
+      },
+      {
+        "name": "rich",
+        "version": "15.0.0"
+      },
+      {
+        "name": "ruff",
+        "version": "0.15.22"
+      },
+      {
+        "name": "sortedcontainers",
+        "version": "2.4.0"
+      },
+      {
+        "name": "stevedore",
+        "version": "5.9.0"
+      },
+      {
+        "name": "tomli",
+        "version": "2.4.1"
+      },
+      {
+        "name": "tomli-w",
+        "version": "1.2.0"
+      },
+      {
+        "name": "typing-extensions",
+        "version": "4.16.0"
+      },
+      {
+        "name": "urllib3",
+        "version": "2.8.0"
+      },
+      {
+        "name": "virtualenv",
+        "version": "21.14.13"
+      }
+    ],
+    "local_projects": [
+      "mcptest"
+    ],
+    "expected_count": 51,
+    "observed_count": 51,
+    "findings": 0,
+    "result": {
+      "dependencies": [
+        {
+          "name": "ast-serialize",
+          "version": "0.6.0",
+          "vulns": []
+        },
+        {
+          "name": "bandit",
+          "version": "1.9.4",
+          "vulns": []
+        },
+        {
+          "name": "boolean-py",
+          "version": "5.0",
+          "vulns": []
+        },
+        {
+          "name": "cachecontrol",
+          "version": "0.14.4",
+          "vulns": []
+        },
+        {
+          "name": "certifi",
+          "version": "2026.10.19",
+          "vulns": []
+        },
+        {
+          "name": "cfgv",
+          "version": "3.5.0",
+          "vulns": []
+        },
+        {
+          "name": "charset-normalizer",
+          "version": "3.4.9",
+          "vulns": []
+        },
+        {
+          "name": "colorama",
+          "version": "0.4.6",
+          "vulns": []
+        },
+        {
+          "name": "coverage",
+          "version": "7.15.2",
+          "vulns": []
+        },
+        {
+          "name": "cyclonedx-python-lib",
+          "version": "11.11.0",
+          "vulns": []
+        },
+        {
+          "name": "defusedxml",
+          "version": "0.7.1",
+          "vulns": []
+        },
+        {
+          "name": "distlib",
+          "version": "0.4.3",
+          "vulns": []
+        },
+        {
+          "name": "filelock",
+          "version": "4.2.1",
+          "vulns": []
+        },
+        {
+          "name": "identify",
+          "version": "2.6.19",
+          "vulns": []
+        },
+        {
+          "name": "idna",
+          "version": "3.18",
+          "vulns": []
+        },
+        {
+          "name": "iniconfig",
+          "version": "2.3.0",
+          "vulns": []
+        },
+        {
+          "name": "librt",
+          "version": "0.13.0",
+          "vulns": []
+        },
+        {
+          "name": "license-expression",
+          "version": "30.4.4",
+          "vulns": []
+        },
+        {
+          "name": "markdown-it-py",
+          "version": "4.2.0",
+          "vulns": []
+        },
+        {
+          "name": "mdurl",
+          "version": "0.1.2",
+          "vulns": []
+        },
+        {
+          "name": "msgpack",
+          "version": "1.2.3",
+          "vulns": []
+        },
+        {
+          "name": "mypy",
+          "version": "2.3.0",
+          "vulns": []
+        },
+        {
+          "name": "mypy-extensions",
+          "version": "1.1.0",
+          "vulns": []
+        },
+        {
+          "name": "nodeenv",
+          "version": "1.10.0",
+          "vulns": []
+        },
+        {
+          "name": "packageurl-python",
+          "version": "0.17.6",
+          "vulns": []
+        },
+        {
+          "name": "packaging",
+          "version": "26.3",
+          "vulns": []
+        },
+        {
+          "name": "pathspec",
+          "version": "1.1.1",
+          "vulns": []
+        },
+        {
+          "name": "pip",
+          "version": "26.2.2",
+          "vulns": []
+        },
+        {
+          "name": "pip-api",
+          "version": "0.0.34",
+          "vulns": []
+        },
+        {
+          "name": "pip-audit",
+          "version": "2.10.1",
+          "vulns": []
+        },
+        {
+          "name": "pip-requirements-parser",
+          "version": "32.0.1",
+          "vulns": []
+        },
+        {
+          "name": "platformdirs",
+          "version": "4.10.0",
+          "vulns": []
+        },
+        {
+          "name": "pluggy",
+          "version": "1.6.0",
+          "vulns": []
+        },
+        {
+          "name": "pre-commit",
+          "version": "4.6.0",
+          "vulns": []
+        },
+        {
+          "name": "py-serializable",
+          "version": "2.1.0",
+          "vulns": []
+        },
+        {
+          "name": "pygments",
+          "version": "2.20.0",
+          "vulns": []
+        },
+        {
+          "name": "pyparsing",
+          "version": "3.3.2",
+          "vulns": []
+        },
+        {
+          "name": "pytest",
+          "version": "9.1.1",
+          "vulns": []
+        },
+        {
+          "name": "pytest-cov",
+          "version": "7.1.0",
+          "vulns": []
+        },
+        {
+          "name": "python-discovery",
+          "version": "1.6.1",
+          "vulns": []
+        },
+        {
+          "name": "pyyaml",
+          "version": "6.0.3",
+          "vulns": []
+        },
+        {
+          "name": "requests",
+          "version": "2.34.2",
+          "vulns": []
+        },
+        {
+          "name": "rich",
+          "version": "15.0.0",
+          "vulns": []
+        },
+        {
+          "name": "ruff",
+          "version": "0.15.22",
+          "vulns": []
+        },
+        {
+          "name": "sortedcontainers",
+          "version": "2.4.0",
+          "vulns": []
+        },
+        {
+          "name": "stevedore",
+          "version": "5.9.0",
+          "vulns": []
+        },
+        {
+          "name": "tomli",
+          "version": "2.4.1",
+          "vulns": []
+        },
+        {
+          "name": "tomli-w",
+          "version": "1.2.0",
+          "vulns": []
+        },
+        {
+          "name": "typing-extensions",
+          "version": "4.16.0",
+          "vulns": []
+        },
+        {
+          "name": "urllib3",
+          "version": "2.8.0",
+          "vulns": []
+        },
+        {
+          "name": "virtualenv",
+          "version": "21.14.13",
+          "vulns": []
+        }
+      ],
+      "fixes": []
+    }
+  },
+  "sdk_advisory_osv": {
+    "schema_version": "1.0",
+    "observed_at": "2026-11-02T21:38:04.244338+00:00",
+    "input": "scripts/kagent/experiments/a2a_sdk_requirements.lock",
+    "working_file_sha256": "e5922e0d70b166b8b35c2ae8fb75aa78027e9b632e3a0b223d477ebf4e24fa01",
+    "scanner": {
+      "name": "pip-audit",
+      "version": "2.10.1",
+      "service": "osv",
+      "data": "live advisory-service query; not a Trivy DB snapshot"
+    },
+    "packages": [
+      {
+        "name": "a2a-sdk",
+        "version": "0.3.26"
+      },
+      {
+        "name": "annotated-types",
+        "version": "0.8.0"
+      },
+      {
+        "name": "anyio",
+        "version": "4.15.1"
+      },
+      {
+        "name": "certifi",
+        "version": "2026.10.19"
+      },
+      {
+        "name": "cffi",
+        "version": "2.1.1"
+      },
+      {
+        "name": "charset-normalizer",
+        "version": "3.5.2"
+      },
+      {
+        "name": "colorama",
+        "version": "0.4.6"
+      },
+      {
+        "name": "cryptography",
+        "version": "50.0.2"
+      },
+      {
+        "name": "google-api-core",
+        "version": "2.42.0"
+      },
+      {
+        "name": "google-auth",
+        "version": "2.62.0"
+      },
+      {
+        "name": "googleapis-common-protos",
+        "version": "1.75.5"
+      },
+      {
+        "name": "h11",
+        "version": "0.16.0"
+      },
+      {
+        "name": "httpcore",
+        "version": "1.0.9"
+      },
+      {
+        "name": "httpx",
+        "version": "0.28.1"
+      },
+      {
+        "name": "httpx-sse",
+        "version": "0.4.3"
+      },
+      {
+        "name": "idna",
+        "version": "3.20"
+      },
+      {
+        "name": "iniconfig",
+        "version": "2.3.1"
+      },
+      {
+        "name": "opentelemetry-api",
+        "version": "1.45.1"
+      },
+      {
+        "name": "packaging",
+        "version": "26.3"
+      },
+      {
+        "name": "pluggy",
+        "version": "1.7.0"
+      },
+      {
+        "name": "proto-plus",
+        "version": "1.29.0"
+      },
+      {
+        "name": "protobuf",
+        "version": "7.36.2"
+      },
+      {
+        "name": "pyasn1",
+        "version": "0.6.5"
+      },
+      {
+        "name": "pyasn1-modules",
+        "version": "0.4.2"
+      },
+      {
+        "name": "pycparser",
+        "version": "3.12"
+      },
+      {
+        "name": "pydantic",
+        "version": "2.14.1"
+      },
+      {
+        "name": "pydantic-core",
+        "version": "2.50.1"
+      },
+      {
+        "name": "pygments",
+        "version": "2.21.0"
+      },
+      {
+        "name": "pytest",
+        "version": "9.0.3"
+      },
+      {
+        "name": "requests",
+        "version": "2.34.2"
+      },
+      {
+        "name": "typing-extensions",
+        "version": "4.16.0"
+      },
+      {
+        "name": "typing-inspection",
+        "version": "0.4.4"
+      },
+      {
+        "name": "urllib3",
+        "version": "2.8.0"
+      }
+    ],
+    "local_projects": [],
+    "expected_count": 33,
+    "observed_count": 33,
+    "findings": 0,
+    "result": {
+      "dependencies": [
+        {
+          "name": "a2a-sdk",
+          "version": "0.3.26",
+          "vulns": []
+        },
+        {
+          "name": "annotated-types",
+          "version": "0.8.0",
+          "vulns": []
+        },
+        {
+          "name": "anyio",
+          "version": "4.15.1",
+          "vulns": []
+        },
+        {
+          "name": "certifi",
+          "version": "2026.10.19",
+          "vulns": []
+        },
+        {
+          "name": "cffi",
+          "version": "2.1.1",
+          "vulns": []
+        },
+        {
+          "name": "charset-normalizer",
+          "version": "3.5.2",
+          "vulns": []
+        },
+        {
+          "name": "colorama",
+          "version": "0.4.6",
+          "vulns": []
+        },
+        {
+          "name": "cryptography",
+          "version": "50.0.2",
+          "vulns": []
+        },
+        {
+          "name": "google-api-core",
+          "version": "2.42.0",
+          "vulns": []
+        },
+        {
+          "name": "google-auth",
+          "version": "2.62.0",
+          "vulns": []
+        },
+        {
+          "name": "googleapis-common-protos",
+          "version": "1.75.5",
+          "vulns": []
+        },
+        {
+          "name": "h11",
+          "version": "0.16.0",
+          "vulns": []
+        },
+        {
+          "name": "httpcore",
+          "version": "1.0.9",
+          "vulns": []
+        },
+        {
+          "name": "httpx",
+          "version": "0.28.1",
+          "vulns": []
+        },
+        {
+          "name": "httpx-sse",
+          "version": "0.4.3",
+          "vulns": []
+        },
+        {
+          "name": "idna",
+          "version": "3.20",
+          "vulns": []
+        },
+        {
+          "name": "iniconfig",
+          "version": "2.3.1",
+          "vulns": []
+        },
+        {
+          "name": "opentelemetry-api",
+          "version": "1.45.1",
+          "vulns": []
+        },
+        {
+          "name": "packaging",
+          "version": "26.3",
+          "vulns": []
+        },
+        {
+          "name": "pluggy",
+          "version": "1.7.0",
+          "vulns": []
+        },
+        {
+          "name": "proto-plus",
+          "version": "1.29.0",
+          "vulns": []
+        },
+        {
+          "name": "protobuf",
+          "version": "7.36.2",
+          "vulns": []
+        },
+        {
+          "name": "pyasn1",
+          "version": "0.6.5",
+          "vulns": []
+        },
+        {
+          "name": "pyasn1-modules",
+          "version": "0.4.2",
+          "vulns": []
+        },
+        {
+          "name": "pycparser",
+          "version": "3.12",
+          "vulns": []
+        },
+        {
+          "name": "pydantic",
+          "version": "2.14.1",
+          "vulns": []
+        },
+        {
+          "name": "pydantic-core",
+          "version": "2.50.1",
+          "vulns": []
+        },
+        {
+          "name": "pygments",
+          "version": "2.21.0",
+          "vulns": []
+        },
+        {
+          "name": "pytest",
+          "version": "9.0.3",
+          "vulns": []
+        },
+        {
+          "name": "requests",
+          "version": "2.34.2",
+          "vulns": []
+        },
+        {
+          "name": "typing-extensions",
+          "version": "4.16.0",
+          "vulns": []
+        },
+        {
+          "name": "typing-inspection",
+          "version": "0.4.4",
+          "vulns": []
+        },
+        {
+          "name": "urllib3",
+          "version": "2.8.0",
+          "vulns": []
+        }
+      ],
+      "fixes": []
+    }
+  },
+  "sdk_pypi_local": "TLS SSLEOF failure; not qualified by that query; original required PyPI hosted gate retained",
+  "trivy_database": {
+    "Version": 2,
+    "NextUpdate": "2026-11-03T19:15:11.074748061Z",
+    "UpdatedAt": "2026-11-02T19:15:11.074748541Z",
+    "DownloadedAt": "2026-11-02T21:27:21.0970289Z",
+    "sha256": "3173b347c0c0c5a9def8e6db2a1771957e56566a2439e8a41292c525f9d14171"
+  },
+  "trivy_scan": [
+    {
+      "target": "scripts/kagent/experiments/a2a_sdk_requirements.lock",
+      "type": "pip",
+      "packages": [
+        {
+          "name": "a2a-sdk",
+          "version": "0.3.26"
+        },
+        {
+          "name": "annotated-types",
+          "version": "0.8.0"
+        },
+        {
+          "name": "anyio",
+          "version": "4.15.1"
+        },
+        {
+          "name": "certifi",
+          "version": "2026.10.19"
+        },
+        {
+          "name": "cffi",
+          "version": "2.1.1"
+        },
+        {
+          "name": "charset-normalizer",
+          "version": "3.5.2"
+        },
+        {
+          "name": "colorama",
+          "version": "0.4.6"
+        },
+        {
+          "name": "cryptography",
+          "version": "50.0.2"
+        },
+        {
+          "name": "google-api-core",
+          "version": "2.42.0"
+        },
+        {
+          "name": "google-auth",
+          "version": "2.62.0"
+        },
+        {
+          "name": "googleapis-common-protos",
+          "version": "1.75.5"
+        },
+        {
+          "name": "h11",
+          "version": "0.16.0"
+        },
+        {
+          "name": "httpcore",
+          "version": "1.0.9"
+        },
+        {
+          "name": "httpx",
+          "version": "0.28.1"
+        },
+        {
+          "name": "httpx-sse",
+          "version": "0.4.3"
+        },
+        {
+          "name": "idna",
+          "version": "3.20"
+        },
+        {
+          "name": "iniconfig",
+          "version": "2.3.1"
+        },
+        {
+          "name": "opentelemetry-api",
+          "version": "1.45.1"
+        },
+        {
+          "name": "packaging",
+          "version": "26.3"
+        },
+        {
+          "name": "pluggy",
+          "version": "1.7.0"
+        },
+        {
+          "name": "proto-plus",
+          "version": "1.29.0"
+        },
+        {
+          "name": "protobuf",
+          "version": "7.36.2"
+        },
+        {
+          "name": "pyasn1",
+          "version": "0.6.5"
+        },
+        {
+          "name": "pyasn1-modules",
+          "version": "0.4.2"
+        },
+        {
+          "name": "pycparser",
+          "version": "3.12"
+        },
+        {
+          "name": "pydantic",
+          "version": "2.14.1"
+        },
+        {
+          "name": "pydantic-core",
+          "version": "2.50.1"
+        },
+        {
+          "name": "pygments",
+          "version": "2.21.0"
+        },
+        {
+          "name": "pytest",
+          "version": "9.0.3"
+        },
+        {
+          "name": "requests",
+          "version": "2.34.2"
+        },
+        {
+          "name": "typing-extensions",
+          "version": "4.16.0"
+        },
+        {
+          "name": "typing-inspection",
+          "version": "0.4.4"
+        },
+        {
+          "name": "urllib3",
+          "version": "2.8.0"
+        }
+      ],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "uv.lock",
+      "type": "uv",
+      "packages": [
+        {
+          "name": "mcptest",
+          "version": "0.1.0"
+        },
+        {
+          "name": "bandit",
+          "version": "1.9.4"
+        },
+        {
+          "name": "mypy",
+          "version": "2.3.0"
+        },
+        {
+          "name": "pip-audit",
+          "version": "2.10.1"
+        },
+        {
+          "name": "pre-commit",
+          "version": "4.6.0"
+        },
+        {
+          "name": "pytest",
+          "version": "9.1.1"
+        },
+        {
+          "name": "pytest-cov",
+          "version": "7.1.0"
+        },
+        {
+          "name": "pyyaml",
+          "version": "6.0.3"
+        },
+        {
+          "name": "ruff",
+          "version": "0.15.22"
+        },
+        {
+          "name": "ast-serialize",
+          "version": "0.6.0"
+        },
+        {
+          "name": "boolean-py",
+          "version": "5.0"
+        },
+        {
+          "name": "cachecontrol",
+          "version": "0.14.4"
+        },
+        {
+          "name": "certifi",
+          "version": "2026.10.19"
+        },
+        {
+          "name": "cfgv",
+          "version": "3.5.0"
+        },
+        {
+          "name": "charset-normalizer",
+          "version": "3.4.9"
+        },
+        {
+          "name": "colorama",
+          "version": "0.4.6"
+        },
+        {
+          "name": "coverage",
+          "version": "7.15.2"
+        },
+        {
+          "name": "cyclonedx-python-lib",
+          "version": "11.11.0"
+        },
+        {
+          "name": "defusedxml",
+          "version": "0.7.1"
+        },
+        {
+          "name": "distlib",
+          "version": "0.4.3"
+        },
+        {
+          "name": "filelock",
+          "version": "4.2.1"
+        },
+        {
+          "name": "identify",
+          "version": "2.6.19"
+        },
+        {
+          "name": "idna",
+          "version": "3.18"
+        },
+        {
+          "name": "iniconfig",
+          "version": "2.3.0"
+        },
+        {
+          "name": "librt",
+          "version": "0.13.0"
+        },
+        {
+          "name": "license-expression",
+          "version": "30.4.4"
+        },
+        {
+          "name": "markdown-it-py",
+          "version": "4.2.0"
+        },
+        {
+          "name": "mdurl",
+          "version": "0.1.2"
+        },
+        {
+          "name": "msgpack",
+          "version": "1.2.3"
+        },
+        {
+          "name": "mypy-extensions",
+          "version": "1.1.0"
+        },
+        {
+          "name": "nodeenv",
+          "version": "1.10.0"
+        },
+        {
+          "name": "packageurl-python",
+          "version": "0.17.6"
+        },
+        {
+          "name": "packaging",
+          "version": "26.3"
+        },
+        {
+          "name": "pathspec",
+          "version": "1.1.1"
+        },
+        {
+          "name": "pip",
+          "version": "26.2.2"
+        },
+        {
+          "name": "pip-api",
+          "version": "0.0.34"
+        },
+        {
+          "name": "pip-requirements-parser",
+          "version": "32.0.1"
+        },
+        {
+          "name": "platformdirs",
+          "version": "4.10.0"
+        },
+        {
+          "name": "pluggy",
+          "version": "1.6.0"
+        },
+        {
+          "name": "py-serializable",
+          "version": "2.1.0"
+        },
+        {
+          "name": "pygments",
+          "version": "2.20.0"
+        },
+        {
+          "name": "pyparsing",
+          "version": "3.3.2"
+        },
+        {
+          "name": "python-discovery",
+          "version": "1.6.1"
+        },
+        {
+          "name": "requests",
+          "version": "2.34.2"
+        },
+        {
+          "name": "rich",
+          "version": "15.0.0"
+        },
+        {
+          "name": "sortedcontainers",
+          "version": "2.4.0"
+        },
+        {
+          "name": "stevedore",
+          "version": "5.9.0"
+        },
+        {
+          "name": "tomli",
+          "version": "2.4.1"
+        },
+        {
+          "name": "tomli-w",
+          "version": "1.2.0"
+        },
+        {
+          "name": "typing-extensions",
+          "version": "4.16.0"
+        },
+        {
+          "name": "urllib3",
+          "version": "2.8.0"
+        },
+        {
+          "name": "virtualenv",
+          "version": "21.14.13"
+        }
+      ],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "config/kagent/k8s-a2a-agent-litellm-modelconfig-patch.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/base/kagent/kagent-tool-server-runtime.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/base/kagent/kagent-tool-server.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/samples/kagent-a2a/01-planner/planner-agent.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/samples/kagent-a2a/02-reviewer/reviewer-agent.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/samples/kagent-a2a/03-supervisor/supervisor-agent.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/samples/kagent/curl-litellm-probe.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/samples/kagent/ide-safe-deepseek-model-config.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/samples/kagent/ide-safe-ollama-model-config.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/samples/kagent/k8s-a2a-agent.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/samples/kagent/litellm-gateway-model-config.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/samples/kagent/litellm-gateway-smoke-agent.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    },
+    {
+      "target": "deploy/samples/kagent/litellm-gateway-tool-agent.yaml",
+      "type": "kubernetes",
+      "packages": [],
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "failed_misconfigurations": 0
+    }
+  ],
+  "commands": [
+    {
+      "command": "windows-root-frozen-sync",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\sec-remediate-01\\uv-tool-windows\\Scripts\\uv.exe",
+        "sync",
+        "--frozen",
+        "--group",
+        "dev",
+        "--python",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\python-pinned\\cpython-3.13.15-windows-x86_64-none\\python.exe"
+      ],
+      "started_at": "2026-11-02T21:31:21.397009+00:00",
+      "finished_at": "2026-11-02T21:31:21.432946+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "",
+      "stderr_excerpt": "Audited 51 packages in 0.51ms\n",
+      "record_sha256": "0620c1353777519223371860276e64f448c6339f491e4d375407affc11efeaca"
+    },
+    {
+      "command": "windows-root-integrity",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\sec-remediate-01\\uv-tool-windows\\Scripts\\uv.exe",
+        "pip",
+        "check",
+        "--python",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe"
+      ],
+      "started_at": "2026-11-02T21:31:21.433568+00:00",
+      "finished_at": "2026-11-02T21:31:21.461218+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "",
+      "stderr_excerpt": "Using Python 3.13.15 environment at: C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\nChecked 51 packages in 2ms\nAll installed packages are compatible\n",
+      "record_sha256": "fec4875db71b35c22c91be3fcd3306cdc709dbcee0662717a6b1ccf4b1e400aa"
+    },
+    {
+      "command": "windows-root-suite-final",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "--ignore=tests/kagent/experiments/test_a2a_sdk_interop.py",
+        "--ignore=tests/kagent/experiments/test_a2a_sdk_transport.py",
+        "--ignore=tests/kagent/experiments/test_a2a_sdk_repairs.py",
+        "--ignore=tests/kagent/experiments/test_a2a_sdk_cleanup.py",
+        "--junitxml=C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows-final-results.xml"
+      ],
+      "started_at": "2026-11-02T21:37:37.230593+00:00",
+      "finished_at": "2026-11-02T21:37:43.039139+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "........................................................................ [ 23%]\r\n........................................................................ [ 47%]\r\n........................................................................ [ 70%]\r\n........................................................................ [ 94%]\r\n.................                                                        [100%]\r\n305 passed in 5.35s\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "bd4e113ef7db28f4ff4887f99508e72ea3fe9b3053a320d95934443e2776cb58"
+    },
+    {
+      "command": "windows-sdk-hashed-sync",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\sec-remediate-01\\uv-tool-windows\\Scripts\\uv.exe",
+        "pip",
+        "sync",
+        "--require-hashes",
+        "--python",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\sdk-windows\\Scripts\\python.exe",
+        "scripts/kagent/experiments/a2a_sdk_requirements.lock"
+      ],
+      "started_at": "2026-11-02T21:31:28.200530+00:00",
+      "finished_at": "2026-11-02T21:31:33.934655+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "",
+      "stderr_excerpt": "\n + httpx-sse==0.4.3\n + idna==3.20\n + iniconfig==2.3.1\n + opentelemetry-api==1.45.1\n + packaging==26.3\n + pluggy==1.7.0\n + proto-plus==1.29.0\n + protobuf==7.36.2\n + pyasn1==0.6.5\n + pyasn1-modules==0.4.2\n + pycparser==3.12\n + pydantic==2.14.1\n + pydantic-core==2.50.1\n + pygments==2.21.0\n + pytest==9.0.3\n + requests==2.34.2\n + typing-extensions==4.16.0\n + typing-inspection==0.4.4\n + urllib3==2.8.0\n",
+      "record_sha256": "df990339554d7a3d21562878bc7447af959999043aa6275a70a75a4319ca8fce"
+    },
+    {
+      "command": "windows-sdk-integrity",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\sec-remediate-01\\uv-tool-windows\\Scripts\\uv.exe",
+        "pip",
+        "check",
+        "--python",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\sdk-windows\\Scripts\\python.exe"
+      ],
+      "started_at": "2026-11-02T21:31:33.939512+00:00",
+      "finished_at": "2026-11-02T21:31:34.058015+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "",
+      "stderr_excerpt": "Using Python 3.13.15 environment at: C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\sdk-windows\nChecked 33 packages in 8ms\nAll installed packages are compatible\n",
+      "record_sha256": "285370b8600e3daef93b8f252a7bbd8d26e2ef589e9b5c6c8d8532c76ac0a227"
+    },
+    {
+      "command": "windows-sdk-pins",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\sdk-windows\\Scripts\\python.exe",
+        "-c",
+        "import sys,importlib.metadata as m; assert sys.version_info[:3]==(3,13,15); assert m.version(\"a2a-sdk\")==\"0.3.26\"; print(sys.version)"
+      ],
+      "started_at": "2026-11-02T21:31:34.061916+00:00",
+      "finished_at": "2026-11-02T21:31:34.481008+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "3.13.15 (main, Sep 29 2026, 15:00:04) [MSC v.1944 64 bit (AMD64)]\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "f641fb0f671c956503ecdf9ff5101b9e469accdce54cde164e8c058488ad11d5"
+    },
+    {
+      "command": "windows-sdk-suite",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\sdk-windows\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        "tests/kagent/experiments/test_a2a_sdk_interop.py",
+        "tests/kagent/experiments/test_a2a_sdk_transport.py",
+        "tests/kagent/experiments/test_a2a_sdk_repairs.py",
+        "tests/kagent/experiments/test_a2a_sdk_cleanup.py",
+        "--junitxml=C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\sdk-windows-results.xml"
+      ],
+      "started_at": "2026-11-02T21:31:34.482202+00:00",
+      "finished_at": "2026-11-02T21:31:49.839870+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "k_transport.py: 27 warnings\r\ntests/kagent/experiments/test_a2a_sdk_repairs.py: 17 warnings\r\ntests/kagent/experiments/test_a2a_sdk_cleanup.py: 1 warning\r\n  C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\candidate\\scripts\\kagent\\experiments\\a2a_sdk_interop.py:602: DeprecationWarning: A2AClient is deprecated and will be removed in a future version. Use ClientFactory to create a client with a JSON-RPC transport.\r\n    client = A2AClient(\r\n\r\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\r\n74 passed, 46 warnings in 11.42s\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "af91a5d4b11981459fa0a9a0b5526ecce4a1470fb6ca0d164b461c4576f39d18"
+    },
+    {
+      "command": "strict-source-and-contract-typing",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "-m",
+        "mypy",
+        "--python-executable",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\sdk-windows\\Scripts\\python.exe",
+        "scripts/kagent/experiments/a2a_sdk_interop.py",
+        "scripts/security/audit_dependencies.py",
+        "tests/reconciliation/test_combined_integration.py"
+      ],
+      "started_at": "2026-11-02T21:37:43.040911+00:00",
+      "finished_at": "2026-11-02T21:37:43.620902+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "Success: no issues found in 3 source files\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "bc11c6be3e104940aa61fb102f77cfee371c7ad5e96bc696f1a148b00abd061e"
+    },
+    {
+      "command": "new-contract-lint-final",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "tests/reconciliation"
+      ],
+      "started_at": "2026-11-02T21:39:30.193860+00:00",
+      "finished_at": "2026-11-02T21:39:30.368144+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "All checks passed!\n",
+      "stderr_excerpt": "",
+      "record_sha256": "467ab77e8f78b8980d10a25bc4d4ba06a0ac766e87464a294034f26a3ae1326c"
+    },
+    {
+      "command": "new-contract-format-final",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "tests/reconciliation"
+      ],
+      "started_at": "2026-11-02T21:39:30.369151+00:00",
+      "finished_at": "2026-11-02T21:39:30.540650+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "1 file already formatted\n",
+      "stderr_excerpt": "",
+      "record_sha256": "809fda8b403a2a4a6a36f5fc36426c331791b171a0121dde75d162045d836d18"
+    },
+    {
+      "command": "whole-repo-format",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "."
+      ],
+      "started_at": "2026-11-02T21:37:44.026395+00:00",
+      "finished_at": "2026-11-02T21:37:44.266697+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "27 files already formatted\n",
+      "stderr_excerpt": "",
+      "record_sha256": "1cd99474079708045f59d6dcaf8a960df0c31c65decde41d14d1a6c996a5c98b"
+    },
+    {
+      "command": "existing-mypy-scope",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "-m",
+        "mypy",
+        "scripts/kagent",
+        "tests/kagent"
+      ],
+      "started_at": "2026-11-02T21:37:44.267967+00:00",
+      "finished_at": "2026-11-02T21:37:51.103070+00:00",
+      "exit_code": 1,
+      "stdout_excerpt": "ion \"status\" in typed context  [no-untyped-call]\r\ntests\\kagent\\experiments\\test_a2a_sdk_repairs.py:189: error: Call to untyped function \"install_events\" in typed context  [no-untyped-call]\r\ntests\\kagent\\experiments\\test_a2a_sdk_repairs.py:196: error: Function is missing a type annotation  [no-untyped-def]\r\ntests\\kagent\\experiments\\test_a2a_sdk_repairs.py:205: error: Function is missing a type annotation  [no-untyped-def]\r\ntests\\kagent\\experiments\\test_a2a_sdk_repairs.py:214: error: Function is missing a type annotation  [no-untyped-def]\r\nFound 433 errors in 18 files (checked 24 source files)\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "b714135c52d0f4ab9280cf9af1ba1e1612d8cfae356daea2250495b7bab98e5b"
+    },
+    {
+      "command": "coverage-scope",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "--ignore=tests/kagent/experiments/test_a2a_sdk_interop.py",
+        "--ignore=tests/kagent/experiments/test_a2a_sdk_transport.py",
+        "--ignore=tests/kagent/experiments/test_a2a_sdk_repairs.py",
+        "--ignore=tests/kagent/experiments/test_a2a_sdk_cleanup.py",
+        "--cov",
+        "--cov-report=term-missing",
+        "--cov-report=json:C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\coverage.json"
+      ],
+      "started_at": "2026-11-02T21:37:51.104528+00:00",
+      "finished_at": "2026-11-02T21:38:02.477651+00:00",
+      "exit_code": 1,
+      "stdout_excerpt": "-1070, 1098\r\nscripts\\kagent\\validate-litellm-gateway.py           91     33     42     14  60.15%   27, 36, 39, 41, 43, 45, 48, 51, 60, 64, 68, 70, 92->94, 98-103, 107-121, 125\r\n----------------------------------------------------------------------------------------------\r\nTOTAL                                              3002    620   1062    249  76.06%\r\nCoverage JSON written to file C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\coverage.json\r\nFAIL Required test coverage of 80.0% not reached. Total coverage: 76.06%\r\n305 passed in 5.97s\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "b52a17b6e1f56f276d3c9a646fa7d7cc00f1d9b84bfba009e043931f927eb0be"
+    },
+    {
+      "command": "pester3",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "Import-Module Pester -RequiredVersion 3.4.0 -Force; $r=Invoke-Pester -Path @('tests/kagent/KagentHealth.Tests.ps1','tests/kagent/KagentToolingValidation.Tests.ps1','tests/benchmark/AgentGovernanceBenchmark.Tests.ps1','tests/security/QualityWrappers.Tests.ps1') -PassThru; if($r.FailedCount -gt 0 -or $r.TotalCount -eq 0){exit 1}"
+      ],
+      "started_at": "2026-11-02T21:14:39.324163+00:00",
+      "finished_at": "2026-11-02T21:15:20.326340+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "licit 140ms\r\nDescribing Soft measure numeric validation\r\n [+] rejects boolean true 386ms\r\n [+] rejects boolean false 118ms\r\n [+] rejects string 135ms\r\n [+] rejects NaN 128ms\r\n [+] rejects Infinity 143ms\r\n [+] accepts valid integer zero 101ms\r\n [+] accepts valid double 0.85 113ms\r\nDescribing Fail-closed quality wrappers\r\n [+] python-fast.ps1 stops after a native failure 1.84s\r\n [+] python-full.ps1 stops after a native failure 945ms\r\n [+] fast wrapper reports success only after all three commands pass 1.03s\r\nTests completed in 35.04s\r\nPassed: 136 Failed: 0 Skipped: 0 Pending: 0 Inconclusive: 0\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "6092c7047c440418ad2c1947c36101cff41287fa0b41a428a8f23275c8d8ca4e"
+    },
+    {
+      "command": "pester5",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "Import-Module Pester -RequiredVersion 5.7.1 -Force; $r=Invoke-Pester -Path @('tests/benchmark/AgentGovernanceSkills.Tests.ps1','tests/benchmark/CursorGovernanceHooks.Tests.ps1') -PassThru; if($r.FailedCount -gt 0 -or $r.TotalCount -eq 0){exit 1}"
+      ],
+      "started_at": "2026-11-02T21:15:20.328720+00:00",
+      "finished_at": "2026-11-02T21:15:40.077693+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "\nStarting discovery in 2 files.\r\nDiscovery found 44 tests in 551ms.\r\nRunning tests.\r\n[+] C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\candidate\\tests\\benchmark\\AgentGovernanceSkills.Tests.ps1 4.33s (1.26s|2.7s)\r\n[+] C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\candidate\\tests\\benchmark\\CursorGovernanceHooks.Tests.ps1 843ms (590ms|156ms)\r\nTests completed in 5.22s\r\nTests Passed: 44, Failed: 0, Skipped: 0, Inconclusive: 0, NotRun: 0\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "07fd55462d3c47b0c5616453a371e16cee0171d3812b864d963fe929f59a71be"
+    },
+    {
+      "command": "analyzer",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "Import-Module 'C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\ci-01\\tools/PSScriptAnalyzer/1.24.0/PSScriptAnalyzer.psd1'; $r=Invoke-ScriptAnalyzer -Path scripts -Recurse -Severity Error; if($r){$r|Format-Table;exit 1}; 'No errors'"
+      ],
+      "started_at": "2026-11-02T21:15:40.079983+00:00",
+      "finished_at": "2026-11-02T21:15:42.576134+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "No errors\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "53f568871c5df2fca2a05af46c4a31e2cca56b532cd8e14d9b59b3c7c138fefa"
+    },
+    {
+      "command": "evaluation",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "./scripts/evaluation/run-evaluation.ps1 -CI"
+      ],
+      "started_at": "2026-11-02T21:16:09.451907+00:00",
+      "finished_at": "2026-11-02T21:21:46.813762+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "===========================\r\n  MCP Playwright Evaluation Framework\r\n  Repo: C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\candidate\r\n  Output: C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\candidate\\scripts\\evaluation\\results\r\n============================================\r\n\r\n[EVAL] Passed: 81 / 86 | Failed: 0 | Skipped: 5 | Report: C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\candidate\\scripts\\evaluation\\results\\evaluation-report.md\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "ca41b10e86502272cb18731a77275cfcafa9d81e9390355bfee908f5b060fe39"
+    },
+    {
+      "command": "static-kubernetes",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "./scripts/kubernetes/validate.ps1 -Strict"
+      ],
+      "started_at": "2026-11-02T21:15:42.576887+00:00",
+      "finished_at": "2026-11-02T21:16:09.451228+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "=== kubeconform ===\r\nSummary: 16 resources found in 13 files - Valid: 6, Invalid: 0, Errors: 0, Skipped: 10\n=== kube-linter ===\r\nKubeLinter 0.7.1\n\nNo lint errors found!\n=== Kubernetes validation complete: all checks passed ===\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "d2351c1255e895088c29b83f7b2081d30de29b707c2d13dfd4210c72cdf6e7e6"
+    },
+    {
+      "command": "combined-root-audit-final",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "scripts/security/audit_dependencies.py",
+        "--uv-lock",
+        "uv.lock",
+        "--service",
+        "osv",
+        "--output",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-audit.json"
+      ],
+      "started_at": "2026-11-02T21:33:51.905897+00:00",
+      "finished_at": "2026-11-02T21:34:22.437573+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "Audited 51/51 third-party pins; 0 findings\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "fcbed3abaa899e3b1e919d66517f00082da5b02d927b1e2f38dded1d7e364762"
+    },
+    {
+      "command": "combined-sdk-audit-final",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "scripts/security/audit_dependencies.py",
+        "--requirements",
+        "scripts/kagent/experiments/a2a_sdk_requirements.lock",
+        "--service",
+        "pypi",
+        "--output",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\sdk-audit.json"
+      ],
+      "started_at": "2026-11-02T21:34:22.439597+00:00",
+      "finished_at": "2026-11-02T21:34:26.519629+00:00",
+      "exit_code": 2,
+      "stdout_excerpt": "",
+      "stderr_excerpt": "Dependency audit rejected (JSONDecodeError); no complete audit established\r\n",
+      "record_sha256": "ada717943c8dcadabbaf266b1115bc8d2e6fa6d3b2d4372c8904749f2153f561"
+    },
+    {
+      "command": "sdk-osv-secondary",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\root-windows\\Scripts\\python.exe",
+        "scripts/security/audit_dependencies.py",
+        "--requirements",
+        "scripts/kagent/experiments/a2a_sdk_requirements.lock",
+        "--service",
+        "osv",
+        "--output",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\sdk-audit-osv.json"
+      ],
+      "started_at": "2026-11-02T21:37:44.343082+00:00",
+      "finished_at": "2026-11-02T21:38:04.280882+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "Audited 33/33 third-party pins; 0 findings\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "88b89f17e6039197be16bd90801a2900525ed46c4312f83f74d8a9e61009929f"
+    },
+    {
+      "command": "fresh-trivy-db",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\ci-01\\tools\\trivy.exe",
+        "image",
+        "--download-db-only",
+        "--quiet",
+        "--cache-dir",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\trivy-cache"
+      ],
+      "started_at": "2026-11-02T21:25:08.581850+00:00",
+      "finished_at": "2026-11-02T21:27:21.138343+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "",
+      "stderr_excerpt": "",
+      "record_sha256": "e7159e49de4979b88cb0a140e5f1337c8f2fb1109672e687ccfe41991e0ce05d"
+    },
+    {
+      "command": "combined-expanded-trivy",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\ci-01\\tools\\trivy.exe",
+        "fs",
+        "--cache-dir",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\trivy-cache",
+        "--include-dev-deps",
+        "--scanners",
+        "vuln,secret,misconfig",
+        "--ignorefile",
+        ".trivyignore.yaml",
+        "--file-patterns",
+        "pip:(^|/)a2a_sdk_requirements\\.lock$",
+        "--exit-code",
+        "1",
+        "--format",
+        "json",
+        "--list-all-pkgs",
+        "--output",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\recon-02-20261103\\combined-trivy.json",
+        "."
+      ],
+      "started_at": "2026-11-02T21:27:21.139835+00:00",
+      "finished_at": "2026-11-02T21:27:32.221926+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "",
+      "stderr_excerpt": "r of language-specific files\tnum=2\n2026-11-03T00:57:32+03:30\tINFO\t[pip] Detecting vulnerabilities...\n2026-11-03T00:57:32+03:30\tINFO\t[uv] Detecting vulnerabilities...\n2026-11-03T00:57:32+03:30\tINFO\tDetected config files\tnum=13\n\n\ud83d\udce3 \u001b[34mNotices:\u001b[0m\n  - Version 0.76.1 of Trivy is now available, current version is 0.72.0\n\nTo suppress version checks, run Trivy scans with the --skip-version-check flag\n\n",
+      "record_sha256": "7995589b51153eea9b9ec9ebc9593ca6029bc43ca00984d6ac18326c7ab3be63"
+    },
+    {
+      "command": "combined-required-trivy",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "scripts/security/scan.ps1",
+        "-Required"
+      ],
+      "started_at": "2026-11-02T21:27:36.919440+00:00",
+      "finished_at": "2026-11-02T21:27:42.736480+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "les/kagent/litellm-gateway-smoke-agent.yaml        \u2502 kubernetes \u2502        -        \u2502    -    \u2502         0         \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 deploy/samples/kagent/litellm-gateway-tool-agent.yaml         \u2502 kubernetes \u2502        -        \u2502    -    \u2502         0         \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\nLegend:\n- '-': Not scanned\n- '0': Clean (no security findings detected)\n\n=== Security scan complete ===\r\n",
+      "stderr_excerpt": " try '--scanners vuln,misconfig' to disable secret scanning\n2026-11-03T00:57:40+03:30\tINFO\t[secret] Please see https://trivy.dev/docs/v0.72/guide/scanner/secret#recommendation for faster secret detection\n2026-11-03T00:57:42+03:30\tINFO\tNumber of language-specific files\tnum=1\n2026-11-03T00:57:42+03:30\tINFO\t[uv] Detecting vulnerabilities...\n2026-11-03T00:57:42+03:30\tINFO\tDetected config files\tnum=13\n",
+      "record_sha256": "f13d4f5942b5eabf4ac4792db0c3ae050705bc1f85133af05fe686129cd31538"
+    }
+  ],
+  "windows": {
+    "python": "3.13.15",
+    "root_tests": 305,
+    "sdk_tests": 74,
+    "sdk_skipped": 0,
+    "pester3": 136,
+    "pester5": 44,
+    "evaluation": {
+      "passed": 81,
+      "skipped_optional_hosts": 5,
+      "failed": 0
+    },
+    "static_kubernetes": {
+      "valid": 6,
+      "missing_crd_schema_skips": 10,
+      "invalid": 0
+    }
+  },
+  "ubuntu": "pending native clean-clone qualification after initial candidate commit",
+  "debt": {
+    "historical_main": {
+      "formatting_differences": 3,
+      "typing_errors": 257,
+      "typing_files": 6,
+      "coverage_percent": 80.4
+    },
+    "combined": {
+      "formatting_differences": 0,
+      "formatting_lineage": "All three former main files match the reviewed #15/#9 source; no new Python feature repair.",
+      "typing_errors": 433,
+      "typing_files": 18,
+      "typing_checked_files": 24,
+      "typing_inputs_match_sdk_parent": true,
+      "root_only_coverage_percent": 76.06,
+      "coverage_threshold": 80,
+      "root_only_coverage_exit": 1
+    }
+  },
+  "excluded_work": [
+    "No CTX-01 correctness repair, code import or original retained LAB-01 answer rewrite.",
+    "No live Kagent/Context7/MCP/model/worker action; L6/L7/I3/I4 unchanged.",
+    "No merge to main or an existing PR branch, retarget, force push, closure, undraft or final automated code review."
+  ],
+  "acceptance": "Offline/security candidate qualification only; broader quality debt and maintainer/runtime acceptance remain separate."
+}
