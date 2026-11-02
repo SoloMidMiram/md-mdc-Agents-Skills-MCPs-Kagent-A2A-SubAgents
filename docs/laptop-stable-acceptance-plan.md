@@ -202,7 +202,7 @@ outside the newly enforced CI gates. Main's coverage observation was 80.40%
 at the unchanged 80% threshold; the older 79.88% row above is dated history.
 The combined tree must receive its own measurements; neither debt nor an old
 coverage result disappears because the two security PRs pass independently.
-See [combined qualification](../../reports/reconciliation/recon-02-20261103.json).
+See [combined qualification](../reports/reconciliation/recon-02-20261103.json).
 
 Combined Windows measurements: `ruff format --check .` passes all 27 files;
 the three former main differences match the already-reviewed #9/#15 content,
