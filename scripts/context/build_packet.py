@@ -20,7 +20,10 @@ class PacketError(ValueError):
 
 def git(repo: Path, *args: str) -> bytes:
     result = subprocess.run(
-        ["git", "-C", str(repo), *args], capture_output=True, check=False, timeout=30
+        ["git", "--no-optional-locks", "-C", str(repo), *args],
+        capture_output=True,
+        check=False,
+        timeout=30,
     )
     if result.returncode:
         raise PacketError(f"Git operation failed: {args[0]}")
@@ -84,17 +87,29 @@ def build_packet(repo: Path, spec: dict[str, Any]) -> dict[str, Any]:
         entry = git(repo, "ls-tree", revision, "--", pathspec).decode().strip()
         if not entry or entry.split()[0] not in {"100644", "100755"}:
             raise PacketError(f"source is missing or is not a regular tracked file: {path}")
+        working_path = repo / path
+        if working_path.is_symlink() or not working_path.is_file():
+            raise PacketError(f"source working copy differs or is not a regular file: {path}")
+        # -v lowercases assume-unchanged entries; S marks skip-worktree.
+        # Inspect only selected paths and never clear flags or refresh the index.
+        index_entries = git(repo, "ls-files", "-v", "-z", "--", pathspec).split(b"\0")
+        if any(item and (item[:1].islower() or item[:1] == b"S") for item in index_entries):
+            raise PacketError(f"source has unsupported index flags: {path}")
         if git(repo, "diff", "--name-only", revision, "--", pathspec).strip():
             raise PacketError(f"source working copy differs from pinned revision: {path}")
         size = int(git(repo, "cat-file", "-s", f"{revision}:{path}"))
         total_bytes += size
         if total_bytes > MAX_BYTES:
             raise PacketError("source byte budget exceeded")
-        data = git(repo, "show", f"{revision}:{path}")
+        data = git(repo, "cat-file", "blob", f"{revision}:{path}")
         digest = hashlib.sha256(data).hexdigest()
         if source.get("sha256") != digest:
             raise PacketError(f"source hash mismatch: {path}")
-        lines = data.decode("utf-8").splitlines()
+        physical = data.decode("utf-8").split("\n")
+        # Only LF ends a physical source line. CR is removed only before LF.
+        lines = [line.removesuffix("\r") for line in physical[:-1]]
+        if physical[-1]:
+            lines.append(physical[-1])
         start, end = source.get("start_line"), source.get("end_line")
         if type(start) is not int or type(end) is not int or not 1 <= start <= end <= len(lines):
             raise PacketError(f"invalid line range: {path}")
@@ -153,7 +168,7 @@ def main() -> int:
         packet = build_packet(args.repo, spec)
         rendered = json.dumps(packet, ensure_ascii=False, indent=2) + "\n"
         if args.output is None:
-            print(rendered, end="")
+            sys.stdout.buffer.write(rendered.encode("utf-8"))
         else:
             # Validate everything before opening output; never overwrite existing artifacts.
             with args.output.open("x", encoding="utf-8", newline="\n") as output:

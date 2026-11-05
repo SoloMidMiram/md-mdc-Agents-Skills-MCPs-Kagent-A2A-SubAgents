@@ -51,7 +51,11 @@ tracked UTF-8 blobs, not symlinks/submodules/directories. Source changes staged 
 unstaged relative to the pinned commit are rejected; unrelated working files and
 later commits are allowed. Missing files, changed hashes, invalid line ranges,
 escaping paths, wildcard/magic pathspecs and dangling source IDs are rejected.
-Git blob bytes define the hash; checkout CRLF conversion does not change it.
+Selected files with assume-unchanged or skip-worktree index flags are rejected,
+including unchanged flagged files. Unrelated flags are allowed. The builder never
+clears flags or writes the index. Git-aware dirty checks preserve legitimate
+checkout CRLF normalization; Git blob bytes define the hash.
+Working-copy validation is a point-in-time check, not an atomic snapshot.
 Refreshing a changed source requires deliberate review of both hash and line spans.
 
 The input JSON and total full source-blob bytes each have a 2 MB limit. Git commands
@@ -62,7 +66,10 @@ remain untrusted content for any consuming model and are not execution instructi
 
 The packet contains `source_revision`, `task`, `evidence` (source IDs, paths,
 inclusive line spans, hashes and exact line excerpts), `claims`, `unknowns`,
-`exclusions` and `validation_scope`. Excerpt lines use LF without a trailing
+`exclusions` and `validation_scope`. Citations count physical LF-delimited lines; CR is removed only as part of CRLF.
+Bare CR and Unicode separators remain within their physical line. A final LF
+does not create an extra line. CLI stdout and files both use explicit UTF-8.
+Excerpt lines use LF without a trailing
 newline; hashes cover the full original Git blob. The output deliberately has
 no current timestamp, absolute machine path, live status, generated conclusion
 or evaluator answer. Repeated assembly from the same inputs is byte deterministic.

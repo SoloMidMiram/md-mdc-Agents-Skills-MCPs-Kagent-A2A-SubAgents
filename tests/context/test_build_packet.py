@@ -202,3 +202,112 @@ def test_real_lab01_fixture_replays_without_grading_artifacts():
     assert "toolCallSucceeded" in packet["evidence"][3]["excerpt"]
     assert "observed=false" in packet["evidence"][2]["excerpt"]
     assert all("evidence/labs/" not in item["path"] for item in packet["evidence"])
+
+
+@pytest.mark.parametrize(
+    "data,expected",
+    [
+        (b"first\nsecond\n", "second"),
+        (b"first\r\nsecond\r\n", "second"),
+        (b"first\r\nsecond\n", "second"),
+        (b"first\nsecond", "second"),
+        (b"first\nsecond\r", "second\r"),
+        (b"first\n\n", ""),
+    ],
+)
+def test_physical_line_endings(source_repo, data, expected):
+    repo, spec = source_repo
+    (repo / "evidence.md").write_bytes(data)
+    run_git(repo, "add", "evidence.md")
+    run_git(repo, "commit", "-qm", "line endings")
+    spec["source_revision"] = run_git(repo, "rev-parse", "HEAD")
+    spec["sources"][0].update(sha256=hashlib.sha256(data).hexdigest(), start_line=2, end_line=2)
+    assert builder.build_packet(repo, spec)["evidence"][0]["excerpt"] == expected
+    spec["sources"][0].update(start_line=3, end_line=3)
+    with pytest.raises(builder.PacketError, match="line range"):
+        builder.build_packet(repo, spec)
+
+
+@pytest.mark.parametrize("flag", ["--assume-unchanged", "--skip-worktree"])
+def test_flagged_selected_source_rejected_without_mutation(source_repo, flag):
+    repo, spec = source_repo
+    run_git(repo, "update-index", flag, "evidence.md")
+    before = (repo / ".git/index").read_bytes()
+    content = (repo / "evidence.md").read_bytes()
+    flags = run_git(repo, "ls-files", "-v")
+    with pytest.raises(builder.PacketError, match="index flags"):
+        builder.build_packet(repo, spec)
+    assert (repo / ".git/index").read_bytes() == before
+    assert (repo / "evidence.md").read_bytes() == content
+    assert run_git(repo, "ls-files", "-v") == flags
+
+
+def test_crlf_checkout_and_unrelated_flags_are_read_only(source_repo):
+    repo, spec = source_repo
+    run_git(repo, "config", "core.autocrlf", "true")
+    original = (repo / "evidence.md").read_bytes()
+    (repo / "evidence.md").write_bytes(original.replace(b"\n", b"\r\n"))
+    (repo / "unrelated.txt").write_bytes(b"other\n")
+    run_git(repo, "add", "unrelated.txt")
+    run_git(repo, "update-index", "--skip-worktree", "unrelated.txt")
+    before = (repo / ".git/index").read_bytes()
+    working = (repo / "evidence.md").read_bytes()
+    assert builder.build_packet(repo, spec) == builder.build_packet(repo, spec)
+    assert (repo / ".git/index").read_bytes() == before
+    assert (repo / "evidence.md").read_bytes() == working
+
+
+@pytest.mark.parametrize("invalid", ["utf8", "edit", "delete", "empty"])
+def test_invalid_source_cli_preserves_outputs(source_repo, tmp_path, invalid):
+    repo, spec = source_repo
+    path = repo / "evidence.md"
+    if invalid in {"utf8", "empty"}:
+        data = b"\xff\n" if invalid == "utf8" else b""
+        path.write_bytes(data)
+        run_git(repo, "add", "evidence.md")
+        run_git(repo, "commit", "-qm", "invalid source")
+        spec["source_revision"] = run_git(repo, "rev-parse", "HEAD")
+        spec["sources"][0]["sha256"] = hashlib.sha256(data).hexdigest()
+    elif invalid == "edit":
+        path.write_bytes(b"changed\n")
+    else:
+        path.unlink()
+    request = tmp_path / "request.json"
+    request.write_text(json.dumps(spec), encoding="utf-8")
+    output = tmp_path / "output.json"
+    index = (repo / ".git/index").read_bytes()
+    for existing in (False, True):
+        if existing:
+            output.write_bytes(b"sentinel")
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT),
+                "--repo",
+                str(repo),
+                "--spec",
+                str(request),
+                "--output",
+                str(output),
+            ],
+            capture_output=True,
+        )
+        assert result.returncode == 2
+        assert result.stdout == b""
+        assert output.read_bytes() == b"sentinel" if existing else not output.exists()
+        assert (repo / ".git/index").read_bytes() == index
+
+
+def test_stdout_matches_utf8_file_bytes(source_repo, tmp_path, monkeypatch):
+    repo, spec = source_repo
+    spec["task"] = "Read 漢字"
+    request = tmp_path / "request.json"
+    request.write_text(json.dumps(spec), encoding="utf-8")
+    output = tmp_path / "packet.json"
+    command = [sys.executable, str(SCRIPT), "--repo", str(repo), "--spec", str(request)]
+    monkeypatch.setenv("PYTHONIOENCODING", "ascii")
+    stdout = subprocess.run(command, capture_output=True)
+    file_result = subprocess.run([*command, "--output", str(output)], capture_output=True)
+    assert stdout.returncode == file_result.returncode == 0
+    assert stdout.stdout == output.read_bytes()
+    assert json.loads(stdout.stdout.decode("utf-8"))["task"] == spec["task"]
