@@ -15,6 +15,38 @@ It answers four questions:
 
 ## Current Implemented State
 
+### Context-first priority and runner gate — 2026-11-06
+
+The selected priority is a measurable context-first coding assistant. See
+[North Star](../north-star.md) for direction; this document retains cross-lane
+ordering. A2A-first remains the dated educational direction, not the current
+product spine. No L/I capability is promoted by this priority change.
+
+- **Draft implementation:** #17 at `fe3aea3f0aba9ea2cd040194dd898c91391b3240`
+  repairs schema 1.0 packet integrity; #18 at
+  `caa7d80e8512bc886c98393e322fc3df7f1f8ea2` provides runnable labs and a frozen
+  pilot. Hosted checks qualify their tested scope, not merge readiness.
+- **Locally verified demonstrations:** six-source packet replay and synthetic
+  fail-closed controls. [Results](../../reports/context-labs-01-results.md)
+  preserve actual results and limitations; these are not coding-improvement data.
+- **Immediate prerequisite:** LAB-RUNNER-01 security qualification, then one
+  non-scored experimental smoke, then nine frozen EVAL-01 cells. SoloMidMiram
+  owns provisioning/isolation/teardown. The virtual server is only a placeholder;
+  see [provisioning specification](../architecture/LAB-RUNNER-01-PROVISIONING.md).
+- **Blocked:** real execution environment, authentication, network/filesystem
+  restrictions, exact launch identity and teardown proof. No smoke/model calls
+  or scored coding results exist; no performance benefit is claimed.
+- **Deferred:** snapshots, ranking/discovery, Context7 and further kagent feature
+  expansion until the current runner/evaluation gates are qualified.
+
+Integration remains #16 → #9 → main, then reconciliation of the independent
+#10 → #13 → #17 → #18 stack. Preserve review history and requalify changed
+parents. Independent human review and maintainer acceptance remain open.
+
+Authority and freshness are separate: code/tests govern behavior at named
+revisions; dated evidence governs its observed environment/time; direction
+documents select priorities. A newer summary cannot strengthen an older result.
+
 ### Host-level MCP setup
 
 Implemented and documented:

@@ -9,6 +9,11 @@
 
 entries:
 
+  - path: docs/architecture/LAB-RUNNER-01-PROVISIONING.md
+    purpose: architecture
+    status: lab
+    authority: false
+
   # — Entry point —
   - path: README.md
     purpose: entry

@@ -13,6 +13,15 @@ for VS Code, Cursor, Codex CLI, and Continue.
 
 ## Quick Start
 
+Selected priority: a measurable **context-first coding assistant**. CTX-01R and
+the practical labs are draft review candidates; the nine coding experiments
+remain blocked on independent runner qualification. SoloMidMiram owns the
+[virtual-server provisioning handoff](docs/architecture/LAB-RUNNER-01-PROVISIONING.md),
+which currently uses a placeholder, not a live host. See the
+[implemented-state roadmap](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
+for ordering and evidence boundaries. The A2A/kagent laboratory remains an
+independent educational lane; no capability or merge status is promoted.
+
 ```powershell
 git clone https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents.git
 cd md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents
@@ -24,7 +33,7 @@ codex mcp list
 
 Primary docs:
 
-- [Project north star](docs/north-star.md) — A2A-first direction (2026-08-07)
+- [Project north star](docs/north-star.md) — context-first priority; historical A2A direction retained
 - [Getting started](docs/onboarding/GETTING-STARTED.md)
 - [Educational projects map](docs/onboarding/EDUCATIONAL-PROJECTS.md)
 - [Educational lanes architecture](docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md)
