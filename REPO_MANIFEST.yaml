@@ -9,6 +9,11 @@
 
 entries:
 
+  - path: reports/lab-runner-01-offline.md
+    purpose: reference
+    status: lab
+    authority: false
+
   # — Entry point —
   - path: README.md
     purpose: entry

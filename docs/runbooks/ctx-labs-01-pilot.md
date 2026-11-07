@@ -21,9 +21,34 @@ Source-only subjects are Git archives of #13 with fresh commits, no remote and n
 
 ## Trusted infrastructure boundary
 
-This repository does not implement a secure OS sandbox. A separately provisioned trusted Python launcher may be supplied with --launcher. Do not author it inside subject/artifact directories. It accepts one JSON request on stdin. Probe mode must actually run deny-read tests for every forbidden host location, verify dependencies, CLI version, no remotes/MCP/web and fresh-session policy under the SAME sandbox configuration used for execution. Return JSON with denied, cli and requirements exactly matching verified values. These fields are trusted infrastructure attestations, not model-generated approval receipts. A forged launcher can lie: review/deploy it independently; successful JSON parsing alone is not security proof.
+**Offline hardening only; runner qualification is not implemented.** The legacy
+launcher self-attestation path is disabled. Supplying --launcher never executes
+that file; it records BLOCKED before model calls. Neither matching JSON nor an
+offline-valid terminal fixture is qualification or permission to score.
 
-Run mode receives subject, prompt, argv and timeout_seconds. Stream only Codex JSONL to stdout, diagnostics to stderr; return the subject exit. Mount only the subject and approved input; preserve account authentication without mounting parent chats/configuration/evaluators. Enforce provider-only model networking, denied host reads, preinstalled dependencies and process-tree termination at 600 seconds. The harness gives the launcher ten seconds to shut down; an unqualified launcher cannot provide this guarantee. No unrestricted host fallback is available.
+New preparation captures per-subject identity files and their digests in the
+existing manifest. Tasks, arms, model and ordering are unchanged. Old blocked
+attempts remain immutable; missing identity seals require a fresh preparation.
+Identity validation checks historical tree, exact local commit, raw source
+inventory, index/refs/config and all frozen prompt/context inputs. It rejects
+ignored extra files, flags, alternate object stores and injected Git metadata.
+The offline setup helper checks identity before and after a probe. This is
+point-in-time validation, not an atomic snapshot or OS containment claim.
+
+The strict terminal parser binds a stream to controller-owned run ID, nonce,
+request digest, subject commit/tree and execution handle; it does not invent
+per-event IDs absent from the CLI. Its conservative grammar uses the retained
+[official non-interactive examples](https://learn.chatgpt.com/docs/non-interactive-mode)
+(thread.started, turn.started, item lifecycle, turn.completed with usage).
+Installed CLI package 0.164.0 was inspected without invoking authentication or a
+model. Tests are synthetic. Actual runtime schema compatibility, independent
+qualification, credential/network safety and teardown remain unverified until
+a separately authorized smoke. Unknown/malformed events reject rather than
+being dropped. Failed or unqualified execution records cannot become scores.
+
+A future runner/controller must implement an independently trusted verifier and
+reuse these validators at the real dispatch/collection boundary. No VM adapter,
+provider binding or credential mechanism is delivered by this offline slice.
 
 ## Independent evaluation and retained data
 
