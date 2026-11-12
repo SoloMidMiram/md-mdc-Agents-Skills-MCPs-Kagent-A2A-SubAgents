@@ -119,6 +119,8 @@ Primary artifacts:
 
 ### Local kagent path
 
+The [EDU-01 follow-on](../runbooks/kagent-a2a-examples.md) includes bounded planner/reviewer coordination, a supplied-bundle documentation validator, and offline protocol and evidence labs.
+
 Implemented helpers and historically recorded runtime observations follow.
 These bullets do not assert that the cluster or provider is running now.
 Revalidate the approved target before a separately authorized live experiment:

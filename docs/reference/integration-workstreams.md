@@ -27,7 +27,7 @@ retain both evidence slices. No dated evidence is rewritten.
 | RECON-01 | none | Integration and authoritative planning truth |
 | EVID-01 | none | Recorder and harness integrity |
 | A2A-01 | none | Isolated SDK 0.3.26 compatibility; live validation separate |
-| EDU-01 | North Star #4 | E1/E2 code included through hosted #4 |
+| EDU-01 | North Star #4 | E1/E2 code included through hosted #4. The [follow-on examples](../runbooks/kagent-a2a-examples.md) add E2-R, E3, and offline labs. |
 | SAFE-01 | North Star #5; older roadmap #4 | Exact read-only MCP exposure |
 | CTX-01 | none | Proposed cited Context7 context builder |
 | EVAL-01 | North Star #6 | Proposed repeatable comparisons |

@@ -208,6 +208,11 @@ entries:
     status: lab
     authority: true
 
+  - path: docs/runbooks/a2a-evidence-laboratory.md
+    purpose: runbook
+    status: lab
+    authority: false
+
   - path: docs/runbooks/a2a-protocol-laboratory.md
     purpose: runbook
     status: lab
@@ -524,8 +529,18 @@ entries:
     status: lab
     authority: false
 
+  - path: scripts/kagent/experiments/run_evidence_lab.py
+    purpose: script
+    status: lab
+    authority: false
+
   - path: scripts/kagent/experiments/run_e2r_example.py
     purpose: script
+    status: lab
+    authority: false
+
+  - path: tests/kagent/experiments/test_evidence_lab.py
+    purpose: test
     status: lab
     authority: false
 

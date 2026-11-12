@@ -668,6 +668,30 @@ def write_source_capture(path: Path, payload: dict[str, Any]) -> str:
     return rel
 
 
+def evaluate_trace(report: TraceReport) -> tuple[int, str]:
+    """Evaluate normalized observations without capture, network or mutation."""
+    if not report.l4_accepted:
+        return ExitCode.GATE, "no accepted A2A dispatch"
+    if not report.tool_observed:
+        return ExitCode.GATE, (
+            "no observable MCP tool invocation correlated to A2A task "
+            f"(L4 accepted={report.l4_accepted} state={report.accepted_state})"
+        )
+    if (
+        not report.task_or_message_id
+        or not report.correlated_id
+        or report.task_or_message_id != report.correlated_id
+    ):
+        return ExitCode.GATE, "task/trace ID mismatch between dispatch and tool observation"
+    if not report.returned_through_a2a or not report.tool_names:
+        return ExitCode.GATE, "tool invocation observed but result not returned through A2A"
+    if not names_match(report.tool_names, report.cross_check_names):
+        return ExitCode.GATE, "kubectl cross-check mismatch for tool-derived pod names"
+    if not report.target_bound:
+        return ExitCode.GATE, "target binding failed"
+    return ExitCode.SUCCESS, "correlated agent-mediated MCP evidence with matching cross-check"
+
+
 def run_trace(
     *,
     controller: str,
@@ -812,42 +836,8 @@ def run_trace(
             and report.mcp_server == DEFAULT_MCP_SERVER
         )
 
-        if not observed:
-            report.exit_code = ExitCode.GATE
-            report.decision_passed = False
-            report.reason = (
-                "no observable MCP tool invocation correlated to A2A task "
-                f"(L4 accepted={report.l4_accepted} state={report.accepted_state})"
-            )
-            return finish()
-
-        if not report.task_trace_correlated:
-            report.exit_code = ExitCode.GATE
-            report.decision_passed = False
-            report.reason = "task/trace ID mismatch between dispatch and tool observation"
-            return finish()
-
-        if not report.returned_through_a2a or not report.tool_names:
-            report.exit_code = ExitCode.GATE
-            report.decision_passed = False
-            report.reason = "tool invocation observed but result not returned through A2A"
-            return finish()
-
-        if not report.matched:
-            report.exit_code = ExitCode.GATE
-            report.decision_passed = False
-            report.reason = "kubectl cross-check mismatch for tool-derived pod names"
-            return finish()
-
-        if not report.target_bound:
-            report.exit_code = ExitCode.GATE
-            report.decision_passed = False
-            report.reason = "target binding failed"
-            return finish()
-
-        report.exit_code = ExitCode.SUCCESS
-        report.decision_passed = True
-        report.reason = "correlated agent-mediated MCP evidence with matching cross-check"
+        report.exit_code, report.reason = evaluate_trace(report)
+        report.decision_passed = report.exit_code == ExitCode.SUCCESS
         return finish()
 
     except a2a.TransportFailure as exc:
