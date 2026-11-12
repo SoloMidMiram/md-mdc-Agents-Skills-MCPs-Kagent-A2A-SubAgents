@@ -442,3 +442,22 @@ def test_record_io_collision_fails_without_overwriting(monkeypatch, evidence_pay
     content = first.read_bytes()
     assert record_experiment.main(args) == 2
     assert first.read_bytes() == content
+
+
+def test_dispatch_message_id_is_used_on_the_wire():
+    sent = []
+
+    def request(*args, **kwargs):
+        envelope = json.loads(kwargs["body"])
+        sent.append(envelope)
+        response = {"jsonrpc": "2.0", "id": envelope["id"], "result": {}}
+        return SimpleNamespace(
+            status=200, body=json.dumps(response).encode(), content_type="application/json"
+        )
+
+    request_id, _, events = run_example.a2a.collect_dispatch_stream(
+        SimpleNamespace(request=request), "http://localhost", "example", message_id="sent-message"
+    )
+
+    assert sent[0]["params"]["message"]["messageId"] == "sent-message"
+    assert sent[0]["id"] == request_id == events[0]["id"]

@@ -208,6 +208,11 @@ entries:
     status: lab
     authority: true
 
+  - path: docs/runbooks/a2a-protocol-laboratory.md
+    purpose: runbook
+    status: lab
+    authority: false
+
   - path: docs/runbooks/kagent-a2a-clients.md
     purpose: runbook
     status: lab
@@ -514,7 +519,28 @@ entries:
     status: lab
     authority: false
 
+  - path: scripts/kagent/experiments/e2r_orchestration.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/run_e2r_example.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: tests/kagent/experiments/test_e2r_orchestration.py
+    purpose: test
+    status: lab
+    authority: false
+
+
   - path: scripts/kagent/experiments/record_experiment.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/docs_bundle.py
     purpose: script
     status: lab
     authority: false
@@ -544,8 +570,18 @@ entries:
     status: lab
     authority: false
 
+  - path: deploy/samples/kagent-a2a/04-docs-agent/docs-agent.yaml
+    purpose: manifest
+    status: lab
+    authority: false
+
   - path: deploy/samples/kagent-a2a/03-supervisor/supervisor-agent.yaml
     purpose: manifest
+    status: lab
+    authority: false
+
+  - path: tests/kagent/experiments/test_docs_bundle.py
+    purpose: test
     status: lab
     authority: false
 
