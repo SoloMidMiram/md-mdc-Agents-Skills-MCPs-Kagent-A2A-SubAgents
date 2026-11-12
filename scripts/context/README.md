@@ -90,3 +90,30 @@ EVAL-01 should compare manual and generated packets using this same source set,
 task, model/settings, budget and evaluator rubric. Keep subject/evaluator answers
 and scoring artifacts out of both model inputs, retain failures, and account for
 preparation costs. This implementation records no coding-improvement outcome.
+
+## Offline runner seals and controller trust
+
+Trusted source-only preparation must finish all Git object, index and ref writes
+before creating the subject seal. The seal hashes two separate canonical inventories:
+private `.git/objects`, and the remaining private `.git` metadata (excluding objects).
+Each inventory sorts relative POSIX paths, records explicit file/directory types
+including empty directories, and records regular-file byte lengths and SHA-256 hashes.
+Canonical JSON uses sorted keys, ASCII escaping and compact separators. Semantic
+index/ref/configuration/alternate/hook checks remain in force. Working-tree directories
+must be parents of tracked files; `.git` is validated separately. Links, reparse points,
+special objects and inspection errors reject validation before traversal/read.
+
+`prepare()` returns the SHA-256 of the finalized manifest bytes (the CLI prints it).
+A trusted controller must retain that returned value independently, outside the mutable
+attempt directory, before any untrusted setup. `validate_launch(root, item, digest)` and
+`validate_setup_boundary(root, item, probe, digest)` require that same controller value.
+The manifest is read once, authenticated before parsing, then its structure, input hashes
+and subject identity are checked. Never derive an authoritative digest from an attempt
+being validated. Unanchored `load()` remains for legacy blocked-record inspection only;
+old seals cannot authorize launch and require fresh preparation.
+
+These checks are point-in-time checks, not filesystem isolation. Concurrent replacement
+between classification, reading, Git inspection and use remains a check-to-use race.
+Trustworthy preparation and independently qualified isolation are required. No launcher
+execution or scoring is enabled by these offline seals; #20 remains unqualified and
+#21 remains at 0/9 coding experiments.

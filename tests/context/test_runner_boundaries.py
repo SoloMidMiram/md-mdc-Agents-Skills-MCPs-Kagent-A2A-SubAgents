@@ -176,30 +176,71 @@ def test_duplicate_json_keys_rejected():
         )
 
 
-@pytest.mark.parametrize("change", ["source", "prompt"])
-def test_setup_drift_and_changed_prompt(subject, tmp_path, change):
+@pytest.fixture
+def launch_fixture(subject, tmp_path):
     target, expected = subject
-    seal = tmp_path / "identity.json"
-    seal.write_text(json.dumps(expected))
-    prompt = tmp_path / "prompt.txt"
-    prompt.write_text("frozen")
-    item = {
-        "id": "subject",
-        "local_commit": expected["subject_commit"],
-        "identity": seal.name,
-        "prompt": prompt.name,
-    }
-    # Synthetic controller fixture exercises both revalidation points without dispatch.
-    data = {
-        "runs": [item],
-        "inputs": {
-            seal.name: pilot.digest(seal.read_bytes()),
-            prompt.name: pilot.digest(prompt.read_bytes()),
+    target.rename(tmp_path / "r01")
+    pilot.save(tmp_path / "identity.json", expected)
+    (tmp_path / "prompt.txt").write_bytes(b"frozen")
+    runs = [
+        {"id": f"r{n + 1:02}", "challenge": i, "condition": arm}
+        for n, (i, arm) in enumerate((i, a) for i, order in enumerate(pilot.ORDERS) for a in order)
+    ]
+    runs[0].update(
+        identity="identity.json", prompt="prompt.txt", local_commit=expected["subject_commit"]
+    )
+    data = dict(
+        version="1.0",
+        model="gpt-6.1-sol",
+        reasoning="medium",
+        cli="0.164.0",
+        timeout_seconds=600,
+        upstream=pilot.BASE,
+        builder=pilot.BUILDER,
+        tree=pilot.TREE,
+        runs=runs,
+        inputs={
+            name: pilot.digest((tmp_path / name).read_bytes())
+            for name in ("identity.json", "prompt.txt")
         },
-    }
-    with patch.object(pilot, "load", return_value=data), pytest.raises(ValueError):
-        destination = target / "README.md" if change == "source" else prompt
-        pilot.validate_setup_boundary(tmp_path, item, lambda: destination.write_bytes(b"race"))
+    )
+    pilot.save(tmp_path / "manifest.json", data)
+    # Controller memory captures finalized bytes before any adversarial mutation.
+    anchor = pilot.digest((tmp_path / "manifest.json").read_bytes())
+    return tmp_path, runs[0], anchor
+
+
+@pytest.mark.parametrize("change", ["source", "prompt", "coordinated"])
+def test_setup_drift_and_changed_prompt(launch_fixture, change):
+    root, item, anchor = launch_fixture
+    assert pilot.validate_launch(root, item, anchor)
+
+    def mutate():
+        destination = root / "r01/README.md" if change == "source" else root / "prompt.txt"
+        destination.write_bytes(b"race")
+        if change == "coordinated":
+            data = json.loads((root / "manifest.json").read_bytes())
+            data["inputs"]["prompt.txt"] = pilot.digest(destination.read_bytes())
+            (root / "manifest.json").write_text(json.dumps(data))
+
+    with pytest.raises(ValueError):
+        pilot.validate_setup_boundary(root, item, mutate, anchor)
+
+
+@pytest.mark.parametrize("anchor", [None, "", "0" * 64])
+def test_bad_anchor_rejected(launch_fixture, anchor):
+    root, item, _ = launch_fixture
+    with pytest.raises(ValueError):
+        pilot.validate_launch(root, item, anchor)
+    with pytest.raises(ValueError):
+        pilot.validate_setup_boundary(root, item, lambda: pytest.fail("setup executed"), anchor)
+
+
+def test_unchanged_setup(launch_fixture):
+    root, item, anchor = launch_fixture
+    before = {p.name: p.read_bytes() for p in root.iterdir() if p.is_file()}
+    assert pilot.validate_setup_boundary(root, item, lambda: None, anchor)
+    assert before == {p.name: p.read_bytes() for p in root.iterdir() if p.is_file()}
 
 
 def test_forged_launcher_never_executes(tmp_path):
@@ -250,3 +291,156 @@ def test_forged_evaluation_cannot_create_score(tmp_path):
         pytest.raises(ValueError, match="scoring disabled"),
     ):
         pilot.summarize(tmp_path)
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_constants_in_unchecked_field(value):
+    events = trace()
+    events[0]["unchecked"] = value
+    with pytest.raises(ValueError, match="constant"):
+        b.validate_terminal(raw(events), 0, binding(), binding())
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        "blob",
+        "pack",
+        "idx",
+        "delete",
+        "modify",
+        "directory",
+        "metadata",
+        "head",
+        "attributes",
+        "empty",
+    ],
+)
+def test_storage_and_hierarchy(subject, change):
+    target, expected = subject
+    objects = target / ".git/objects"
+    if change == "blob":
+        fixture = target.parent / "blob"
+        fixture.write_bytes(b"unreachable regression")
+        pilot.git(target, "hash-object", "-w", str(fixture))
+    elif change in {"pack", "idx"}:
+        (objects / "pack" / ("extra." + change)).write_bytes(b"injected")
+    elif change in {"delete", "modify"}:
+        obj = next(p for p in objects.glob("??/*") if p.is_file())
+        obj.chmod(0o600)
+        if change == "delete":
+            obj.unlink()
+        else:
+            obj.write_bytes(b"modified")
+    elif change == "directory":
+        (objects / "empty/nested").mkdir(parents=True)
+    elif change == "metadata":
+        (target / ".git/unknown").mkdir()
+    elif change == "head":
+        with (target / ".git/HEAD").open("ab") as stream:
+            stream.write(b"\n")
+    elif change == "attributes":
+        (target / ".git/info/attributes").write_bytes(b"*.txt text\n")
+    else:
+        (target / ".venv/empty/nested").mkdir(parents=True)
+    with pytest.raises((ValueError, OSError)):
+        b.validate_identity(target, expected)
+
+
+@pytest.mark.parametrize("operation", ["scandir", "read_bytes", "lstat"])
+def test_inspection_failure(subject, operation):
+    target, expected = subject
+    owner = b.os if operation == "scandir" else Path
+    with (
+        patch.object(owner, operation, side_effect=PermissionError("injected")),
+        pytest.raises(PermissionError),
+    ):
+        b.validate_identity(target, expected)
+
+
+@pytest.mark.parametrize("kind", ["symlink", "fifo", "socket", "junction"])
+def test_special_entries(tmp_path, kind):
+    import os
+    import socket
+    import subprocess
+
+    root = tmp_path / "inventory"
+    root.mkdir()
+    destination = root / "special"
+    connection = None
+    if kind == "fifo":
+        if os.name == "nt":
+            pytest.skip("Windows does not provide mkfifo")
+        os.mkfifo(destination)
+    elif kind == "socket":
+        if os.name == "nt":
+            pytest.skip("Unix socket filesystem validation runs on Ubuntu")
+        connection = socket.socket(socket.AF_UNIX)
+        connection.bind(str(destination))
+    elif kind == "junction":
+        if os.name != "nt":
+            pytest.skip("Windows junction only")
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        result = subprocess.run(
+            ["cmd", "/c", "mklink", "/J", str(destination), str(outside)], capture_output=True
+        )
+        if result.returncode:
+            pytest.skip("junction unavailable: " + result.stderr.decode(errors="replace"))
+    else:
+        try:
+            destination.symlink_to(tmp_path / "absent")
+        except OSError as exc:
+            pytest.skip(f"symlink privilege unavailable: {exc}")
+    try:
+        with pytest.raises(ValueError, match="unsupported"):
+            b.inventory_tree(root)
+    finally:
+        if connection is not None:
+            connection.close()
+        if kind == "junction":
+            destination.rmdir()
+
+
+@pytest.mark.parametrize("change", ["inject", "pack", "idx", "delete"])
+def test_real_unreachable_pack(subject, change):
+    import subprocess
+
+    target, _ = subject
+    blob = target.parent / "unreachable"
+    blob.write_bytes(b"packed unreachable fixture")
+    oid = pilot.git(target, "hash-object", "-w", str(blob)).strip()
+    expected = b.subject_identity(target)
+    result = subprocess.run(
+        ["git", "-C", str(target), "pack-objects", ".git/objects/pack/pack"],
+        input=oid + b"\n",
+        capture_output=True,
+        check=True,
+    )
+    pack = target / ".git/objects/pack" / ("pack-" + result.stdout.decode().strip() + ".pack")
+    if change != "inject":
+        expected = b.subject_identity(target)
+        path = pack.with_suffix(".idx") if change == "idx" else pack
+        path.chmod(0o600)
+        if change == "delete":
+            path.unlink()
+        else:
+            raw = path.read_bytes()
+            path.write_bytes(raw[:-1] + bytes([raw[-1] ^ 1]))
+    with pytest.raises((ValueError, OSError)):
+        b.validate_identity(target, expected)
+
+
+def test_missing_anchor_argument(launch_fixture):
+    root, item, _ = launch_fixture
+    with pytest.raises(TypeError):
+        pilot.validate_launch(root, item)
+    with pytest.raises(TypeError):
+        pilot.validate_setup_boundary(root, item, lambda: None)
+
+
+def test_legacy_seal_requires_preparation(subject):
+    target, seal = subject
+    seal.pop("objects_sha256")
+    with pytest.raises(ValueError, match="fresh attempt"):
+        b.validate_identity(target, seal)

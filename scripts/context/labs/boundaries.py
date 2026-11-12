@@ -6,6 +6,7 @@ import configparser
 import hashlib
 import json
 import os
+import stat
 import subprocess
 from pathlib import Path
 
@@ -61,16 +62,60 @@ def git(repo: Path, *args: str) -> bytes:
     return result.stdout
 
 
+def reject_constant(value: str):
+    raise ValueError(f"invalid JSON constant: {value}")
+
+
+def entry_type(path: Path) -> str:
+    info = path.lstat()
+    if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+        raise ValueError("unsupported link/reparse point")
+    if stat.S_ISDIR(info.st_mode):
+        return "directory"
+    if stat.S_ISREG(info.st_mode):
+        return "file"
+    raise ValueError("unsupported filesystem object")
+
+
+def inventory_tree(root: Path, excluded=(), allowed=None) -> list:
+    """No-follow classification; inspection failures propagate and reject validation."""
+    if entry_type(root) != "directory":
+        raise ValueError("expected directory")
+    rows = []
+
+    def visit(directory):
+        with os.scandir(directory) as entries:
+            paths = sorted((Path(e.path) for e in entries), key=lambda p: p.name)
+        for path in paths:
+            name = path.relative_to(root).as_posix()
+            if name in excluded:
+                continue
+            kind = entry_type(path)
+            if allowed is not None and allowed.get(name) != kind:
+                raise ValueError("unexpected path or entry type")
+            row = {"path": name, "type": kind}
+            if kind == "directory":
+                visit(path)
+            else:
+                raw = path.read_bytes()
+                row.update(size=len(raw), sha256=sha(raw))
+            rows.append(row)
+
+    visit(root)
+    return sorted(rows, key=lambda row: row["path"])
+
+
+def inventory_digest(rows: list) -> str:
+    return sha(json.dumps(rows, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode())
+
+
 def subject_identity(repo: Path) -> dict:
     """Read actual bytes, including ignored/untracked paths; never refresh the index."""
     metadata = repo / ".git"
-    if not metadata.is_dir() or metadata.is_symlink():
-        raise ValueError("subject requires private Git directory")
-    if any(
-        p.is_symlink() or (hasattr(p, "is_junction") and p.is_junction())
-        for p in metadata.rglob("*")
-    ):
-        raise ValueError("linked Git metadata")
+    if entry_type(repo) != "directory" or entry_type(metadata) != "directory":
+        raise ValueError("private repository directories required")
+    objects = inventory_tree(metadata / "objects")
+    control = inventory_tree(metadata, excluded=("objects",))
     config = configparser.RawConfigParser()
     try:
         config.read_string((metadata / "config").read_text(encoding="utf-8"))
@@ -104,18 +149,13 @@ def subject_identity(repo: Path) -> dict:
     if tree != HISTORICAL_TREE:
         raise ValueError("wrong historical tree")
     tracked = {p.decode("utf-8") for p in git(repo, "ls-files", "-z").split(b"\0") if p}
-    inventory = {}
-    for path in repo.rglob("*"):
-        relative = path.relative_to(repo)
-        if relative.parts[0] == ".git":
-            continue
-        if path.is_symlink() or (hasattr(path, "is_junction") and path.is_junction()):
-            raise ValueError("unsupported link")
-        if path.is_file():
-            name = relative.as_posix()
-            if name not in tracked:
-                raise ValueError("unexpected path, including ignored files")
-            inventory[name] = sha(path.read_bytes())
+    allowed_paths = {name: "file" for name in tracked}
+    for name in tracked:
+        for parent in Path(name).parents:
+            if parent != Path("."):
+                allowed_paths[parent.as_posix()] = "directory"
+    rows = inventory_tree(repo, excluded=(".git",), allowed=allowed_paths)
+    inventory = {row["path"]: row["sha256"] for row in rows if row["type"] == "file"}
     if set(inventory) != tracked:
         raise ValueError("missing selected source")
     hooks = metadata / "hooks"
@@ -124,6 +164,8 @@ def subject_identity(repo: Path) -> dict:
     ):
         raise ValueError("unexpected Git hook")
     return {
+        "objects_sha256": inventory_digest(objects),
+        "metadata_sha256": inventory_digest(control),
         "historical_sha": HISTORICAL_SHA,
         "historical_tree": HISTORICAL_TREE,
         "subject_commit": git(repo, "rev-parse", "HEAD").decode().strip(),
@@ -136,6 +178,8 @@ def subject_identity(repo: Path) -> dict:
 
 
 def validate_identity(repo: Path, expected: dict) -> dict:
+    if not {"objects_sha256", "metadata_sha256"} <= expected.keys():
+        raise ValueError("missing seals; prepare a fresh attempt")
     actual = subject_identity(repo)
     if actual != expected:
         raise ValueError("frozen subject identity mismatch")
@@ -160,7 +204,7 @@ def validate_terminal(raw: bytes, exit_code: int, expected: dict, observed: dict
     if not raw.endswith(b"\n"):
         raise ValueError("truncated event stream")
     events = [
-        json.loads(line, object_pairs_hook=unique_object)
+        json.loads(line, object_pairs_hook=unique_object, parse_constant=reject_constant)
         for line in raw.decode("utf-8").split("\n")
         if line.strip()
     ]

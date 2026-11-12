@@ -97,8 +97,15 @@ def manifest_path(root: Path) -> Path:
     return root / "manifest.json"
 
 
-def load(root: Path) -> dict:
-    data = json.loads(manifest_path(root).read_text(encoding="utf-8"))
+def load(root: Path, expected_manifest_sha256: str | None = None) -> dict:
+    raw = manifest_path(root).read_bytes()
+    if expected_manifest_sha256 is not None and digest(raw) != expected_manifest_sha256:
+        raise ValueError("manifest anchor mismatch")
+    data = json.loads(
+        raw.decode("utf-8"),
+        object_pairs_hook=boundaries.unique_object,
+        parse_constant=boundaries.reject_constant,
+    )
     if data.get("version") != "1.0" or len(data.get("runs", [])) != 9:
         raise ValueError("invalid pilot manifest")
     if [r["id"] for r in data["runs"]] != [f"r{i:02}" for i in range(1, 10)]:
@@ -125,7 +132,7 @@ def load(root: Path) -> dict:
     return data
 
 
-def prepare(repo: Path, output: Path) -> None:
+def prepare(repo: Path, output: Path) -> str:
     if output.resolve().is_relative_to(repo.resolve()):
         raise ValueError("artifacts must be outside the source checkout")
     output.mkdir()  # Refuse existing directory, including an interrupted preparation.
@@ -248,13 +255,14 @@ def prepare(repo: Path, output: Path) -> None:
         "inputs": inputs,
     }
     save(manifest_path(output), protocol)
+    return digest(manifest_path(output).read_bytes())
 
 
 def record(root: Path, run_id: str, state: str, **fields: object) -> None:
     save(root / f"{run_id}-{state}.json", {"state": state, **fields})
 
 
-def run(root: Path, launcher: Path | None) -> None:
+def run(root: Path, launcher: Path | None, expected_manifest_sha256=None) -> None:
     data = load(root)
     terminal = ("running", "blocked", "completed", "failed", "timeout", "evaluated")
     if any(any(root.glob(f"r??-{state}.json")) for state in terminal) or any(
@@ -274,15 +282,18 @@ def run(root: Path, launcher: Path | None) -> None:
     # trust path have not been implemented/qualified; never execute the supplied file.
     for item in data["runs"]:
         try:
-            validate_launch(root, item)
+            validate_launch(root, item, expected_manifest_sha256)
             reason = "Independent qualification trust path unavailable; launcher not executed"
         except (OSError, ValueError) as exc:
             reason = f"Launch identity rejected: {exc}"
         record(root, item["id"], "blocked", reason=reason, model_calls=0)
 
 
-def validate_launch(root: Path, item: dict) -> dict:
-    data = load(root)  # Recheck ALL frozen context/spec/prompt/identity digests.
+def validate_launch(root: Path, item: dict, expected_manifest_sha256: str) -> dict:
+    if not isinstance(expected_manifest_sha256, str) or len(expected_manifest_sha256) != 64:
+        raise ValueError("external manifest anchor required")
+    # Recheck all frozen context/spec/prompt/identity digests.
+    data = load(root, expected_manifest_sha256)
     if item not in data["runs"] or "identity" not in item:
         raise ValueError("missing frozen launch identity; prepare a new attempt set")
     name = item["identity"]
@@ -297,11 +308,11 @@ def validate_launch(root: Path, item: dict) -> dict:
     return boundaries.validate_identity(root / item["id"], expected)
 
 
-def validate_setup_boundary(root: Path, item: dict, probe) -> dict:
+def validate_setup_boundary(root: Path, item: dict, probe, expected_manifest_sha256: str) -> dict:
     """Controller helper for offline race tests; this does not authorize execution."""
-    before = validate_launch(root, item)
+    before = validate_launch(root, item, expected_manifest_sha256)
     probe()
-    after = validate_launch(root, item)
+    after = validate_launch(root, item, expected_manifest_sha256)
     if before != after:
         raise ValueError("identity drift during setup")
     return after
@@ -375,14 +386,15 @@ def main() -> int:
     parser.add_argument("--artifacts", required=True, type=Path)
     parser.add_argument("--repo", type=Path, default=ROOT)
     parser.add_argument("--launcher", type=Path)
+    parser.add_argument("--expected-manifest-sha256")
     parser.add_argument("--evaluator", type=Path)
     args = parser.parse_args()
     try:
         root = args.artifacts.resolve()
         if args.command == "prepare":
-            prepare(args.repo.resolve(), root)
+            print(prepare(args.repo.resolve(), root))
         elif args.command == "run":
-            run(root, args.launcher)
+            run(root, args.launcher, args.expected_manifest_sha256)
         elif args.command == "evaluate":
             evaluate(root, args.evaluator or Path("not-configured"))
         else:
