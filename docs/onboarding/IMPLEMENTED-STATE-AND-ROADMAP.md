@@ -24,18 +24,19 @@ product spine. No L/I capability is promoted by this priority change.
 
 - **Draft implementation:** #17 at `fe3aea3f0aba9ea2cd040194dd898c91391b3240`
   repairs schema 1.0 packet integrity; #18 at
-  `caa7d80e8512bc886c98393e322fc3df7f1f8ea2` provides runnable labs and a frozen
-  pilot. Hosted checks qualify their tested scope, not merge readiness.
+  `6d1e1462586c0cd3d8c84c60db85c71e6b7f2870` provides runnable offline labs, a
+  frozen pilot, and [offline runner hardening](../../reports/lab-runner-01-offline.md).
+  Maintainer acceptance remains separate from hosted checks.
 - **Locally verified demonstrations:** six-source packet replay and synthetic
   fail-closed controls. [Results](../../reports/context-labs-01-results.md)
   preserve actual results and limitations; these are not coding-improvement data.
 - **Immediate prerequisite:** LAB-RUNNER-01 security qualification, then one
-  non-scored experimental smoke, then nine frozen EVAL-01 cells. SoloMidMiram
+  separately authorized non-scored experimental smoke, then nine frozen EVAL-01 cells. SoloMidMiram
   owns provisioning/isolation/teardown. The virtual server is only a placeholder;
   see [provisioning specification](../architecture/LAB-RUNNER-01-PROVISIONING.md).
 - **Blocked:** real execution environment, authentication, network/filesystem
-  restrictions, exact launch identity and teardown proof. No smoke/model calls
-  or scored coding results exist; no performance benefit is claimed.
+  restrictions, live launch identity, terminal-schema acceptance and teardown
+  proof. Launcher execution and scoring remain disabled. Issue #21 is at 0/9.
 - **Deferred:** snapshots, ranking/discovery, Context7 and further kagent feature
   expansion until the current runner/evaluation gates are qualified.
 

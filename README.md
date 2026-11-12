@@ -14,8 +14,9 @@ for VS Code, Cursor, Codex CLI, and Continue.
 ## Quick Start
 
 Selected priority: a measurable **context-first coding assistant**. CTX-01R and
-the practical labs are draft review candidates; the nine coding experiments
-remain blocked on independent runner qualification. SoloMidMiram owns the
+the practical labs are draft review candidates. Draft #18 includes offline runner
+hardening. The nine coding experiments remain blocked on independent runner
+qualification. SoloMidMiram owns the
 [virtual-server provisioning handoff](docs/architecture/LAB-RUNNER-01-PROVISIONING.md),
 which currently uses a placeholder, not a live host. See the
 [implemented-state roadmap](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)

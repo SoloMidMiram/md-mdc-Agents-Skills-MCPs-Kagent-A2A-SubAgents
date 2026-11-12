@@ -2,9 +2,10 @@
 
 Selected direction (November 4–5 interviews; reconciled 2026-11-06): build and
 measure a context-first coding assistant. Source integrity and deterministic
-packaging are review candidates; actual coding improvement is unmeasured.
+packaging are review candidates. Draft #18 includes offline runner hardening.
+Actual coding improvement remains unmeasured.
 Current priority is independent LAB-RUNNER-01 security qualification, one
-non-scored smoke, then the nine frozen EVAL-01 runs. The
+separately authorized non-scored smoke, then the nine frozen EVAL-01 runs. The
 [implemented-state roadmap](onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md) owns
 cross-lane ordering; the [runner specification](architecture/LAB-RUNNER-01-PROVISIONING.md)
 owns provisioning requirements and the explicitly unprovisioned host placeholder.

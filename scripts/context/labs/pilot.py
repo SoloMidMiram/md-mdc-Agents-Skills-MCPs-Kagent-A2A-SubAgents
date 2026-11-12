@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import io
 import json
 import subprocess
@@ -16,6 +17,11 @@ BASE = "c6021d456bbcce20fec817470aa5237907d7728a"
 BUILDER = "fe3aea3f0aba9ea2cd040194dd898c91391b3240"
 TREE = "8e64b24580268f294a8947bcdc8370a98e569cf1"
 ROOT = Path(__file__).resolve().parents[3]
+BOUNDARY_SPEC = importlib.util.spec_from_file_location(
+    "runner_boundaries", Path(__file__).with_name("boundaries.py")
+)
+boundaries = importlib.util.module_from_spec(BOUNDARY_SPEC)
+BOUNDARY_SPEC.loader.exec_module(boundaries)
 ORDERS = (
     ("ordinary", "manual", "ctx"),
     ("manual", "ctx", "ordinary"),
@@ -91,8 +97,15 @@ def manifest_path(root: Path) -> Path:
     return root / "manifest.json"
 
 
-def load(root: Path) -> dict:
-    data = json.loads(manifest_path(root).read_text(encoding="utf-8"))
+def load(root: Path, expected_manifest_sha256: str | None = None) -> dict:
+    raw = manifest_path(root).read_bytes()
+    if expected_manifest_sha256 is not None and digest(raw) != expected_manifest_sha256:
+        raise ValueError("manifest anchor mismatch")
+    data = json.loads(
+        raw.decode("utf-8"),
+        object_pairs_hook=boundaries.unique_object,
+        parse_constant=boundaries.reject_constant,
+    )
     if data.get("version") != "1.0" or len(data.get("runs", [])) != 9:
         raise ValueError("invalid pilot manifest")
     if [r["id"] for r in data["runs"]] != [f"r{i:02}" for i in range(1, 10)]:
@@ -119,7 +132,7 @@ def load(root: Path) -> dict:
     return data
 
 
-def prepare(repo: Path, output: Path) -> None:
+def prepare(repo: Path, output: Path) -> str:
     if output.resolve().is_relative_to(repo.resolve()):
         raise ValueError("artifacts must be outside the source checkout")
     output.mkdir()  # Refuse existing directory, including an interrupted preparation.
@@ -197,6 +210,9 @@ def prepare(repo: Path, output: Path) -> None:
             run_id = f"r{len(runs) + 1:02}"
             subject = output / run_id
             local = fresh_source(repo, subject)
+            identity_path = output / f"{run_id}-identity.json"
+            save(identity_path, boundaries.subject_identity(subject))
+            inputs[identity_path.name] = digest(identity_path.read_bytes())
             prompt = output / f"{run_id}-prompt.txt"
             context = (
                 brief.read_text(encoding="utf-8")
@@ -218,6 +234,7 @@ def prepare(repo: Path, output: Path) -> None:
                     "condition": arm,
                     "local_commit": local,
                     "prompt": prompt.name,
+                    "identity": identity_path.name,
                 }
             )
             record(output, run_id, "prepared", local_commit=local)
@@ -238,13 +255,14 @@ def prepare(repo: Path, output: Path) -> None:
         "inputs": inputs,
     }
     save(manifest_path(output), protocol)
+    return digest(manifest_path(output).read_bytes())
 
 
 def record(root: Path, run_id: str, state: str, **fields: object) -> None:
     save(root / f"{run_id}-{state}.json", {"state": state, **fields})
 
 
-def run(root: Path, launcher: Path | None) -> None:
+def run(root: Path, launcher: Path | None, expected_manifest_sha256=None) -> None:
     data = load(root)
     terminal = ("running", "blocked", "completed", "failed", "timeout", "evaluated")
     if any(any(root.glob(f"r??-{state}.json")) for state in terminal) or any(
@@ -260,129 +278,44 @@ def run(root: Path, launcher: Path | None) -> None:
         for item in data["runs"]:
             record(root, item["id"], "blocked", reason=reason, model_calls=0)
         return
-    launcher = launcher.resolve()
-    if launcher.is_relative_to(root) or launcher.is_relative_to(ROOT):
-        raise ValueError("launcher must be independently provisioned trusted infrastructure")
-    launcher_hash = digest(launcher.read_bytes())
+    # No launcher-provided proof is sufficient. The independent verifier and its
+    # trust path have not been implemented/qualified; never execute the supplied file.
     for item in data["runs"]:
-        run_id = item["id"]
-        subject = root / run_id
-        if git(subject, "status", "--porcelain").strip():
-            raise ValueError("subject changed since preparation")
-        # The same trusted launcher must use the same sandbox for probe and execution.
-        # It accepts JSON stdin and returns the invoked command's stdout/stderr/exit.
-        forbidden = [
-            str(ROOT / "scripts/context/build_packet.py"),
-            str(root / "manifest.json"),
-            str(ROOT / "scripts/context/labs/evaluator.py"),
-        ]
-        probe = {
-            "mode": "probe",
-            "subject": str(subject),
-            "forbidden": forbidden,
-            "expected_cli": "0.164.0",
-            "required_model": data["model"],
-            "requirements": [
-                "deny_host_reads",
-                "no_mcp",
-                "no_web",
-                "fresh_session",
-                "dependencies_preinstalled",
-                "no_repository_remote",
-            ],
-        }
-        checked = subprocess.run(
-            [sys.executable, str(launcher)],
-            input=json.dumps(probe).encode(),
-            capture_output=True,
-            timeout=60,
-            check=False,
-        )
         try:
-            proof = json.loads(checked.stdout)
-        except ValueError:
-            proof = {}
-        if (
-            checked.returncode
-            or proof.get("denied") != forbidden
-            or proof.get("cli") != "0.164.0"
-            or proof.get("requirements") != probe["requirements"]
-        ):
-            record(root, run_id, "blocked", reason="Isolation/CLI preflight failed", model_calls=0)
-            continue
-        if digest(launcher.read_bytes()) != launcher_hash:
-            raise ValueError("launcher changed after preflight")
-        request = {
-            "mode": "run",
-            "subject": str(subject),
-            "timeout_seconds": 600,
-            "prompt": (root / item["prompt"]).read_text(encoding="utf-8"),
-            "argv": [
-                "codex",
-                "exec",
-                "--json",
-                "--ephemeral",
-                "--ignore-user-config",
-                "--sandbox",
-                "workspace-write",
-                "--model",
-                data["model"],
-                "-c",
-                'model_reasoning_effort="medium"',
-                "-c",
-                'web_search="disabled"',
-                "-c",
-                "mcp_servers.kagent-controller.enabled=false",
-                "-",
-            ],
-        }
-        record(root, run_id, "running", launcher_sha256=launcher_hash, probe=proof)
-        started = time.perf_counter()
-        try:
-            process = subprocess.run(
-                [sys.executable, str(launcher)],
-                input=json.dumps(request).encode(),
-                capture_output=True,
-                timeout=610,
-                check=False,
-            )
-            state = "completed" if process.returncode == 0 else "failed"
-            stdout, stderr, exit_code = process.stdout, process.stderr, process.returncode
-        except subprocess.TimeoutExpired as exc:
-            state, stdout, stderr, exit_code = "timeout", exc.stdout or b"", exc.stderr or b"", None
-        (root / f"{run_id}-events.jsonl").write_bytes(stdout)
-        (root / f"{run_id}-stderr.txt").write_bytes(stderr)
-        patch = git(subject, "diff", "--binary", item["local_commit"])
-        (root / f"{run_id}.patch").write_bytes(patch)
-        events = []
-        for line in stdout.splitlines():
-            try:
-                events.append(json.loads(line))
-            except ValueError:
-                continue
-        usage = [e.get("usage") for e in events if e.get("type") == "turn.completed"]
-        final = [
-            e
-            for e in events
-            if e.get("type") == "item.completed"
-            and e.get("item", {}).get("type") == "agent_message"
-        ]
-        save(root / f"{run_id}-responses.json", final)
-        record(
-            root,
-            run_id,
-            state,
-            exit=exit_code,
-            elapsed_seconds=time.perf_counter() - started,
-            usage=usage or None,
-            patch_sha256=digest(patch),
-            changed=git(subject, "diff", "--name-only", item["local_commit"]).decode().splitlines(),
-            untracked=git(subject, "ls-files", "--others", "--exclude-standard")
-            .decode()
-            .splitlines(),
-            events_sha256=digest(stdout),
-            stderr_sha256=digest(stderr),
-        )
+            validate_launch(root, item, expected_manifest_sha256)
+            reason = "Independent qualification trust path unavailable; launcher not executed"
+        except (OSError, ValueError) as exc:
+            reason = f"Launch identity rejected: {exc}"
+        record(root, item["id"], "blocked", reason=reason, model_calls=0)
+
+
+def validate_launch(root: Path, item: dict, expected_manifest_sha256: str) -> dict:
+    if not isinstance(expected_manifest_sha256, str) or len(expected_manifest_sha256) != 64:
+        raise ValueError("external manifest anchor required")
+    # Recheck all frozen context/spec/prompt/identity digests.
+    data = load(root, expected_manifest_sha256)
+    if item not in data["runs"] or "identity" not in item:
+        raise ValueError("missing frozen launch identity; prepare a new attempt set")
+    name = item["identity"]
+    if name not in data["inputs"] or item["prompt"] not in data["inputs"]:
+        raise ValueError("unsealed identity or prompt")
+    for path in (name, item["prompt"]):
+        if digest((root / path).read_bytes()) != data["inputs"][path]:
+            raise ValueError("frozen launch input mismatch")
+    expected = json.loads((root / name).read_text(encoding="utf-8"))
+    if expected.get("subject_commit") != item["local_commit"]:
+        raise ValueError("manifest subject identity mismatch")
+    return boundaries.validate_identity(root / item["id"], expected)
+
+
+def validate_setup_boundary(root: Path, item: dict, probe, expected_manifest_sha256: str) -> dict:
+    """Controller helper for offline race tests; this does not authorize execution."""
+    before = validate_launch(root, item, expected_manifest_sha256)
+    probe()
+    after = validate_launch(root, item, expected_manifest_sha256)
+    if before != after:
+        raise ValueError("identity drift during setup")
+    return after
 
 
 def evaluate(root: Path, evaluator: Path) -> None:
@@ -401,30 +334,10 @@ def evaluate(root: Path, evaluator: Path) -> None:
         patch = root / f"{run_id}.patch"
         if digest(patch.read_bytes()) != execution["patch_sha256"]:
             raise ValueError("patch digest mismatch")
-        if execution["changed"] != ["scripts/context/build_packet.py"] or execution["untracked"]:
-            record(root, run_id, "evaluated", outcome="invalid_scope", correctness=False)
-            continue
-        target = root / f"evaluation-{run_id}"
-        fresh_source(ROOT, target)
-        applied = call(["git", "apply", "--check", str(patch)], target)
-        if applied.returncode:
-            record(root, run_id, "evaluated", outcome="invalid_patch", correctness=False)
-            continue
-        git(target, "apply", str(patch))
-        # Trusted external evaluator owns hidden tests and uses only neutral run ID.
-        request = {"id": run_id, "candidate": str(target), "execution": execution}
-        result = subprocess.run(
-            [sys.executable, str(evaluator.resolve())],
-            input=json.dumps(request).encode(),
-            capture_output=True,
-            timeout=420,
-            check=False,
-        )
-        (root / f"{run_id}-evaluation.log").write_bytes(result.stdout + result.stderr)
-        assessment = json.loads(result.stdout) if result.returncode == 0 else {}
-        if not isinstance(assessment.get("correctness"), bool):
-            raise ValueError("incomplete external evaluator verdict")
-        record(root, run_id, "evaluated", outcome="evaluated", **assessment)
+        # Even a plausible terminal file cannot establish independent qualification.
+        # Keep failed/timeout/unqualified executions out of the scoring path.
+        record(root, run_id, "evaluated", outcome="unqualified_execution", correctness=None)
+        continue
 
 
 def summarize(root: Path) -> dict:
@@ -435,6 +348,11 @@ def summarize(root: Path) -> dict:
         if not path.exists():
             raise ValueError("incomplete evaluation; no successful summary")
         result = json.loads(path.read_text(encoding="utf-8"))
+        if result.get("correctness") is not None or result.get("outcome") not in {
+            "blocked",
+            "unqualified_execution",
+        }:
+            raise ValueError("scoring disabled until independent execution qualification")
         captures = [root / f"{item['id']}-{s}.json" for s in ("completed", "failed", "timeout")]
         capture = next(
             (json.loads(p.read_text(encoding="utf-8")) for p in captures if p.exists()), {}
@@ -468,14 +386,15 @@ def main() -> int:
     parser.add_argument("--artifacts", required=True, type=Path)
     parser.add_argument("--repo", type=Path, default=ROOT)
     parser.add_argument("--launcher", type=Path)
+    parser.add_argument("--expected-manifest-sha256")
     parser.add_argument("--evaluator", type=Path)
     args = parser.parse_args()
     try:
         root = args.artifacts.resolve()
         if args.command == "prepare":
-            prepare(args.repo.resolve(), root)
+            print(prepare(args.repo.resolve(), root))
         elif args.command == "run":
-            run(root, args.launcher)
+            run(root, args.launcher, args.expected_manifest_sha256)
         elif args.command == "evaluate":
             evaluate(root, args.evaluator or Path("not-configured"))
         else:

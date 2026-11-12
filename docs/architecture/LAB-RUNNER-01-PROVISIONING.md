@@ -1,6 +1,6 @@
 # LAB-RUNNER-01 — Provisioning and independent qualification specification
 
-Prepared 2026-11-06. **Specification only: no runner exists, no infrastructure is provisioned, and model calls remain disabled.** The practical-lab foundation is a review candidate; coding improvement and merge readiness remain on hold. This document is a non-authoritative implementation handoff, not another product roadmap.
+Prepared 2026-11-06. Status reconciled 2026-11-12 after offline hardening was integrated into draft PR #18. No live runner or infrastructure has been provisioned. Launcher execution, model calls, and scoring remain disabled. This specification is the non-authoritative provisioning handoff.
 
 ## Infrastructure decision record — 2026-11-06
 
@@ -34,9 +34,33 @@ disabled until security qualification passes. No record is prefilled as successf
 
 ## 1. Deliverable and boundary
 
-Implement one separately reviewed isolated runner and the three pre-pilot harness corrections in a small draft PR stacked on frozen #18, source `caa7d80e8512bc886c98393e322fc3df7f1f8ea2`, tree `9e6630b0c422d928b90216d367605d0f24a27d1a`. Preserve the three tasks, manually selected inputs, condition order, budgets and model configuration. Do not modify #18 or relabel its nine blocked cells as executed.
+The 2026-11-06 findings apply to the original #18 head
+`caa7d80e8512bc886c98393e322fc3df7f1f8ea2` (tree
+`9e6630b0c422d928b90216d367605d0f24a27d1a`). At that revision, launcher JSON
+provided only self-attestation, exit zero alone marked completion, and clean
+status could not establish frozen commit/tree identity. The nine cells stayed
+blocked.
 
-The current harness has three pre-pilot gaps: launcher JSON is only self-attestation; exit 0 alone marks completion; a clean status does not establish frozen commit/tree identity. These are observed code boundaries, not evidence that blocked runs executed unsafely.
+- **Implemented and offline-tested** in #18 at
+  `6d1e1462586c0cd3d8c84c60db85c71e6b7f2870`. Frozen Git, index, and working-tree
+  identity checks seal the object store and control metadata. The controller
+  retains a manifest digest for launch and setup validation. Strict JSONL
+  checks use synthetic streams. The untrusted launcher path is disabled, and
+  launcher self-attestation and fabricated scoring are rejected.
+  See the [offline evidence](../../reports/lab-runner-01-offline.md).
+- **Specified but unimplemented**. Trusted launcher dispatch, independent
+  qualification verification, and controller/subject separation. Identity
+  sealing is a point-in-time check with a residual check-to-use race. Atomic
+  filesystem isolation requires a separate runtime boundary.
+- **Requires independent live qualification** under [issue #20](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/20).
+  Isolated Linux execution, filesystem and network denial, production credential
+  isolation and authorized model connectivity, immutable runtime identity,
+  teardown and artifact transfer, and compatibility with actual Codex terminal
+  events all require independently retained evidence.
+
+Preserve the three tasks, manually selected inputs, condition order, budgets
+and model configuration. The non-scored smoke remains unauthorized. Issue #21
+remains blocked at 0/9.
 
 No snapshots, ranked discovery, Context7, kagent, approval receipts, MCP delivery, local-model fallback or automatic integration. Prepared arms compare formatting/provenance of the same manual selections, not automatic source discovery.
 
@@ -44,7 +68,7 @@ No snapshots, ranked discovery, Context7, kagent, approval receipts, MCP deliver
 
 Use an independently provisioned ephemeral Linux VM per smoke/subject execution. Initial allocation: two virtual CPUs, 4 GiB RAM and 20 GiB ephemeral storage; this is an initial test allocation, not a performance or pricing claim. Cloud provider, subscription and spending authorization remain the infrastructure owner's responsibility; this specification authorizes no resource creation.
 
-Pin the base image by immutable provider/image identity and digest, initially matching the qualified Ubuntu 26.04.1 environment. Record architecture, kernel, image build, runtime package hashes and CPU/memory allocation. Any change requires qualification before scored runs. VM teardown follows every run, including timeout/failure; a new subject never reuses a previous VM/disk or session.
+Select a candidate Linux image, pin its immutable provider/image identity and digest, and qualify it independently under issue #20. Record architecture, kernel, image build, runtime package hashes and CPU/memory allocation. Any change requires qualification before scored runs. VM teardown follows every run, including timeout/failure; a new subject never reuses a previous VM/disk or session.
 
 Separate four trust domains:
 
@@ -99,8 +123,15 @@ One execution per cell permits exploratory conclusions only. Do not claim source
 
 ## 6. Reviewable implementation split and handoff
 
-LAB-RUNNER-01 draft should contain: launch identity validator; strict terminal parser/controller binding; replacement of self-attestation acceptance with independent qualification verification; the VM launcher/teardown adapter for the chosen provisioned environment; adversarial tests; and a sanitized qualification/smoke record. Keep OS-specific provisioning outside the context builder. CI runs deterministic validator tests only, never paid smoke/pilot jobs automatically.
+Keep the remaining launcher, qualification verifier, and VM teardown adapter
+in a separately reviewed draft. Retain independent infrastructure and
+qualification records under issue #20, with a separate smoke record after
+authorization. Keep OS-specific provisioning outside the context builder.
+CI runs deterministic checks only.
 
-Current status: **NOT IMPLEMENTED / NOT QUALIFIED**. SoloMidMiram owns the infrastructure handoff; no infrastructure access has been supplied. No genuine smoke or nine-cell coding result exists. Next required input is a real independently provisioned Linux environment meeting this contract; the exact provider/account/access and credential mechanism must be supplied before deployment code or live qualification can be completed. No cloud spend, resource mutation, reviewer notification or model call is authorized by this specification alone.
+SoloMidMiram owns the infrastructure handoff. The provider, image, access
+mechanism and credential boundary are pending. Independent review must verify
+containment before a separately authorized smoke. Launcher execution and
+scoring stay disabled, and the nine frozen cells remain blocked.
 
-Integration remains #16 → #9 → main, followed by reconciliation of the independent #10 → #13 → #17 → #18 stack. New CI results do not promote any PR to merge readiness. This specification leaves #18's protocol/results and all existing PRs unchanged.
+Integration remains #16 → #9 → main, followed by reconciliation of the independent #10 → #13 → #17 → #18 stack. New CI results do not promote any PR to merge readiness. This reconciliation updates the provisioning handoff for the accepted offline implementation in draft #18.
