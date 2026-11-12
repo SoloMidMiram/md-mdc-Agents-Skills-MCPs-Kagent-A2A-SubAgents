@@ -98,6 +98,8 @@ class ExampleRunResult:
         sanitized = contracts.sanitize_evidence(payload)
         if not isinstance(sanitized, dict):
             raise ContractError("sanitized evidence must be an object")
+        if self.agent == "docs-agent" and self.pass_:
+            contracts.validate_evidence_payload(sanitized, docs_files=self.docs_files)
         return sanitized
 
 

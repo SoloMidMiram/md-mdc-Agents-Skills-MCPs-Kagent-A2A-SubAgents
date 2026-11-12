@@ -149,3 +149,27 @@ def test_runner_validates_bundle_before_discovery_and_grounding_before_pass(monk
         validate_evidence_payload(result.to_dict())
     output["findings"][0]["excerpt"] = "made up"
     assert not run(original).pass_
+
+
+def test_e3_cannot_export_success_with_sanitized_citation():
+    excerpt = "See https://example.com/reference"
+    artifact = response(startLine=1, endLine=1, excerpt=excerpt)
+    result = runner.ExampleRunResult(
+        example="e3-docs",
+        agent="docs-agent",
+        namespace="lab",
+        controller="http://localhost",
+        task_id="task",
+        request_id="request",
+        dispatch_state="completed",
+        duration_ms=0,
+        pass_=True,
+        reason="validated",
+        artifact=artifact,
+        card_accepted=True,
+        card_deployment_ready=True,
+        docs_files={"docs/readme.md": excerpt},
+    )
+
+    with pytest.raises(ContractError, match="citation excerpt does not match"):
+        result.to_dict()
