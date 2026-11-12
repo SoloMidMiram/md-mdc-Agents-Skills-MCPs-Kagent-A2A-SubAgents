@@ -22,7 +22,7 @@ policies. These apply during manual work, automation, and CI.
 - Do **not** weaken tests, security checks, or Kubernetes policies to obtain
   a passing CI run.
 - CI must pass (`quality.yml`) before any `laptop-stable-*` tag is created.
-- Pre-commit linters (black, isort, ruff) are enforced; their fixes must be
+- The configured Ruff pre-commit hooks are enforced; their fixes must be
   applied locally, not disabled.
 
 **Reference:** `.github/workflows/quality.yml`, `.pre-commit-config.yaml`
@@ -33,8 +33,8 @@ policies. These apply during manual work, automation, and CI.
 
 - **Stable path** = Playwright MCP host registration (install, verify,
   rollback, Pester suite). This is the only release-gated path.
-- **Lab path** = kagent / A2A on `docker-desktop`. Documented and working
-  locally but explicitly **outside** the laptop-stable gate. No CI dependency.
+- **Lab path** = kagent / A2A on `docker-desktop`. Documented with dated runtime observations and explicitly **outside** the
+  laptop-stable gate. Offline helper tests run in CI; no live-cluster dependency.
 - New lab features must not break stable path CI.
 - Stable tests and configuration must not depend on live browser state, learner
   evidence, live websites, Docker Desktop cluster state, or lab-only secrets.

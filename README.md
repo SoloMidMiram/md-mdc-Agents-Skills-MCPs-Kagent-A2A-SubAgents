@@ -53,19 +53,32 @@ Runbooks:
 - [SSH concurrency fix](docs/runbooks/ssh-concurrency-fix.md)
 - [Troubleshooting](docs/runbooks/troubleshooting.md)
 
+## Dependency security scope
+
+RECON-02 combines the reviewed root correction (#14, `17312a75`) and isolated
+SDK correction (#15, `7cb921ce`) on a separate candidate branch. It preserves
+both audits, generated locks, artifact hashes and the development-inclusive
+Trivy policy. No existing PR branch or main is merged by preparing this tree.
+Qualification belongs to this combined tree; independently passing security
+heads do not establish combined acceptance. See the
+[dependency security runbook](docs/runbooks/dependency-security.md),
+[contradiction register](docs/reference/contradiction-register.md) and issue #11.
+CTX-01 correctness and live Context7/Kagent/L6/L7/I3/I4 remain separate gates.
+
 ## Current State
 
 Two paths matter today:
 
 - **Stable path**: user-level `playwright-global` registration across VS Code, Cursor, Codex, and Continue. Verified by repeatable install (`-WhatIf` first) / verify / rollback / verify round-trip, covered by 73+ Pester tests, and covered by CI configuration on push and pull_request.
   `laptop-stable-v0.1` is tagged at `cdb7dc0`; this tree targets patch `laptop-stable-v0.1.1` (UTF-8 onboarding, narrative sync, bridge manifests).
-- **Active lab path**: local `kagent` on `docker-desktop` — prove and measure
+- **Educational lab path**: local `kagent` on `docker-desktop` — prove and measure
   bounded A2A workflows first, then attach Cursor and Codex as clients/workers.
   The PR2 gateway checkpoint is the smaller prerequisite path:
   `kagent ModelConfig -> LiteLLM /v1 -> agent-coder -> response`, with no MCP
   tools, no multiple agents, and no local-model fallback. Its dated evidence
   proves the gateway/model response path; the card gate remains pending.
-  L4/L5 and I0-I2 are Proven; I3-Cursor remains Blocked (interop proof, not
+  These runtime observations are historical, not a fresh cluster health check.
+  Dated L4/L5 and I0-I2 evidence is Proven; I3-Cursor remains Blocked (interop proof, not
   education gate). L6/L7 and I4 remain Not proven. See
   [north star](docs/north-star.md) for priority and
   [evidence index](evidence/kagent/README.md) for capability decisions.
@@ -75,6 +88,18 @@ Use [docs/north-star.md](docs/north-star.md) for direction,
 for phase/PR sequencing, [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/local-kagent-a2a-lab.md)
 for the cluster runbook, and [docs/runbooks/kagent-a2a-examples.md](docs/runbooks/kagent-a2a-examples.md)
 for the E1–E5 educational examples.
+
+## Security and branch scope
+
+Use the [dependency security runbook](docs/runbooks/dependency-security.md) and
+[contradiction register](docs/reference/contradiction-register.md) for the current
+security qualification boundary and corrected documentation claims.
+
+This branch starts from main `3c99181`. The SDK integration (#9), retained LAB-01
+(#10) and CTX-01 builder (#13) are separate unmerged reviews. Their files and
+runtime claims are not shipped here by this security correction. See issue #11
+for maintainer-controlled integration; no merge, release tag or live experiment
+is authorized by a passing dependency audit.
 
 ## What's Inside
 
@@ -94,7 +119,7 @@ for the E1–E5 educational examples.
 | Browser automation | `docs/runbooks/local-playwright-lab.md`, `docs/runbooks/remote-playwright-lab.md`, `server/` | Stable |
 | Host configuration portability | `config/templates/`, `docs/reference/portable-settings-bundle.md` | Stable |
 | AI tooling scaffold | `.vscode/settings.json`, `config/integrations/`, `docs/ai-tooling.md` | Implemented |
-| Local Kubernetes and `kagent` | `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`, `docs/runbooks/local-kagent-a2a-lab.md`, `deploy/base/kagent/`, `deploy/samples/kagent/` | Native controller `/mcp` federation: I0-I2 Proven; I3 Blocked |
+| Local Kubernetes and `kagent` | `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md`, `docs/runbooks/local-kagent-a2a-lab.md`, `deploy/base/kagent/`, `deploy/samples/kagent/` | Historical L4/L5 and I0-I2 evidence; I3 Blocked; L6/L7/I4 unproven |
 
 ### Scripts
 
@@ -123,21 +148,21 @@ The stable Playwright release checklist remains in
 kagent phase/PR sequencing lives in
 [kagent educational roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md).
 
-Current kagent priority order:
+Current priority order uses the existing stable workstream IDs:
 
-1. **Merge PR #3 foundation** — I0–I2 proven; record I3-Cursor Blocked
-   accurately; do not mark I3 Proven.
-2. **Lane A — A2A education** (PR #4) — planner, reviewer, supervisor, docs
-   agents; execute E1–E2, then E4 with Codex worker (PR #7).
-3. **Lane S — read-only MCP** (PR #5) — default-deny one-tool safety in
-   parallel where dependencies allow.
-4. **Lane B — benchmarks** (PR #6) — harness, OTel, baselines B0–B8.
-5. **Lane C — client interop** (PR #8 spike) — Cursor as client under test;
-   I3/I4/L6 remain separate deferred experiments, not education blockers.
+1. **RECON-01 / RECON-02** — review the combined security candidate, qualify
+   its actual tree and obtain explicit maintainer dispositions for #9/#3–#8.
+2. **EVID-01 / A2A-01** — preserve evidence integrity and the isolated SDK
+   contract; live interoperability remains a separately authorized gate.
+3. **CTX-01 / SAFE-01** — keep #12/#13 correctness repairs separate from
+   security integration; require the exact read-only surface before tools.
+4. **WORKER-01 / EVAL-01 / OPS-01** — advance only after their accepted
+   prerequisites; retain I3/I4/L6/L7 as independent evidence requirements.
 
-Gate 0 baseline: `090ad52` (2026-08-05). Direction pivot addendum: 2026-08-07.
-
-PR boundaries: [hardened implementation roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md#hardened-implementation-roadmap).
+Gate 0 baseline `090ad52` and the 2026-08-07 direction pivot remain historical.
+Use the [integration crosswalk](docs/reference/integration-workstreams.md) and
+[kagent educational roadmap](docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
+for ownership; included ancestor PRs are not independent changes to merge twice.
 
 ## Repository Map
 
