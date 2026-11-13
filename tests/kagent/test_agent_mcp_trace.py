@@ -815,7 +815,8 @@ def test_log_marker_rejects_unsuccessful_status():
 def test_malformed_controller_url_main_exit_2(monkeypatch):
     """main() with malformed URL returns exit 2, no transport calls."""
     monkeypatch.setattr(
-        trace.a2a, "DirectUrlTransport",
+        trace.a2a,
+        "DirectUrlTransport",
         lambda: (_ for _ in ()).throw(RuntimeError("must not be called")),
     )
     code = trace.main(["--controller", "not-a-url"])

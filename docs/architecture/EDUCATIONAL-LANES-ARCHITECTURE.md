@@ -14,6 +14,23 @@ It describes ownership and promotion boundaries, not a production deployment.
 - Turn implementation problems into reusable knowledge without making every
   one-off failure a permanent rule.
 
+## kagent Planning Lanes (2026-08-07)
+
+Within the kagent education zone, work is organized into four planning lanes.
+These are **not** capability levels — L0–L7 and I0–I5 remain defined in
+`docs/reference/kagent-capability-matrix.md`.
+
+| Lane | Question | Primary artifacts |
+|------|----------|-------------------|
+| **A — A2A Education** | Can kagent agents delegate useful bounded work? | `deploy/samples/kagent-a2a/`, `scripts/kagent/experiments/`, E1–E5 |
+| **S — Safety / MCP** | Can agents use only explicitly approved tools? | SAFE-01 read-only surface, RBAC, default-deny discovery |
+| **C — Client Interop** | Can Cursor and Codex enter the same workflow reliably? | Controller `/mcp`, I-track, client configs |
+| **B — Benchmarking** | Latency, reliability, cost, quality per architecture? | Baselines B0–B8, OTel/Jaeger traces |
+
+Lane A is the default priority after PR #3 foundation. Cursor I3 is Lane C
+interop proof — it must not block Lane A. Full direction:
+`docs/north-star.md`.
+
 ## Three Zones
 
 | Zone | Purpose | Primary artifacts | Change standard |

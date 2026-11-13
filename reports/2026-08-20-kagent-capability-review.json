@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "1.0",
+  "review": {
+    "scope": "Current MCPtest worktree: kagent capability claims and the A2A educational slice under deploy/samples/kagent-a2a, scripts/kagent/experiments, tests/kagent/experiments, docs, and evidence.",
+    "observedAt": "2026-08-20T06:51:26Z",
+    "claims": [
+      {
+        "level": "L0",
+        "claim": "Relevant kagent manifests and helper scripts exist.",
+        "classification": "Proven",
+        "sources": ["docs/reference/kagent-capability-matrix.md#L0-config-exists", "REPO_MANIFEST.yaml", "deploy/samples/kagent-a2a/", "scripts/kagent/"],
+        "rationale": "The repository contains the declared artifacts and the manifest maps the new A2A sample and harness paths. This proves artifact existence only, not deployment.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "L1",
+        "claim": "The kagent control plane was healthy in the recorded environment.",
+        "classification": "Proven",
+        "sources": ["evidence/kagent/README.md#Latest Verified Status", "evidence/kagent/educational-practice-phase-0-2.md"],
+        "rationale": "The canonical index links dated control-plane observations that meet the repository's L1 definition. No new live observation was performed in this review.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "L2",
+        "claim": "The recorded kagent agent was accepted and ready.",
+        "classification": "Proven",
+        "sources": ["evidence/kagent/README.md#Latest Verified Status", "evidence/kagent/educational-practice-phase-0-2.md"],
+        "rationale": "The canonical index cites dated Accepted/Ready evidence for the existing agent path.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "L3",
+        "claim": "The recorded kagent agent card/details were observable and validated.",
+        "classification": "Proven",
+        "sources": ["evidence/kagent/README.md#Latest Verified Status", "evidence/kagent/educational-practice-phase-3.md"],
+        "rationale": "The cited phase record documents validated card/details observation; this review does not extend that claim to the new sample agents.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "L4",
+        "claim": "A valid A2A dispatch crossed the kagent A2A boundary.",
+        "classification": "Proven",
+        "sources": ["evidence/kagent/README.md#Latest Verified Status", "evidence/kagent/educational-practice-phase-5d-trustworthy-a2a.md#Capability decisions"],
+        "rationale": "Phase 5D records a recognized message/stream status-update with a non-empty task id. This is existing L4 evidence, not proof that E1 or E2 succeeded in the current worktree.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "L5",
+        "claim": "The target RemoteMCPServer was accepted and tools were discovered.",
+        "classification": "Proven",
+        "sources": ["evidence/kagent/README.md#Latest Verified Status", "evidence/kagent/educational-practice-phase-4.md"],
+        "rationale": "The cited phase record documents Accepted=True and tool discovery, satisfying L5 but not tool invocation.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "L6",
+        "claim": "An A2A request caused an agent to invoke a real MCP tool and return tool-derived output.",
+        "classification": "Not proven",
+        "sources": ["evidence/kagent/README.md#Latest Verified Status", "evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md#Decision", "evidence/kagent/problems/2026-07-17-agent-mcp-correlation.md"],
+        "rationale": "The dated live attempt accepted a task but had no same-task tool marker, tool-derived names, or matched kubectl result and exited 1. Direct MCP and L5 evidence are explicitly insufficient.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "L7",
+        "claim": "A fresh documented kagent workshop can be replayed with cleanup and evidence capture.",
+        "classification": "Not proven",
+        "sources": ["evidence/kagent/README.md#Latest Verified Status", "docs/reference/kagent-capability-matrix.md#L7-repeatable-workshop"],
+        "rationale": "No fresh-install setup-to-target-to-cleanup evidence is recorded. The new runbook and scripts are implementation artifacts, not a replay result.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "I0",
+        "claim": "The controller native MCP endpoint completed initialize with a negotiated session.",
+        "classification": "Proven",
+        "sources": ["evidence/kagent/README.md#Native IDE-Federation Status", "evidence/kagent/educational-practice-phase-6-native-mcp-federation.md"],
+        "rationale": "The canonical federation record documents the controller initialize handshake.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "I1",
+        "claim": "The native controller MCP contract exposed the reviewed agent tools.",
+        "classification": "Proven",
+        "sources": ["evidence/kagent/README.md#Native IDE-Federation Status", "docs/reference/kagent-capability-matrix.md#I1-controller-contract-known"],
+        "rationale": "The cited record documents tools/list for the pinned controller contract.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "I2",
+        "claim": "Native controller agent discovery returned the target agent reference.",
+        "classification": "Proven",
+        "sources": ["evidence/kagent/README.md#Native IDE-Federation Status", "evidence/kagent/educational-practice-phase-6-native-mcp-federation.md"],
+        "rationale": "The canonical record documents list_agents returning kagent/k8s-a2a-agent.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "I3",
+        "claim": "A real IDE client completed native MCP invoke_agent and context continuation.",
+        "classification": "Blocked",
+        "sources": ["evidence/kagent/README.md#Native IDE-Federation Status", "evidence/kagent/educational-practice-phase-6b-6d-closure.md#Phase 6E", "docs/reference/kagent-capability-matrix.md#I3-IDE-to-kagent-delegation-works"],
+        "rationale": "The acceptance environment failed at tool_discovery with KAGENT_MCP_TOOLS_NOT_EXPOSED; the context-ID continuation trace was not reached. This is a known environmental obstruction, not an unattempted claim.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "I4",
+        "claim": "An IDE invocation produced qualifying same-task Kubernetes output.",
+        "classification": "Not proven",
+        "sources": ["evidence/kagent/README.md#Native IDE-Federation Status", "docs/reference/kagent-capability-matrix.md#I4-IDE-to-Kubernetes-delegation-works"],
+        "rationale": "No same-invocation controller, A2A task, tool result, and kubectl correlation exists; a separate helper dispatch cannot substitute for the IDE invocation.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "I5",
+        "claim": "The native IDE workflow is repeatable across fresh setup, restart, both clients, and cleanup.",
+        "classification": "Not attempted",
+        "sources": ["evidence/kagent/README.md#Native IDE-Federation Status", "docs/reference/kagent-capability-matrix.md#I5-native-workflow-repeatable"],
+        "rationale": "The canonical index records no fresh setup/restart/both-client/cleanup acceptance record.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "E1",
+        "claim": "The new planner-only educational example has completed a qualifying live run.",
+        "classification": "Not proven",
+        "sources": ["docs/runbooks/kagent-a2a-examples.md#E1-planner-only-A2A", "deploy/samples/kagent-a2a/01-planner/README.md", "evidence/kagent/experiments/README.md#2026-08-07-PR-4-implementation-smoke"],
+        "rationale": "The dated smoke summary reports a task id was accepted but the DeepSeek call failed on cluster DNS/egress. Offline contract checks prove only the harness behavior, not live E1 success.",
+        "promotionCriteriaChecked": true
+      },
+      {
+        "level": "E2",
+        "claim": "The new supervisor-to-planner-to-reviewer educational example has completed a qualifying live multi-agent run.",
+        "classification": "Not proven",
+        "sources": ["docs/runbooks/kagent-a2a-examples.md#E2-supervisor-planner-reviewer", "deploy/samples/kagent-a2a/03-supervisor/README.md", "evidence/kagent/experiments/README.md#2026-08-07-PR-4-implementation-smoke"],
+        "rationale": "The dated smoke summary reports supervisor dispatch failure at the DeepSeek DNS/egress boundary. The supervisor manifest and offline contract tests do not prove sub-agent hops or a successful live artifact.",
+        "promotionCriteriaChecked": true
+      }
+    ],
+    "hardFindings": [],
+    "softObservations": [
+      "The new experiment README is a summary of a blocked smoke, not a qualifying positive evidence record: it does not preserve exact commands and exit codes for each example as required by the evidence contract.",
+      "The worktree contains broad line-ending-only changes in addition to the substantive A2A slice; those should not be silently mixed into a focused publication commit.",
+      "This review performed no live cluster or production operation."
+    ],
+    "verdict": {
+      "claimsChecked": 16,
+      "proven": 9,
+      "notProven": 5,
+      "blocked": 1,
+      "notAttempted": 1,
+      "currentStatusChanged": false,
+      "summary": "Existing L0-L5 and I0-I2 decisions remain supported by dated records; I3 remains Blocked; L6, L7, and I4 remain Not proven; I5 remains Not attempted. The new E1/E2 artifacts are offline-validated but their only dated live smoke is blocked by DeepSeek DNS/egress, so neither educational example is proven."
+    }
+  }
+}

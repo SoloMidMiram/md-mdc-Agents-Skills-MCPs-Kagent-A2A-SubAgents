@@ -1,0 +1,11 @@
+# Optional patch: point k8s-a2a-agent at the LiteLLM gateway ModelConfig.
+# This proves L0 configuration existence only; it does not prove deployment,
+# readiness, dispatch, L6, or production policy enforcement.
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: k8s-a2a-agent
+  namespace: kagent
+spec:
+  declarative:
+    modelConfig: litellm-gateway-model-config

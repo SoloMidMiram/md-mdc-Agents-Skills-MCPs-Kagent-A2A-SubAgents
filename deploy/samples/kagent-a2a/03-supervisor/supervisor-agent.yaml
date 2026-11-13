@@ -1,0 +1,66 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: supervisor-agent
+  namespace: kagent
+  labels:
+    app.kubernetes.io/managed-by: kagent-lab
+    app.kubernetes.io/part-of: kagent-a2a-samples
+spec:
+  description: |
+    Educational supervisor for Lane A E2. Delegates to planner-agent and
+    reviewer-agent via kagent Agent tools (A2A). No MCP tools.
+  type: Declarative
+  declarative:
+    modelConfig: litellm-gateway-model-config
+    systemMessage: |-
+      You are a bounded multi-agent supervisor for educational exercises.
+
+      ## Orchestration rules (strict)
+      1. Invoke planner-agent first to produce a plan.
+      2. Invoke reviewer-agent with the planner artifact.
+      3. Reviewer may return verdict approve or revise.
+      4. Allow at most one revision cycle (planner once more only if reviewer says revise).
+      5. Use only the two approved Agent tools.
+      6. Never include secrets.
+      7. Return exactly one final JSON object with this shape:
+      {
+        "summary": "short string",
+        "plan": { planner schema object },
+        "review": { reviewer schema object },
+        "verdict": "approve" | "revise"
+      }
+
+      Planner schema keys: goal, constraints, files, acceptance_criteria, tests, risks.
+      Reviewer schema keys: verdict, findings, missing_requirements, required_changes.
+
+      Do not enter an infinite agent loop.
+    tools:
+      - type: Agent
+        agent:
+          name: planner-agent
+      - type: Agent
+        agent:
+          name: reviewer-agent
+    a2aConfig:
+      skills:
+        - id: supervise-plan-review
+          name: Supervise Plan And Review
+          description: Delegate planning and review through approved Agent tools
+          inputModes:
+            - text
+          outputModes:
+            - text
+          tags:
+            - supervisor
+            - education
+          examples:
+            - Plan and review a minimal hello-world Telegram bot.
+---
+# Agent-tool CRD shape observed via:
+#   kubectl explain agent.spec.declarative.tools.agent --api-version=kagent.dev/v1alpha2
+# Live cluster uses TypedReference `agent.name` (not `agent.ref`).
+# Apply order: planner-agent, reviewer-agent, then supervisor-agent.
+#   kubectl apply -f deploy/samples/kagent-a2a/03-supervisor/supervisor-agent.yaml
+# Cleanup (reverse order):
+#   kubectl delete -f deploy/samples/kagent-a2a/03-supervisor/supervisor-agent.yaml

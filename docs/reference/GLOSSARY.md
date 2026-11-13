@@ -137,3 +137,29 @@ Deploy assets divided by purpose:
   for learning or one-off deployment.
 
 **Authority:** `deploy/README.md`
+
+---
+
+## Planning lane (kagent)
+
+One of four work organizers (A, S, C, B) for the kagent lab. Lanes coordinate
+delivery; they are **not** capability levels. L0–L7 and I0–I5 remain the
+capability matrix.
+
+| Lane | Focus |
+|------|-------|
+| A | A2A education — bounded multi-agent workflows |
+| S | Safety / MCP — approved tools only |
+| C | Client interop — Cursor and Codex entry |
+| B | Benchmarking — latency, cost, quality baselines B0–B8 |
+
+**Authority:** `docs/north-star.md`, `docs/architecture/EDUCATIONAL-LANES-ARCHITECTURE.md`
+
+---
+
+## North star (kagent)
+
+Active project direction (2026-08-07): prove useful A2A workflows inside kagent
+first; then attach Codex and Cursor as clients/workers and compare them.
+
+**Authority:** `docs/north-star.md`

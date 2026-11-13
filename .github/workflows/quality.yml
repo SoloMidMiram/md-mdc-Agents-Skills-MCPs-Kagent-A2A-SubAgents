@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -33,13 +35,88 @@ jobs:
         run: uv sync --frozen --group dev
 
       - name: Lint kagent Python code
-        run: uv run ruff check scripts/kagent tests/kagent
+        run: uv run ruff check scripts/kagent tests/kagent scripts/security/audit_dependencies.py tests/security tests/reconciliation
+
+      - name: Fetch and verify pinned LAB-01 evidence
+        run: |
+          evidence=8ff91163f34659531bae5f9ee34fe4ef6d427eed
+          git fetch --no-tags origin "$evidence"
+          test "$(git rev-parse FETCH_HEAD)" = "$evidence"
 
       - name: Run deterministic Python tests
-        run: uv run pytest -q
+        # SDK tests run in their required isolated, exact-lock job below.
+        run: >-
+          uv run pytest -q
+          --ignore=tests/kagent/experiments/test_a2a_sdk_interop.py
+          --ignore=tests/kagent/experiments/test_a2a_sdk_transport.py
+          --ignore=tests/kagent/experiments/test_a2a_sdk_repairs.py
+          --ignore=tests/kagent/experiments/test_a2a_sdk_cleanup.py
+
+      - name: Audit every root dependency pin
+        run: uv run python scripts/security/audit_dependencies.py --uv-lock uv.lock --service osv --output "${{ runner.temp }}/root-dependency-audit.json"
+
+      - name: Retain complete root advisory inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: root-dependency-audit
+          path: ${{ runner.temp }}/root-dependency-audit.json
 
       - name: Validate workflow YAML
-        run: uv run python -c 'import yaml,sys; d=yaml.safe_load(open(sys.argv[1])); assert all(j in d.get("jobs",{}) for j in ["kagent-python","kagent-kubernetes","kagent-security","evaluation"]); print("Workflow valid, jobs:", list(d["jobs"]))' .github/workflows/quality.yml
+        run: uv run python -c 'import yaml,sys; d=yaml.safe_load(open(sys.argv[1])); assert all(j in d.get("jobs",{}) for j in ["kagent-python","kagent-sdk","kagent-kubernetes","kagent-security","evaluation"]); print("Workflow valid, jobs:", list(d["jobs"]))' .github/workflows/quality.yml
+
+  kagent-sdk:
+    name: Pinned A2A SDK offline qualification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.15"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.22"
+      - name: Create isolated SDK environment
+        run: |
+          uv venv --python 3.13.15 "$RUNNER_TEMP/a2a-sdk"
+          uv pip sync --require-hashes --python "$RUNNER_TEMP/a2a-sdk/bin/python" scripts/kagent/experiments/a2a_sdk_requirements.lock
+          uv pip check --python "$RUNNER_TEMP/a2a-sdk/bin/python"
+      - name: Require pinned runtime and execute every SDK case
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          "$RUNNER_TEMP/a2a-sdk/bin/python" -c 'import sys, importlib.metadata, a2a, httpx; assert sys.version_info[:3] == (3, 13, 15); assert importlib.metadata.version("a2a-sdk") == "0.3.26"'
+          "$RUNNER_TEMP/a2a-sdk/bin/python" -m pytest -p no:cacheprovider -q --junitxml="$RUNNER_TEMP/a2a-sdk-results.xml" tests/kagent/experiments/test_a2a_sdk_interop.py tests/kagent/experiments/test_a2a_sdk_transport.py tests/kagent/experiments/test_a2a_sdk_repairs.py tests/kagent/experiments/test_a2a_sdk_cleanup.py
+          "$RUNNER_TEMP/a2a-sdk/bin/python" - "$RUNNER_TEMP/a2a-sdk-results.xml" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          cases = ET.parse(sys.argv[1]).findall(".//testcase")
+          required = {p.stem for p in Path("tests/kagent/experiments").glob("test_a2a_sdk_*.py")}
+          observed = {c.attrib.get("classname", "").split(".")[-1] for c in cases}
+          assert required and required <= observed, (required, observed)
+          assert cases and not any(c.find(tag) is not None for c in cases for tag in ("skipped", "failure", "error"))
+          print(f"SDK qualification: {len(cases)} cases, all modules present, no skips or failures")
+          PY
+      - name: Type-check the SDK addition with its real dependency types
+        env:
+          UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/a2a-root-dev
+        run: |
+          uv sync --frozen --group dev --python 3.13.15
+          "$RUNNER_TEMP/a2a-root-dev/bin/mypy" --python-executable "$RUNNER_TEMP/a2a-sdk/bin/python" scripts/kagent/experiments/a2a_sdk_interop.py
+
+      - name: Audit every isolated SDK dependency pin
+        env:
+          UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/a2a-root-dev
+        run: uv run python scripts/security/audit_dependencies.py --requirements scripts/kagent/experiments/a2a_sdk_requirements.lock --service pypi --output "${{ runner.temp }}/sdk-dependency-audit.json"
+
+      - name: Retain complete SDK advisory inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-dependency-audit
+          path: ${{ runner.temp }}/sdk-dependency-audit.json
 
   kagent-kubernetes:
     name: Deterministic kagent Kubernetes validation
@@ -144,7 +221,7 @@ jobs:
       - name: Install PSScriptAnalyzer
         shell: pwsh
         run: |
-          Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
+          Install-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Scope CurrentUser -Force
 
       - name: Install Python dependencies
         shell: pwsh
@@ -193,6 +270,27 @@ jobs:
           Import-Module Pester -RequiredVersion 3.4.0 -Force
           $result = Invoke-Pester -Path .\tests\kagent\KagentToolingValidation.Tests.ps1 -PassThru
           if ($result.FailedCount -gt 0) { exit 1 }
+
+      - name: Run legacy benchmark tests (Pester 3.4.0)
+        shell: pwsh
+        run: |
+          Import-Module Pester -RequiredVersion 3.4.0 -Force
+          $result = Invoke-Pester -Path tests/benchmark/AgentGovernanceBenchmark.Tests.ps1 -PassThru
+          if ($result.FailedCount -gt 0 -or $result.TotalCount -eq 0) { exit 1 }
+
+      - name: Run skill and hook contracts (Pester 5.7.1)
+        shell: pwsh
+        run: |
+          Import-Module Pester -RequiredVersion 5.7.1 -Force
+          $result = Invoke-Pester -Path @('tests/benchmark/AgentGovernanceSkills.Tests.ps1','tests/benchmark/CursorGovernanceHooks.Tests.ps1') -PassThru
+          if ($result.FailedCount -gt 0 -or $result.TotalCount -eq 0) { exit 1 }
+
+      - name: Verify quality wrapper failures stop validation
+        shell: pwsh
+        run: |
+          Import-Module Pester -RequiredVersion 3.4.0 -Force
+          $result = Invoke-Pester -Path .\tests\security\QualityWrappers.Tests.ps1 -PassThru
+          if ($result.FailedCount -gt 0 -or $result.TotalCount -eq 0) { exit 1 }
 
       - name: Upload evaluation reports
         if: always()

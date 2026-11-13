@@ -182,6 +182,7 @@ def argparse_ns(**kwargs):
         "prompt": "List pods",
         "output": "json",
         "quiet": False,
+        "timeout": 60.0,
     }
     defaults.update(kwargs)
     return type("Args", (), defaults)()
@@ -335,24 +336,21 @@ def test_parse_sse_multiple_events():
 
 def test_parse_sse_malformed_json_single_line():
     """Single data: line with invalid JSON must raise GateError."""
-    body = 'data: {invalid json}\n\n'
+    body = "data: {invalid json}\n\n"
     with pytest.raises(a2a.GateError, match="invalid JSON"):
         a2a.parse_sse_jsonrpc_events(body)
 
 
 def test_parse_sse_malformed_json_multiline():
     """Multi-line data: fields that join into invalid JSON must raise GateError."""
-    body = (
-        'data: {"jsonrpc":"2.0","id":"1","result":\n'
-        'data: {invalid}\n\n'
-    )
+    body = 'data: {"jsonrpc":"2.0","id":"1","result":\ndata: {invalid}\n\n'
     with pytest.raises(a2a.GateError, match="invalid JSON"):
         a2a.parse_sse_jsonrpc_events(body)
 
 
 def test_parse_sse_non_dict_json_raises():
     """A JSON array in data: must raise GateError."""
-    body = 'data: [1, 2, 3]\n\n'
+    body = "data: [1, 2, 3]\n\n"
     with pytest.raises(a2a.GateError, match="must be a JSON object"):
         a2a.parse_sse_jsonrpc_events(body)
 
@@ -944,10 +942,12 @@ def test_sanitize_controller_origin_no_scheme():
 
 def test_emit_human_both_shows_card_metadata(capsys):
     """both action human output must include agent name, model, and skills."""
+
     def _a2a_handler(method, url, headers, body, timeout):
         return _json_resp(
             {"jsonrpc": "2.0", "id": 1, "error": {"code": -32601, "message": "Method not found"}}
         )
+
     transport = FakeTransport(_router({"card": _card_ok(), "a2a": _a2a_handler}))
     report = a2a.run(_ns(action="both"), transport=transport)
     assert report.action == "both"
@@ -960,11 +960,11 @@ def test_emit_human_both_shows_card_metadata(capsys):
 
 def test_emit_human_both_shows_card_even_when_task_fails(capsys):
     """both action renders card metadata even when task dispatch fails."""
+
     def _a2a_handler(method, url, headers, body, timeout):
         return _json_resp({})
-    transport = FakeTransport(
-        _router({"card": _card_with_skills(), "a2a": _a2a_handler})
-    )
+
+    transport = FakeTransport(_router({"card": _card_with_skills(), "a2a": _a2a_handler}))
     report = a2a.run(_ns(action="both"), transport=transport)
     assert report.card_display is not None
     a2a.emit_human(report, quiet=True)

@@ -1,0 +1,19 @@
+# Target-specific DeepSeek ModelConfig for the IDE-safe Cursor profile.
+# Apply only after scripts/kagent/deepseek_provider_probe.py qualifies this
+# pinned model. The referenced Secret is created locally from the user
+# environment and is never stored in this repository.
+apiVersion: kagent.dev/v1alpha2
+kind: ModelConfig
+metadata:
+  name: ide-safe-deepseek-model-config
+  namespace: kagent
+  labels:
+    app.kubernetes.io/managed-by: kagent-lab
+    app.kubernetes.io/part-of: kagent-ide-safe-profile
+spec:
+  provider: OpenAI
+  model: deepseek-v4-flash
+  apiKeySecret: kagent-deepseek
+  apiKeySecretKey: DEEPSEEK_API_KEY
+  openAI:
+    baseUrl: https://api.deepseek.com

@@ -32,10 +32,22 @@ For repository behavior, use this precedence:
 
 For the kagent lane specifically:
 
-- `docs/reference/kagent-capability-matrix.md` defines L0-L7;
+- `docs/north-star.md` defines project direction and planning lanes (2026-08-07);
+- `docs/reference/kagent-capability-matrix.md` defines L0-L7 and I0-I5;
 - `evidence/kagent/README.md` records the latest proven status and open flaws;
 - `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md` owns phase order and promotion gates;
-- `docs/runbooks/local-kagent-a2a-lab.md` owns executable lab instructions.
+- `docs/runbooks/kagent-litellm-gateway.md` owns the bounded PR2 gateway smoke;
+- `docs/runbooks/kagent-a2a-examples.md` owns E1–E5 executable procedures;
+- `docs/runbooks/local-kagent-a2a-lab.md` owns cluster lab instructions.
+
+For cross-lane delivery planning:
+
+- `docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md` owns the order of work
+  across the stable Playwright and kagent lanes;
+- `docs/laptop-stable-acceptance-plan.md` owns the stable release's exact-SHA
+  checklist, target-host round trip, and tag gate; and
+- a branch may carry implementation notes, but it must not become a second
+  roadmap or status ledger. Update the canonical owners instead.
 
 ## Writing Rules
 

@@ -304,21 +304,15 @@ def validate_controller_url(value: str) -> str:
     except ValueError as exc:
         raise UsageFailure(f"controller URL could not be parsed: {exc}") from exc
     if parsed.scheme not in {"http", "https"}:
-        raise UsageFailure(
-            f"controller URL scheme must be http or https, got {parsed.scheme!r}"
-        )
+        raise UsageFailure(f"controller URL scheme must be http or https, got {parsed.scheme!r}")
     if not parsed.hostname:
-        raise UsageFailure(
-            f"controller URL must have a host, got {controller!r}"
-        )
+        raise UsageFailure(f"controller URL must have a host, got {controller!r}")
     if parsed.username is not None or parsed.password is not None:
         raise UsageFailure("controller URL must not include userinfo")
     try:
         port = parsed.port
     except ValueError as exc:
-        raise UsageFailure(
-            f"controller URL has invalid port: {exc}"
-        ) from exc
+        raise UsageFailure(f"controller URL has invalid port: {exc}") from exc
     if port is None:
         raise UsageFailure("controller URL must include an explicit port")
     if parsed.path not in {"", "/"} or parsed.params:
@@ -368,11 +362,7 @@ def parse_sse_jsonrpc_events(body_text: str) -> list[dict[str, Any]]:
     normalized = body_text.replace("\r\n", "\n").replace("\r", "\n")
 
     for block in normalized.split("\n\n"):
-        data_lines = [
-            line[5:].lstrip()
-            for line in block.splitlines()
-            if line.startswith("data:")
-        ]
+        data_lines = [line[5:].lstrip() for line in block.splitlines() if line.startswith("data:")]
 
         if not data_lines:
             continue
@@ -446,13 +436,22 @@ def validate_jsonrpc_response(
     return result, None, id_matched
 
 
+# Non-dispatch SSE result kinds that appear in successful kagent streams.
+# Skip these while scanning for status-update / task / message shapes.
+SKIP_DISPATCH_KINDS = frozenset({"artifact-update"})
+
+
 def _extract_dispatch_shape(result: Any) -> tuple[str, str | None, str]:
     """Return a strictly recognized dispatch shape, including terminal task states."""
     if not isinstance(result, dict):
         raise GateError("result must be an object with a recognized task/message shape")
 
+    kind = result.get("kind")
+    if kind in SKIP_DISPATCH_KINDS:
+        raise GateError(f"skip non-dispatch kind: {kind}")
+
     # Streaming status-update (kagent 0.9.11 / A2A message/stream)
-    if result.get("kind") == "status-update":
+    if kind == "status-update":
         task_id = result.get("taskId")
         status = result.get("status")
         if not isinstance(task_id, str) or not task_id.strip():
@@ -470,7 +469,6 @@ def _extract_dispatch_shape(result: Any) -> tuple[str, str | None, str]:
     # Task shape
     task_id = result.get("id")
     status = result.get("status")
-    kind = result.get("kind")
     if isinstance(task_id, str) and task_id.strip() and isinstance(status, dict) and kind == "task":
         state = status.get("state")
         if not isinstance(state, str) or not state.strip():
@@ -485,7 +483,7 @@ def _extract_dispatch_shape(result: Any) -> tuple[str, str | None, str]:
     role = result.get("role")
     parts = result.get("parts")
     if (
-        result.get("kind") == "message"
+        kind == "message"
         and isinstance(message_id, str)
         and message_id.strip()
         and role in {"agent", "user"}
@@ -527,7 +525,15 @@ def select_dispatch_from_events(
         if err is not None:
             raise GateError(f"JSON-RPC error code={err.get('code')}: {err.get('message', '')}")
         assert result is not None
-        dispatch_id, state, response_kind = _extract_dispatch_shape(result)
+        # Skip artifact-update and other non-dispatch kinds in successful streams.
+        if isinstance(result, dict) and result.get("kind") in SKIP_DISPATCH_KINDS:
+            continue
+        try:
+            dispatch_id, state, response_kind = _extract_dispatch_shape(result)
+        except GateError as exc:
+            if str(exc).startswith("skip non-dispatch kind:"):
+                continue
+            raise
         seen_ids.append(dispatch_id)
         if state is None or state in ACCEPTED_TASK_STATES:
             accepted.append((dispatch_id, state, response_kind))
@@ -987,6 +993,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Minimal human output (not an evidence protocol)",
     )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=60.0,
+        help="Transport timeout seconds for card/task/probe (default: 60)",
+    )
     return parser.parse_args(argv)
 
 
@@ -1010,24 +1022,24 @@ def run(
 
     if args.action == "card":
         report = EvidenceReport(action="card", **base_fields)
-        return run_card(transport, report)
+        return run_card(transport, report, timeout=args.timeout)
 
     if args.action == "probe":
         report = EvidenceReport(action="probe", **base_fields)
-        return run_probe(transport, report)
+        return run_probe(transport, report, timeout=args.timeout)
 
     if args.action == "task":
         report = EvidenceReport(action="task", **base_fields)
-        return run_task(transport, report, args.prompt)
+        return run_task(transport, report, args.prompt, timeout=args.timeout)
 
     # both: card then task; fail if either fails; transport from either
     card_report = EvidenceReport(action="card", **base_fields)
-    card_report = run_card(transport, card_report)
+    card_report = run_card(transport, card_report, timeout=args.timeout)
     if card_report.exit_code == ExitCode.TRANSPORT:
         card_report.action = "both"
         return card_report
     task_report = EvidenceReport(action="task", **base_fields)
-    task_report = run_task(transport, task_report, args.prompt)
+    task_report = run_task(transport, task_report, args.prompt, timeout=args.timeout)
     combined = EvidenceReport(action="both", **base_fields)
     combined.card_accepted = card_report.card_accepted
     combined.card_deployment_ready = card_report.card_deployment_ready

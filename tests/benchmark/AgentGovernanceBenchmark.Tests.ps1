@@ -1,5 +1,7 @@
 Describe "Agent-governance benchmark contract" {
     BeforeAll {
+    $SkillNamePattern = "(?m)^name:\s*{0}\r?$"
+    $ManualSkillPattern = "(?m)^disable-model-invocation:\s*true\r?$"
     $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
     $Runner = Join-Path $RepoRoot "scripts\benchmark\run-benchmark.ps1"
     $Comparer = Join-Path $RepoRoot "scripts\benchmark\compare-benchmark.ps1"
@@ -206,6 +208,32 @@ Describe "Agent-governance benchmark contract" {
         }
     }
 
+    It "validates exact skill metadata for <Case> with <Ending>" -TestCases @(
+        foreach ($ending in @("LF", "CRLF")) {
+            $newline = if ($ending -eq "LF") { "`n" } else { "`r`n" }
+            foreach ($name in @("review-kagent-capability", "sync-educational-slice")) {
+                foreach ($case in @(
+                    @{ Case = "valid"; NameLine = "name: $name"; FlagLine = "disable-model-invocation: true"; Expected = $true },
+                    @{ Case = "wrong name"; NameLine = "name: other"; FlagLine = "disable-model-invocation: true"; Expected = $false },
+                    @{ Case = "missing name"; NameLine = "description: absent"; FlagLine = "disable-model-invocation: true"; Expected = $false },
+                    @{ Case = "name suffix"; NameLine = "name: $name-extra"; FlagLine = "disable-model-invocation: true"; Expected = $false },
+                    @{ Case = "false flag"; NameLine = "name: $name"; FlagLine = "disable-model-invocation: false"; Expected = $false },
+                    @{ Case = "missing flag"; NameLine = "name: $name"; FlagLine = "description: absent"; Expected = $false },
+                    @{ Case = "flag suffix"; NameLine = "name: $name"; FlagLine = "disable-model-invocation: true-extra"; Expected = $false }
+                )) {
+                    @{ Case = "$name $($case.Case)"; Ending = $ending; SkillName = $name;
+                        Raw = "---$newline$($case.NameLine)$newline$($case.FlagLine)$newline---$newline";
+                        Expected = $case.Expected }
+                }
+            }
+        }
+    ) {
+        param($Raw, $SkillName, $Expected)
+        $accepted = ($Raw -match ($SkillNamePattern -f [regex]::Escape($SkillName))) -and
+            ($Raw -match $ManualSkillPattern)
+        $accepted | Should Be $Expected
+    }
+
     It "keeps rule and skill activation contracts explicit" {
         $rulesRoot = Join-Path $RepoRoot ".cursor\rules"
         (Get-Content -Raw (Join-Path $rulesRoot "repository-truthfulness.mdc")) |
@@ -216,8 +244,8 @@ Describe "Agent-governance benchmark contract" {
 
         foreach ($name in @("review-kagent-capability", "sync-educational-slice")) {
             $skill = Get-Content -Raw (Join-Path $RepoRoot ".agents\skills\$name\SKILL.md")
-            $skill | Should Match "(?m)^name:\s*$name$"
-            $skill | Should Match "(?m)^disable-model-invocation:\s*true$"
+            $skill | Should Match ($SkillNamePattern -f [regex]::Escape($name))
+            $skill | Should Match $ManualSkillPattern
         }
     }
 }

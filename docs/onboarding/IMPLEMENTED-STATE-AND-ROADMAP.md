@@ -13,6 +13,20 @@ It answers four questions:
 3. What is only partially working?
 4. What should be stabilized or refactored next?
 
+## Combined candidate and evidence scope
+
+RECON-02 combines #14 (`17312a75`) and #15 (`7cb921ce`) in a separate branch
+without rewriting either reviewed history or changing main/#9/#10/#13.
+[Dependency security](../runbooks/dependency-security.md) owns procedures;
+the [contradiction register](../reference/contradiction-register.md) records
+claim/source/correction links and the five conflict resolutions. The
+[combined qualification](../../reports/reconciliation/recon-02-20261103.json)
+records actual checks; the candidate PR identifies its final SHA and hosted CI.
+No combined or maintainer acceptance follows from the two older green heads.
+#10's retained LAB-01 evidence and #13's implementation are not imported here;
+the pinned LAB-01 sources are checked through preserved Git history. CTX-01
+correctness stays under #12/#13. No live capability level is promoted.
+
 ## Current Implemented State
 
 ### Host-level MCP setup
@@ -105,7 +119,9 @@ Primary artifacts:
 
 ### Local kagent path
 
-Implemented and validated:
+Implemented helpers and historically recorded runtime observations follow.
+These bullets do not assert that the cluster or provider is running now.
+Revalidate the approved target before a separately authorized live experiment:
 
 - local `kagent` CRDs installed
 - local `kagent` controller and UI running in `docker-desktop`
@@ -129,9 +145,9 @@ Implemented and validated:
   `Register-PSRepository -Default` when absent before Pester installation on
   Windows Server 2025. Hosted Quality run 30621076867 passed at `f18b906` on
   2026-07-31, and follow-up Quality run 30621919672 passed all jobs at the
-  exact pre-merge head `94031ff`. The current pre-merge documentation update is
-  a docs-only delta from that verified head and remains subject to its hosted
-  final confirmation before merge.
+  exact pre-merge head `94031ff`. That revision is now part of merged PR #1
+  and remains historical CI context rather than an active merge gate.
+  Each later candidate needs its own hosted tests and fresh security audits.
 - fail-closed Kubernetes manifest validation (`scripts/kubernetes/validate.ps1
   -Strict`) and Trivy policy scanning (`scripts/security/scan.ps1 -Required`)
   with pinned validator installation (kubeconform v0.6.7, kube-linter v0.7.1,
@@ -139,6 +155,13 @@ Implemented and validated:
   (`KagentToolingValidation.Tests.ps1`). Those jobs passed in hosted Quality run
   30621076867 at `f18b906`, including the required Trivy policy scan.
 - `kagent-controller` REST API exposes agent card on port 8083
+- PR2 gateway slice: `deploy/samples/kagent/litellm-gateway-model-config.yaml`
+  points kagent only at LiteLLM `http://host.docker.internal:4000/v1`, alias
+  `agent-coder`, and Secret key `LITELLM_MASTER_KEY`; the no-tool smoke agent is
+  isolated in `deploy/samples/kagent/litellm-gateway-smoke-agent.yaml`
+- dated runtime evidence proves LiteLLM `/v1/models`, chat completion, and a
+  non-empty kagent response through `agent-coder`; the retained card gate is
+  still missing and `read_file` remains a later tool-enabled slice
 
 Current capability decisions, dated observations, corrections, and major flaws
 are canonical in `evidence/kagent/README.md`. L0-L5 are proven. L4 is supported
@@ -151,6 +174,11 @@ The historical Phase 5 direct `tools/call` failed because its negotiated session
 was not reused. Phase 5B subsequently proved a direct, session-reusing call with
 `k8s_get_resources`; this is auxiliary server evidence only and does not prove
 L4 or L6. See `evidence/kagent/educational-practice-phase-5b-direct-mcp.md`.
+
+The parallel native IDE track is I0-I2 Proven, I3 Blocked, I4 Not proven, and
+I5 Not attempted. I3-Cursor remains Blocked — see `evidence/kagent/README.md`
+for the current failure stage, dated evidence, and next acceptance action. The
+authoritative decision and blocker wording live there.
 
 ## How To Use What Exists Today
 
@@ -216,14 +244,24 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 
 - release acceptance evidence for `laptop-stable-v0.1.1` still needs an exact green GitHub Actions run recorded against the release SHA
 - integration scaffold verification reports findings but does not yet fail CI truthfully for every detected failure
-- PyYAML/Python dependency behavior needs one documented contract across code, tests, README, and the acceptance plan
+- current-head baseline hygiene is in place locally (`pyyaml==6.0.3` direct in the `dev` group; coverage/quality paths target `scripts/kagent`; quality wrappers fail-closed); selecting the immutable release SHA and recording same-SHA hosted Quality remain open. Full-quality debt (Mypy, coverage below 80%, Bandit Low findings, and a 2026-08-01 pip-audit timeout) is recorded in `docs/laptop-stable-acceptance-plan.md` and is not a Gate 0 pass claim
 - local `kagent` installation path (not yet reduced to a one-command install flow)
 - A2A dispatch uses the pinned controller 0.9.11 `message/stream` SSE path;
   legacy blocking `tasks/sendTask` and `message/send` remain unsuitable
 - native read-only MCP tool exposure; the current pinned image relies on RBAC for write denial
 - live correlated L6 tool observation (schema/helper exist; live still Not proven)
-- the deployed controller's client-facing MCP discovery schema has not yet been
-  recorded, so native Cursor/Codex agent integration remains an acceptance task
+- IDE-to-A2A correlation capture: `agent_mcp_trace.py` currently creates its own
+  direct A2A task, so running it beside Cursor cannot prove that Cursor caused
+  that same task; Phase 7C needs an external-invocation evidence mode or another
+  fail-closed join before I4 can be reviewed
+- the deployed controller's client-facing MCP schema is recorded: `/mcp` exposes
+  only `list_agents` and `invoke_agent`, and `k8s-a2a-agent` is discoverable
+  (I0-I2 Proven); Candidate B strict preflight is recorded, while the current
+  I3-Cursor decision and remaining live-evidence gate are maintained in
+  `evidence/kagent/README.md`
+- the PR2 gateway record still needs one retained `both` capture containing the
+  agent card result before the full five-gate single-agent acceptance can be
+  marked complete
 - agent-governance R1-R3/S1-S2 benchmark scoring and H1-H3 shadow measurement;
   artifacts exist, but no independently assessed comparison or ten-event hook
   sample supports promotion or blocking yet
@@ -231,35 +269,42 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 ### Not yet closed
 
 - L6 agent-mediated MCP invocation (live tool marker + kubectl match)
-- Cursor and Codex discovery, minimal dispatch, and correlated read-only
-  acceptance through the controller's MCP endpoint
+- successful bounded Cursor/Codex delegation and correlated read-only acceptance
+  through the controller's MCP endpoint
 - L7 bootstrap, cleanup, and fresh-install evidence
 - root `docs/01-*.md`–`docs/07-*.md` stubs remain as compatibility redirects; full removal pending consumer bookmark updates
 
 ## Practical Roadmap
 
-The stable Playwright release lane remains the first priority for any release
-work. The kagent lane below applies when that stable work is explicitly out of
-scope. Detailed educational phase ownership, commands, and promotion gates are
-kept in the [kagent educational roadmap](KAGENT-EDUCATIONAL-ROADMAP.md).
+This table coordinates repository delivery. The stable release checklist owns
+release mechanics, the kagent educational roadmap owns detailed phase/PR work,
+and the evidence index owns capability decisions. Proposed PR numbers below are
+planning units and do not assert that a hosted PR exists.
 
-| Order | Kagent outcome | Depends on | Completion evidence |
-|-------|----------------|------------|---------------------|
-| 1 | **Integrity and protocol hardening** — repair strict missing-CRD exit semantics, multiline SSE parsing, local-debug-log hygiene, and current-head CI truthfulness. | Existing deterministic test suites | Regression cases pass and any hosted status is recorded for the exact head. |
-| 2 | **Read-only surface and L6 closure** — make mutation tools absent from discovery, then diagnose and prove one correlated agent-mediated Kubernetes read. | 1 | Native read-only schema plus fresh `agent_mcp_trace.py` exit 0 and a `kubectl` match. |
-| 3 | **Native IDE acceptance** — inspect the controller MCP schema; if it exposes suitable agent tools, configure project-scoped Cursor and Codex clients instead of building a new bridge. Basic discovery and no-tool dispatch can run after 1, alongside 2. | 1 | Dated discovery and minimal-dispatch records, with the actual tools recorded. |
-| 4 | **IDE-to-Kubernetes correlation** — invoke the already proven read-only path from each IDE and retain same-task correlation. | 2 and 3 | Cursor and Codex records each bind an IDE invocation to the tool result and matching `kubectl` output. |
-| 5 | **Repeatable workshop (L7)** — provide bootstrap, port-forward, configuration-template, acceptance, cleanup, and fresh-install proof. | 4 | A clean Docker Desktop run completes without undocumented repair and cleanup is verified. |
+| Order | Delivery unit | State | Depends on | Completion evidence |
+|-------|---------------|-------|------------|---------------------|
+| 0 | **Current-head release baseline** — select one immutable release SHA and run the full hosted workflow from `docs/laptop-stable-acceptance-plan.md`. | Open | Existing deterministic suites | Candidate SHA, local results, and same-SHA hosted Quality are recorded. |
+| 1 | **Stable Playwright patch release** — complete Windows install → verify → rollback → verify and tag `laptop-stable-v0.1.1`. | Open | 0 | Target-host acceptance and exact-SHA hosted Quality pass; the tag points to that SHA. |
+| 2 | **Kagent Delivery Gate 0 / roadmap-baseline publication** — preserved the six coherent documentation updates on the PR #3 branch before Phase 7 implementation. | **Published** at `090ad52` (`docs(kagent): harden remaining phase and PR roadmap`); no capability decision changes | Six-file roadmap diff, empty staging area, clean required validation, and preceding test harden `178ce58` | Pushed SHA `090ad52` with exact-SHA `quality.yml` green: push run [30979059299](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979059299) and pull_request run [30979061019](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979061019); no capability decision changes. |
+| 3 | RECON-01 / federation and gateway integration | Published draft #9; current security acceptance pending | Verified hosted heads | Stable IDs, preserved evidence, cloud-only examples, exact candidate checks. |
+| 4 | EVID-01 / evidence integrity | Active | RECON-01 | Negative regressions and validated recorder/harness; no capability promotion. |
+| 5 | A2A-01 / pinned SDK validation | Next | EVID-01 | SDK 0.3.26 isolated tests, then bounded live result or Blocked record. |
+| 6 | CTX-01 / cited context; SAFE-01 / exact MCP surface | Planned | EVID-01; A2A-01 for transport | Source-linked context; exact server-side safety before tools. |
+| 7 | WORKER-01, EVAL-01, OPS-01 | Planned | Validated contracts and required safety | Bounded worker, comparable measurements, owned cleanup. |
+
+North Star's A2A-first direction supersedes Cursor-I3-first ordering. I3 remains
+Blocked and proceeds independently; I4 still requires I3 plus same-invocation
+L6 evidence. See [integration workstreams](../reference/integration-workstreams.md)
+for historical proposed-number mappings. No cluster mutation is authorized here.
 
 ### Architecture decision for the IDE lane
 
-Do not plan a custom Cursor/Codex-to-A2A bridge before checking the running
-controller's native MCP endpoint. The deployed local controller is pinned to
-`0.9.11` and its service exposes port `8083`; the next acceptance record must
-perform MCP `initialize` and `tools/list` and preserve the returned schema. If
-the expected agent discovery and invocation tools are present, use that surface
-as the thin integration layer. If not, record the gap before evaluating an
-adapter.
+The deployed local controller is pinned to `0.9.11`; its native `/mcp` endpoint
+was recorded at `http://127.0.0.1:8083/mcp` with exactly `list_agents` and
+`invoke_agent`. Use that surface as the only IDE-facing integration layer.
+Do not build a custom Cursor/Codex-to-A2A bridge unless a future dated live
+record establishes that the pinned native contract cannot satisfy a required
+capability.
 
 The initial operating contract is intentionally narrow:
 
@@ -276,11 +321,12 @@ L6 or L7.
 
 ## Recommended Next Steps
 
-1. Complete the two deterministic integrity repairs before treating strict
-   health or streaming results as dependable gates.
-2. Replace the mutation-advertising runtime before requesting an agent to use
-   Kubernetes tools.
-3. Capture the single live L6 record, while independently recording controller
-   MCP discovery and a no-tool IDE dispatch if the endpoint supports it.
-4. Build bootstrap and cleanup automation only after the full read-only IDE
-   path has correlated evidence.
+1. Complete RECON-02's actual combined-tree qualification and record the
+   immutable candidate, parent SHAs, conflict decisions and current audit data.
+2. Obtain maintainer acceptance/dispositions under #11; review the included
+   #3–#8 ancestry without merging their implementation twice.
+3. Preserve and replay/requalify #10/#13 against the accepted parent. Keep
+   #12's CTX correctness repairs independently reviewable.
+4. Clear stable target-host acceptance and the existing quality debt separately
+   before any release/tag decision. Preserve EVID-01/A2A-01 and the other stable
+   workstream prerequisites; no new live operation is authorized by this plan.

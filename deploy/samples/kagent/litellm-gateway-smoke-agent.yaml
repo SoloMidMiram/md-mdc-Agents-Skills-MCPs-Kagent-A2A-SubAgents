@@ -1,0 +1,35 @@
+# PR2: exactly one kagent agent, one cloud model alias, and no tools.
+# This is the smallest kagent -> LiteLLM proof. Do not add MCP or Agent tools.
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: litellm-gateway-smoke-agent
+  namespace: kagent
+  labels:
+    app.kubernetes.io/managed-by: kagent-lab
+    app.kubernetes.io/part-of: litellm-gateway-bridge
+spec:
+  description: |
+    PR2 smoke agent: chat-only through LiteLLM alias agent-coder (cloud/DeepSeek).
+    No MCP tools, no Agent tools, and no local-model fallback.
+  type: Declarative
+  declarative:
+    modelConfig: litellm-gateway-model-config
+    systemMessage: |-
+      You are a concise assistant. Answer the user's question clearly.
+      Do not invent tools. Do not call tools.
+    a2aConfig:
+      skills:
+        - id: explain-skill
+          name: Explain
+          description: Explain a concept or file briefly
+          inputModes:
+            - text
+          outputModes:
+            - text
+          tags:
+            - smoke
+            - litellm
+            - cloud
+          examples:
+            - Explain what this file does.

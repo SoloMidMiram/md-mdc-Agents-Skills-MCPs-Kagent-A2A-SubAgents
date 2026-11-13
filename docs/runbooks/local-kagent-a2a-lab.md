@@ -1,38 +1,53 @@
 # Local kagent + A2A Lab
 
+Current policy: [cloud-only LiteLLM](../LOCAL_MODELS_FROZEN.md) supersedes
+legacy Ollama/direct-provider setup below. Active E1/E2 procedures are in
+[A2A examples](kagent-a2a-examples.md); do not execute frozen examples.
+
 This runbook is the shortest path from a local Kubernetes cluster to a working
 kagent A2A lab: deploy, reconcile, verify, and inspect the sample A2A agent.
 
 For the phase-by-phase learning path and architecture guardrails, read
+[Project North Star](../north-star.md) and
 [kagent Educational Roadmap](../onboarding/KAGENT-EDUCATIONAL-ROADMAP.md)
-before using this runbook.
+before using this runbook. For E1–E5 A2A examples, see
+[kagent A2A examples](kagent-a2a-examples.md).
 
 ## Lab Status Summary
 
-As of July 17, 2026 the local kagent lab is in the following state:
+Do not use a runbook snapshot as current evidence. Read the
+[kagent evidence index](../../evidence/kagent/README.md) before beginning. The
+current capability decisions are L0-L5 and I0-I2 Proven; I3 Blocked; L6, L7,
+and I4 Not proven; and I5 Not attempted.
 
-- **Infrastructure:** 18/18 pods Running and Ready; 11/11 agents Accepted=True Ready=True.
-- **REST agent card:** Reachable and returns full agent metadata (works).
-- **A2A `message/stream`:** Proven for L4 via structured helper JSON (phase 5d).
-- **JSON-RPC `tasks/sendTask`:** Not exposed (`-32601`); empty-param probes may still error.
-- **RemoteMCPServer:** `kagent-tool-server` is `Accepted=True` (real MCP server deployed). `kagent-grafana-mcp` remains `Accepted=False` (no backing service).
-- **UI:** Reachable at `http://localhost:8080` (returns HTTP 200).
-- **Controller API:** Reachable at `http://localhost:8083`.
-- **L6:** Not proven ([phase 5e](../../evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md)).
+**Default lab priority (2026-08-07):** Lane A A2A education — execute E1–E2 per
+[north star](../north-star.md) and [kagent A2A examples](kagent-a2a-examples.md)
+after PR #3 foundation merges. I3 is Lane C interoperability proof, not the
+project spine.
+
+**Deferred Lane C — Cursor I3:** When pursuing Cursor interop, use the no-tool
+human I3 procedure below. Current blocker: the acceptance session's MCP catalog
+exposed neither the configured kagent server nor its tools (`tool_discovery` /
+`KAGENT_MCP_TOOLS_NOT_EXPOSED`). Do not re-apply Candidate B until the server
+and its `list_agents`/`invoke_agent` tools are visible. Classify failure at the
+earliest failed stage (taxonomy below), do not request a Kubernetes tool during
+that gate, and do not treat helper success as I3. This procedure does not block
+A2A education.
 
 ## Current Local State
 
-Observed on this machine through July 17, 2026:
+Discover local state each time instead of assuming retained counts. Before a
+lab action, confirm:
 
-- Docker Desktop cluster (context: `docker-desktop`).
-- All 18 kagent pods are `Running` with complete readiness ratios (17 original
-  pods + `kagent-tool-server` runtime).
-- All agents including `k8s-a2a-agent` show `Accepted=True` and `Ready=True`.
-- `kagent-tool-server` RemoteMCPServer is `Accepted=True` -- a real MCP server (official kagent tools image) is deployed behind the service URL.
-- `kagent-grafana-mcp` RemoteMCPServer shows `Accepted=False` because no MCP server is deployed at its URL.
-- UI is reachable on `http://localhost:8080` via port-forward.
-- Controller REST API is reachable on `http://localhost:8083`.
-- `kagent-openai` secret is required for agents and must be created separately.
+- Kubernetes context is exactly `docker-desktop`;
+- the target Agent is Accepted/Ready and its observed generation matches;
+- the target `RemoteMCPServer`, Service, and EndpointSlice are ready;
+- the provider profile expected by the current phase is reconciled; and
+- the intended local port has one owned `kubectl port-forward` listener.
+
+Provider secrets must be created separately and must never be written to
+evidence. Unrelated degraded demo agents or servers must not be added to an
+allowlist merely to make a strict gate pass.
 
 ## Prerequisites
 
@@ -254,6 +269,354 @@ The helper uses truthful exit codes:
 With a controller port-forward, the recorded Phase 5D `task` and `both` paths
 pass L4. A later terminal model failure does not revoke L4 after an accepted
 state was observed; it still does not prove L6.
+
+### IDE-safe profile (minimal agents + exact inventory)
+
+The controller’s `list_agents` returns every accepted, deployment-ready Agent
+**cluster-wide**. A separate namespace alone is not isolation. Do not scale down
+agent Deployments as durable isolation (the controller may reconcile them).
+
+**Pre-reset capture** (local recovery copies only; do not commit secrets):
+
+```powershell
+helm get values kagent -n kagent -a
+kubectl get agents -A -o yaml
+kubectl get modelconfigs -A -o yaml
+kubectl get remotemcpservers -A -o yaml
+```
+
+**Preferred install path for Cursor acceptance** uses the kagent **Minimal**
+profile (no predefined demo agents). CLI:
+
+```powershell
+kagent install --profile minimal
+```
+
+For Helm on pinned chart `0.9.11`, disable each default agent individually
+(there is no single chart-wide Minimal toggle). Example pattern from upstream
+docs: `--set agents.<name>.enabled=false` for each predefined agent
+(`observability-agent`, `helm-agent`, `k8s-agent`, and others listed in the
+chart). After a Minimal/core install, apply only reviewed lab resources:
+
+```powershell
+kubectl apply -f deploy/base/kagent/kagent-tool-server.yaml
+kubectl apply -f deploy/base/kagent/kagent-tool-server-runtime.yaml
+kubectl apply -f deploy/samples/kagent/k8s-a2a-agent.yaml
+kubectl get agents -A
+```
+
+Wait until `k8s-a2a-agent` reports current-generation `Accepted=True` and
+deployment-ready (`status.observedGeneration` equals `metadata.generation`).
+
+For an existing Demo install, deliberately uninstall/reinstall to Minimal or
+delete unreviewed Agent CRs cluster-wide; never hide deletion inside the Python
+helper.
+
+### Target-specific Ollama ModelConfig (IDE-safe)
+
+Do **not** mutate shared `default-model-config`. Use a target-only ModelConfig
+after Ollama is reachable from inside the cluster.
+
+1. On Windows, set `OLLAMA_HOST=0.0.0.0:11434`, restart the Ollama tray app, and
+   restrict the Windows Firewall so port `11434` is not broadly exposed to the
+   LAN/public internet (Docker Desktop / virtual-network path only).
+2. Pull pinned model `qwen2.5:7b-instruct` and record its local digest.
+3. Probe from a temporary cluster Pod:
+   `GET http://host.docker.internal:11434/api/version` and
+   `GET http://host.docker.internal:11434/api/tags`, then delete the probe.
+   Do not use `http://localhost:11434` inside a Kubernetes workload.
+4. Optional direct Ollama capability probes (bounded reply, contextual follow-up,
+   dummy tool schema) are provider qualification only — not I3 evidence.
+5. Capture the current agent ModelConfig, apply the IDE-safe config, merge-patch
+   only `k8s-a2a-agent`, wait for current-generation Accepted/Ready:
+
+```powershell
+kubectl get agent k8s-a2a-agent -n kagent `
+  -o jsonpath="{.spec.declarative.modelConfig}{'\n'}"
+kubectl apply -f deploy/samples/kagent/ide-safe-ollama-model-config.yaml
+kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+  --patch-file config/kagent/k8s-a2a-agent-ide-safe-modelconfig-patch.yaml
+```
+
+Never `kubectl apply` the merge-patch files; they are not complete Agent
+manifests. Rollback:
+
+```powershell
+kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+  --patch-file config/kagent/k8s-a2a-agent-default-modelconfig-patch.yaml
+kubectl get agent k8s-a2a-agent -n kagent `
+  -o jsonpath="{.spec.declarative.modelConfig}{'\n'}"
+```
+
+Expected rollback value: `default-model-config`.
+
+### Target-specific DeepSeek fallback (IDE-safe)
+
+Use this fallback only after the local `DEEPSEEK_API_KEY` is available to the
+acceptance operator. The key is passed through a local process into a
+namespace-local Secret; never print it, place it in a manifest, or commit it.
+The qualification helper tries `deepseek-v4-flash` first and tries
+`deepseek-v4-pro` only when Flash does not qualify.
+
+```powershell
+$env:DEEPSEEK_API_KEY = [Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'User')
+uv run python scripts/kagent/deepseek_provider_probe.py --output json
+Remove-Item Env:DEEPSEEK_API_KEY
+```
+
+Exit `0` selects a candidate only after a bounded no-tool response and a dummy
+function-schema response both pass. Its JSON contains only model names, HTTP
+statuses, latency, and pass/fail information—never the API key or response
+text. Exit `1` means no candidate qualified; keep I3 Blocked and do not apply a
+target profile.
+
+After exit `0`, create the local-only Secret, apply the selected profile, patch
+only `k8s-a2a-agent`, and wait for both the Agent and its Deployment rollout:
+
+```powershell
+$deepSeekKey = [Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'User')
+if ([string]::IsNullOrWhiteSpace($deepSeekKey)) { throw 'DEEPSEEK_API_KEY is unavailable.' }
+$deepSeekEnvFile = New-TemporaryFile
+try {
+  [IO.File]::WriteAllText(
+    $deepSeekEnvFile.FullName,
+    "DEEPSEEK_API_KEY=$deepSeekKey`n",
+    [Text.UTF8Encoding]::new($false)
+  )
+  kubectl create secret generic kagent-deepseek -n kagent `
+    --from-env-file=$deepSeekEnvFile.FullName --dry-run=client -o yaml |
+    kubectl apply -f -
+  if ($LASTEXITCODE -ne 0) { throw 'Secret creation failed.' }
+}
+finally {
+  Remove-Item -LiteralPath $deepSeekEnvFile.FullName -Force -ErrorAction SilentlyContinue
+  Remove-Variable deepSeekKey -ErrorAction SilentlyContinue
+}
+kubectl apply -f deploy/samples/kagent/ide-safe-deepseek-model-config.yaml
+kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+  --patch-file config/kagent/k8s-a2a-agent-ide-safe-deepseek-modelconfig-patch.yaml
+kubectl wait --for=condition=Accepted=true agent/k8s-a2a-agent -n kagent --timeout=180s
+kubectl wait --for=condition=Ready=true agent/k8s-a2a-agent -n kagent --timeout=180s
+kubectl rollout status deployment/k8s-a2a-agent -n kagent --timeout=180s
+```
+
+Before a strict retry, run observation mode so a live bounded reply can be
+captured without treating punctuation mismatch as a fake pass:
+
+```powershell
+uv run python scripts/kagent/controller_mcp_smoke.py --output json `
+  --observe-only `
+  --expected-inventory config/kagent/ide-safe-agent-inventory.txt
+```
+
+Observation mode still requires exact controller tools, singleton exact
+inventory (including the final same-session `list_agents` re-check), a
+non-empty bounded first reply (capped at 160 sanitized characters), and a
+non-empty `context_id`. It performs only the first `invoke_agent`, skips
+exact-text equality and context continuation, and always records
+`observationOnly: true` with `strictPreflightQualified: false`. Observation
+success is not I3 proof.
+
+Helper default tasks and `--expected-response` /
+`--continuation-expected-response` values are built from the same canonical
+tokens (`ACCEPTANCE_TOKEN` / `CONTINUATION_TOKEN`). Do not change those defaults
+from a single live observation, and do not paper over mismatches with
+punctuation-adjusted CLI overrides. Use a freshly observed reply only as an
+explicit CLI value for an immediate diagnostic retry; update the runbook or
+evidence afterward only through a dated addendum if warranted.
+
+```powershell
+uv run python scripts/kagent/controller_mcp_smoke.py --output json `
+  --expected-inventory config/kagent/ide-safe-agent-inventory.txt
+```
+
+If the first DeepSeek ModelConfig-only strict attempt fails continuation
+exactness (for example by prepending prior reply text), roll back, then try
+one Candidate B profile: DeepSeek ModelConfig plus the target-only
+`systemMessage` merge patch that forbids restating the task and forbids all
+tool calls (declared tools may remain on the Agent):
+
+```powershell
+kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+  --patch-file config/kagent/k8s-a2a-agent-ide-safe-deepseek-modelconfig-patch.yaml
+kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+  --patch-file config/kagent/k8s-a2a-agent-ide-safe-deepseek-i3-systemmessage-patch.yaml
+```
+
+Rollback after Candidate B must restore both `default-model-config` and the
+original sample `systemMessage`:
+
+```powershell
+kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+  --patch-file config/kagent/k8s-a2a-agent-default-profile-rollback-patch.yaml
+```
+
+A failed readiness or controller diagnostic must restore the default profile
+with the appropriate rollback patch. A successful provider probe or Python
+diagnostic is preparation only; I3 still requires the Cursor tool-call trace
+and it never proves I4 or L6.
+
+### Verify the native controller MCP surface
+
+The project-scoped Cursor and Codex configurations both target the discovered
+controller endpoint. This is the normal IDE-facing seam; the A2A commands above
+remain protocol and evidence diagnostics.
+
+```powershell
+kubectl port-forward -n kagent svc/kagent-controller 8083:8083
+# Educational / shared lab: target presence only
+python scripts/kagent/controller_mcp_smoke.py --output json
+# Educational allowlist (multi-agent labs that deliberately approve each ref)
+python scripts/kagent/controller_mcp_smoke.py --output json `
+  --strict-agent-inventory `
+  --approved-agent kagent/k8s-a2a-agent `
+  --approved-agent kagent/another-reviewed-agent
+# IDE-safe exact profile (authoritative; mutually exclusive with --approved-agent)
+python scripts/kagent/controller_mcp_smoke.py --output json `
+  --expected-inventory config/kagent/ide-safe-agent-inventory.txt
+# Observation-only (requires --expected-inventory; not a strict preflight)
+python scripts/kagent/controller_mcp_smoke.py --output json `
+  --observe-only `
+  --expected-inventory config/kagent/ide-safe-agent-inventory.txt
+```
+
+`--expected-inventory` implies exact-set equality against the committed file
+under `config/kagent/` (`discovered == expected`), records
+`expectedInventoryCanonicalSha256` from sorted refs (not raw checkout bytes),
+and fails on unexpected, missing, or duplicate discovered refs. Do not rubber-
+stamp unreviewed agents to make the inventory pass; isolate the lab to the
+singleton profile instead. Default (non-strict) mode only checks target presence
+for shared educational environments. The Python helper default HTTP timeout
+remains 30s; it is a prerequisite diagnostic, not an I3 proof.
+
+`--observe-only` keeps the same tool, inventory, non-empty bounded reply, and
+`context_id` gates for the first invoke, then skips exact-text equality and
+context continuation while still re-checking inventory on the same MCP session.
+It never sets `strictPreflightQualified`. Use a fresh observation only as an
+explicit `--expected-response` for an immediate strict retry; do not rewrite
+helper defaults from one model reply.
+
+Expected success behavior: the helper exits `0` after `initialize`,
+`tools/list`, `list_agents`, a bounded `invoke_agent` response, a second
+`invoke_agent` with the returned `context_id` (agent-context continuation), and
+MCP-session reuse via a later `list_agents` on the same session. It records
+session and context identifiers only as `present`/`missing`, never raw values.
+Strict success also sets `strictPreflightQualified: true`. That marker means
+controller preflight only; it is not I3 acceptance.
+`cleanup: method-not-allowed` means explicit client-triggered MCP session
+termination was attempted but is unsupported by the pinned controller; it does
+not prove the session was deleted. Phase 8 owns lab resource cleanup separately.
+Exit `1` means the controller contract or bounded agent result did not qualify;
+exit `3` means the endpoint was unavailable. Neither result proves I3 or L6.
+Canonical status: [evidence/kagent/README.md](../../evidence/kagent/README.md).
+
+### Cursor I3 acceptance gate (lead client)
+
+Genuine I3-Cursor requires a real Cursor client run. The Python helper above is
+necessary preparation, not sufficient evidence. Local inspection of Cursor 3.13
+CLI help on this host showed `cursor.exe` options including `--add-mcp` and an
+`agent` subcommand, but no dedicated `cursor-agent mcp` / `cursor mcp` tool-call
+surface with stable documented syntax for `list_agents` / `invoke_agent`. Do not
+invent CLI syntax. Use the Cursor UI path below unless a future dated inspection
+records a verified MCP invocation command.
+
+Cadence: exact preflight → Cursor work → exact postflight.
+
+1. Start the controller port-forward:
+   `kubectl port-forward -n kagent svc/kagent-controller 8083:8083`
+2. Exact preflight:
+   `python scripts/kagent/controller_mcp_smoke.py --output json --expected-inventory config/kagent/ide-safe-agent-inventory.txt`
+3. Open this repository in Cursor so project `.cursor/mcp.json` loads
+   `kagent-controller` at `http://127.0.0.1:8083/mcp`.
+4. Confirm the MCP server is visible in Cursor MCP settings/tools UI.
+5. Confirm exactly the tools `list_agents` and `invoke_agent` are exposed.
+6. From Cursor, call `list_agents`; require exact singleton
+   `kagent/k8s-a2a-agent`.
+7. Bounded first `invoke_agent` for `kagent/k8s-a2a-agent` with a no-tool task
+   whose exact reply is known. Do not request Kubernetes, MCP, shell, or other
+   tools during I3.
+8. From a Cursor MCP tool-call trace / tool details panel / developer log,
+   confirm first output `context_id` is present (do not retain the raw value).
+9. Second `invoke_agent` must include that same `context_id` in the **tool-call
+   input arguments**. A coherent second answer without argument evidence is not
+   enough. If Cursor cannot expose second-call arguments, record
+   `I3-Cursor: Blocked — second-call Cursor MCP tool-input arguments were not
+   observable in the acceptance environment`.
+10. Exact postflight with the same `--expected-inventory` command.
+11. Record dated evidence in
+    `evidence/kagent/educational-practice-phase-6b-6d-closure.md`.
+    Never store secrets, raw MCP session ids, or raw `context_id` values.
+
+I3-Cursor Blocked reasons are classified at the earliest failed stage:
+
+- `tool_discovery`:
+  `KAGENT_MCP_TOOLS_NOT_EXPOSED`
+- `first_invoke_result`:
+  `CURSOR_DID_NOT_EXPOSE_CONTEXT_ID`
+- `second_invoke_trace`:
+  `SECOND_CALL_ARGUMENTS_NOT_OBSERVABLE`
+
+Do not assign a later-stage reason when the acceptance sequence did not reach
+that stage.
+
+Evidence template fields (sanitized only):
+
+- date, timezone, environment, controller version
+- client: Cursor (version if shown)
+- port-forward command and local URL
+- MCP server name visible in Cursor
+- tools observed (`list_agents`, `invoke_agent` only)
+- discovered agent refs (names only)
+- expected inventory path + canonical SHA-256
+- preflight/postflight inventoryMatched
+- first invoke: exact expected response matched true/false
+- `firstInvokeContextId`: `present` or `missing`
+- `secondInvokeIncludedContextId`, `contextIdentityMatched`,
+  `rawContextIdRetained: false`
+- Cursor trace proves second invoke included first context: true/false
+- MCP session reuse observed true/false (separate from context continuation)
+- provider/agent error observed true/false
+- explicit non-claims: not L6; not I4; Python helper alone is not I3
+
+Codex may be recorded as I3-Codex after I3-Cursor. I5 requires both clients.
+I3 never implies L6.
+
+#### Close out the human Cursor session
+
+Do not roll back before the Cursor result is captured. After the interaction:
+
+1. run the exact postflight from step 10;
+2. restore the shared default ModelConfig and original sample `systemMessage`:
+
+   ```powershell
+   kubectl patch agent k8s-a2a-agent -n kagent --type merge `
+     --patch-file config/kagent/k8s-a2a-agent-default-profile-rollback-patch.yaml
+   ```
+
+3. verify the Agent is Accepted/Ready and observed generation matches;
+4. identify the actual listener before stopping the forward:
+
+   ```powershell
+   Get-NetTCPConnection -LocalPort 8083 -State Listen |
+     Select-Object LocalAddress, LocalPort, OwningProcess
+   Get-Process -Id <owning-process-id>
+   Stop-Process -Id <owning-process-id>
+   ```
+
+   A PowerShell wrapper may own a child `kubectl` process while only the child
+   owns port 8083. Stop the verified listener and then the exact wrapper if it
+   remains; never kill processes by a broad name match.
+5. append one dated, sanitized addendum to the Phase 6B-6D evidence record.
+
+The decision branch is:
+
+- qualifying trace: request an I3 promotion review, synchronize the canonical
+  status owners, and keep I4/L6/I5/L7 unchanged; or
+- missing input visibility: append the exact Blocked wording above and leave
+  PR #3 draft.
+
+Any evidence or documentation commit changes the final SHA. Push that final SHA
+and require the complete `quality.yml` workflow before undrafting or merging.
 
 ## How to Observe Failures
 

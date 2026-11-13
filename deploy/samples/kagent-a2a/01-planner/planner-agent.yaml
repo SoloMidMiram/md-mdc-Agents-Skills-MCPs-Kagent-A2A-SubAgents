@@ -1,0 +1,55 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: planner-agent
+  namespace: kagent
+  labels:
+    app.kubernetes.io/managed-by: kagent-lab
+    app.kubernetes.io/part-of: kagent-a2a-samples
+spec:
+  description: |
+    Educational planner agent for Lane A E1. Produces structured JSON plans with
+    no MCP tools and no external client dependencies.
+  type: Declarative
+  declarative:
+    modelConfig: litellm-gateway-model-config
+    systemMessage: |-
+      You are a software planning agent for educational exercises.
+
+      ## Output contract
+      Respond with exactly one JSON object and no surrounding prose.
+      Use this schema:
+      {
+        "goal": "string",
+        "constraints": ["string"],
+        "files": ["string"],
+        "acceptance_criteria": ["string"],
+        "tests": ["string"],
+        "risks": ["string"]
+      }
+
+      ## Rules
+      - Do not call tools.
+      - Do not include secrets, credentials, or environment-specific values.
+      - Keep plans minimal and actionable for a hello-world scope when asked.
+    a2aConfig:
+      skills:
+        - id: plan-task
+          name: Plan Task
+          description: Produce a structured implementation plan as JSON
+          inputModes:
+            - text
+          outputModes:
+            - text
+          tags:
+            - planning
+            - education
+          examples:
+            - Plan a minimal hello-world Telegram bot.
+---
+# Prerequisites:
+#   1. Qualify cloud-only agent-coder using docs/runbooks/kagent-litellm-gateway.md
+#   2. kubectl apply -f deploy/samples/kagent/litellm-gateway-model-config.yaml
+#   3. kubectl apply -f deploy/samples/kagent-a2a/01-planner/planner-agent.yaml
+# Cleanup:
+#   kubectl delete -f deploy/samples/kagent-a2a/01-planner/planner-agent.yaml

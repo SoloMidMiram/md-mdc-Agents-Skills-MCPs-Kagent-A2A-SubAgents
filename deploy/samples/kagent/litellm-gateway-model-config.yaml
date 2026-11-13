@@ -1,0 +1,25 @@
+# LiteLLM gateway ModelConfig for kagent (PR2).
+# kagent knows ONLY: LiteLLM URL + alias + LITELLM_MASTER_KEY secret.
+# Provider keys stay in LiteLLM User env — never in this Secret.
+#
+# CLOUD-ONLY (2026-08-20): do NOT point at agent-fast / agent-review / any
+# ollama/* or local-* alias until the user explicitly unfreezes local models.
+#
+# Apply after:
+#   1) LiteLLM listening with -BindHost 0.0.0.0 (Docker Desktop reachability)
+#   2) Secret kagent-litellm created (scripts/kagent/apply-litellm-modelconfig.ps1)
+apiVersion: kagent.dev/v1alpha2
+kind: ModelConfig
+metadata:
+  name: litellm-gateway-model-config
+  namespace: kagent
+  labels:
+    app.kubernetes.io/managed-by: kagent-lab
+    app.kubernetes.io/part-of: litellm-gateway-bridge
+spec:
+  provider: OpenAI
+  model: agent-coder
+  apiKeySecret: kagent-litellm
+  apiKeySecretKey: LITELLM_MASTER_KEY
+  openAI:
+    baseUrl: http://host.docker.internal:4000/v1
