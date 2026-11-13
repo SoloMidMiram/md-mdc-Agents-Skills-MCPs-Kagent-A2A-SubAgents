@@ -12,7 +12,7 @@
 ## Maintainer decision
 
 <!-- Owner records ACCEPT FOR SOURCE MERGE, REVISE, or BLOCKED and the rationale. -->
-See the [solo-maintainer review policy](../docs/MAINTAINER_REVIEW_POLICY.md).
+See the [solo-maintainer review policy](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/blob/main/docs/MAINTAINER_REVIEW_POLICY.md).
 
 ## Operational gates
 
