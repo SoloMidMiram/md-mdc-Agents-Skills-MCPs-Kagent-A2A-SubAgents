@@ -653,6 +653,9 @@ class ControllerMcpClient:
             {"agent": self.config.agent, "task": self.config.task}
         )
         self.result.invoke_http_status = response.status
+        context_id = extract_agent_context_id(structured)
+        self._agent_context_id = context_id
+        self.result.agent_context_id = "present"
         if self.config.observe_only:
             sanitized = _sanitize_text(text) if isinstance(text, str) else ""
             try:
@@ -670,9 +673,6 @@ class ControllerMcpClient:
                 raise ProtocolError(
                     "invoke_agent did not return the required bounded no-tool response"
                 )
-        context_id = extract_agent_context_id(structured)
-        self._agent_context_id = context_id
-        self.result.agent_context_id = "present"
         self.result.invoke_agent_succeeded = True
 
     def _continue_agent_context(self) -> None:
