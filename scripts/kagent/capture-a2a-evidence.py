@@ -29,7 +29,8 @@ def parse_sse(body: str) -> list[dict]:
 
 def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dict:
     """Build the fail-closed evidence summary from a stream of A2A events."""
-    texts: list[str] = []
+    answers: list[str | list[str]] = []
+    artifact_chunks: dict[str, list[str]] = {}
     tool_calls: list[dict] = []
     tool_results: list[dict] = []
     final_state = None
@@ -70,7 +71,7 @@ def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dic
                     and part.get("kind") == "text"
                     and isinstance(part.get("text"), str)
                 ):
-                    texts.append(part["text"])
+                    answers.append(part["text"])
                 # Tool call / result correlation by id.
                 # A call is a data part with name+id and no response; the matching
                 # result is a data part with the same id and a response payload.
@@ -82,14 +83,25 @@ def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dic
                         else:
                             tool_calls.append(data)
         elif kind == "artifact-update":
-            art = result.get("artifact") or {}
-            for part in art.get("parts") or []:
-                if (
-                    isinstance(part, dict)
-                    and part.get("kind") == "text"
-                    and isinstance(part.get("text"), str)
-                ):
-                    texts.append(part["text"])
+            artifact = result.get("artifact")
+            if not isinstance(artifact, dict) or not isinstance(artifact.get("parts"), list):
+                continue
+            pieces = [
+                part["text"]
+                for part in artifact["parts"]
+                if isinstance(part, dict)
+                and part.get("kind") == "text"
+                and isinstance(part.get("text"), str)
+            ]
+            artifact_id = artifact.get("artifactId")
+            if isinstance(artifact_id, str) and artifact_id:
+                chunks = artifact_chunks.setdefault(artifact_id, [])
+                if result.get("append") is not True:
+                    chunks.clear()
+                chunks.extend(pieces)
+                answers.append(chunks)
+            else:
+                answers.append(pieces)
 
     # Structured correlation (no heuristic string search). A qualifying pair is a
     # `k8s_get_resources` call bound to resource_type=pod / namespace=kagent whose
@@ -118,6 +130,7 @@ def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dic
 
     tool_mentioned = bool(tool_calls) or bool(tool_results)
 
+    texts = (answer if isinstance(answer, str) else "".join(answer) for answer in answers)
     agent_texts = [t for t in texts if t and t.strip() and t.strip() != prompt]
     final_answer = agent_texts[-1] if agent_texts else ""
 

@@ -240,3 +240,17 @@ def test_capture_writes_full_answer_and_keeps_bounded_preview(monkeypatch, tmp_p
     summary = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
     assert summary["final_answer_preview"] == answer[:500]
     assert answer not in json.dumps(summary)
+
+
+def test_capture_assembles_artifact_replacement_and_append():
+    events = _completed_with_pair("stale")
+    first, replacement, append = [
+        _artifact([text]) for text in ("stale", "Pods: ", "pod-1 is ready.")
+    ]
+    for event in (first, replacement, append):
+        event["result"]["artifact"]["artifactId"] = "answer"
+    append["result"]["append"] = True
+    events[-2:-1] = [first, replacement, append]
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
+    assert summary["passed"]
+    assert summary["final_answer"] == "Pods: pod-1 is ready."
