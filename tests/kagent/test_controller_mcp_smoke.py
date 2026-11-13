@@ -456,6 +456,18 @@ def test_changed_context_id_on_continuation_fails_closed() -> None:
     assert RAW_CONTEXT_ID not in json.dumps(result.to_sanitized_dict())
 
 
+def test_initial_response_cannot_emit_echoed_context_identifier() -> None:
+    for options in ({}, _observe_config()):
+        result = _run(
+            FakeTransport(_handler(agent_text=f"Context: {RAW_CONTEXT_ID}")),
+            **options,
+        )
+        assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
+        assert result.agent_response == ""
+        assert "sanitized output leaked agent context identifier" in (result.error or "")
+        assert RAW_CONTEXT_ID not in json.dumps(result.to_sanitized_dict(), sort_keys=True)
+
+
 def test_raw_context_id_not_in_serialized_output_or_error_text() -> None:
     result = _run(FakeTransport(_handler()))
     assert result.exit_code == mcp.ExitCode.SUCCESS
