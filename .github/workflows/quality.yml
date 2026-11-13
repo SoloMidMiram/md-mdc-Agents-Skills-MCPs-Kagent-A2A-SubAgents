@@ -37,6 +37,12 @@ jobs:
       - name: Lint kagent Python code
         run: uv run ruff check scripts/kagent tests/kagent scripts/security/audit_dependencies.py tests/security tests/reconciliation
 
+      - name: Fetch and verify pinned LAB-01 evidence
+        run: |
+          evidence=8ff91163f34659531bae5f9ee34fe4ef6d427eed
+          git fetch --no-tags origin "$evidence"
+          test "$(git rev-parse FETCH_HEAD)" = "$evidence"
+
       - name: Run deterministic Python tests
         # SDK tests run in their required isolated, exact-lock job below.
         run: >-
