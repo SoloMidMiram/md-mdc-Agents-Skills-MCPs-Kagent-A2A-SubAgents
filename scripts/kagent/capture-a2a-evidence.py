@@ -63,6 +63,7 @@ def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dic
             if state:
                 final_state = state
             msg = status.get("message") or {}
+            message_text: list[str] = []
             for part in msg.get("parts") or []:
                 if not isinstance(part, dict):
                     continue
@@ -71,7 +72,7 @@ def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dic
                     and part.get("kind") == "text"
                     and isinstance(part.get("text"), str)
                 ):
-                    answers.append(part["text"])
+                    message_text.append(part["text"])
                 # Tool call / result correlation by id.
                 # A call is a data part with name+id and no response; the matching
                 # result is a data part with the same id and a response payload.
@@ -82,6 +83,8 @@ def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dic
                             tool_results.append(data)
                         else:
                             tool_calls.append(data)
+            if message_text:
+                answers.append("".join(message_text))
         elif kind == "artifact-update":
             artifact = result.get("artifact")
             if not isinstance(artifact, dict) or not isinstance(artifact.get("parts"), list):

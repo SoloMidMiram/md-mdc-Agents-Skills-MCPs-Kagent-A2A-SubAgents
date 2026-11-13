@@ -254,3 +254,16 @@ def test_capture_assembles_artifact_replacement_and_append():
     summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
     assert summary["passed"]
     assert summary["final_answer"] == "Pods: pod-1 is ready."
+
+
+def test_capture_assembles_completed_status_text_parts():
+    events = _completed_with_pair("unused")
+    events[-2:] = [
+        _status(
+            [{"kind": "text", "text": text} for text in ("Pods: ", "pod-1 is ready.")],
+            state="completed",
+        )
+    ]
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
+    assert summary["passed"]
+    assert summary["final_answer"] == "Pods: pod-1 is ready."
