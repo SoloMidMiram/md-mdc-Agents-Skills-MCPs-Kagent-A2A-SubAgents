@@ -27,31 +27,52 @@ def parse_sse(body: str) -> list[dict]:
     return events
 
 
-def summarize_events(events: list[dict], prompt: str) -> dict:
+def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dict:
     """Build the fail-closed evidence summary from a stream of A2A events."""
-    texts: list[str] = []
+    answers: list[str | list[str]] = []
+    artifact_chunks: dict[str, list[str]] = {}
     tool_calls: list[dict] = []
     tool_results: list[dict] = []
     final_state = None
     task_id = None
+    correlated = bool(request_id)
 
     for ev in events:
         result = ev.get("result") if isinstance(ev, dict) else None
-        if not isinstance(result, dict):
+        if (
+            not isinstance(result, dict)
+            or ev.get("jsonrpc") != "2.0"
+            or ev.get("id") != request_id
+            or "error" in ev
+        ):
+            correlated = False
+            continue
+        event_task = result.get("id") if result.get("kind") == "task" else result.get("taskId")
+        if not isinstance(event_task, str) or not event_task.strip():
+            correlated = False
+            continue
+        if task_id is None:
+            task_id = event_task
+        elif task_id != event_task:
+            correlated = False
             continue
         kind = result.get("kind")
-        if kind == "status-update":
-            task_id = result.get("taskId") or task_id
+        if kind in {"status-update", "task"}:
             status = result.get("status") or {}
             state = status.get("state")
             if state:
                 final_state = state
             msg = status.get("message") or {}
+            message_text: list[str] = []
             for part in msg.get("parts") or []:
                 if not isinstance(part, dict):
                     continue
-                if part.get("kind") == "text" and isinstance(part.get("text"), str):
-                    texts.append(part["text"])
+                if (
+                    state == "completed"
+                    and part.get("kind") == "text"
+                    and isinstance(part.get("text"), str)
+                ):
+                    message_text.append(part["text"])
                 # Tool call / result correlation by id.
                 # A call is a data part with name+id and no response; the matching
                 # result is a data part with the same id and a response payload.
@@ -62,11 +83,35 @@ def summarize_events(events: list[dict], prompt: str) -> dict:
                             tool_results.append(data)
                         else:
                             tool_calls.append(data)
-        elif kind == "artifact-update":
-            art = result.get("artifact") or {}
-            for part in art.get("parts") or []:
-                if isinstance(part, dict) and part.get("kind") == "text":
-                    texts.append(str(part.get("text")))
+            if message_text:
+                answers.append("".join(message_text))
+        if kind == "artifact-update":
+            artifacts = [result.get("artifact")]
+        elif kind == "task" and state == "completed":
+            artifacts = result.get("artifacts")
+            if not isinstance(artifacts, list):
+                continue
+        else:
+            continue
+        for artifact in artifacts:
+            if not isinstance(artifact, dict) or not isinstance(artifact.get("parts"), list):
+                continue
+            pieces = [
+                part["text"]
+                for part in artifact["parts"]
+                if isinstance(part, dict)
+                and part.get("kind") == "text"
+                and isinstance(part.get("text"), str)
+            ]
+            artifact_id = artifact.get("artifactId")
+            if isinstance(artifact_id, str) and artifact_id:
+                chunks = artifact_chunks.setdefault(artifact_id, [])
+                if kind == "task" or result.get("append") is not True:
+                    chunks.clear()
+                chunks.extend(pieces)
+                answers.append(chunks)
+            else:
+                answers.append(pieces)
 
     # Structured correlation (no heuristic string search). A qualifying pair is a
     # `k8s_get_resources` call bound to resource_type=pod / namespace=kagent whose
@@ -95,6 +140,7 @@ def summarize_events(events: list[dict], prompt: str) -> dict:
 
     tool_mentioned = bool(tool_calls) or bool(tool_results)
 
+    texts = (answer if isinstance(answer, str) else "".join(answer) for answer in answers)
     agent_texts = [t for t in texts if t and t.strip() and t.strip() != prompt]
     final_answer = agent_texts[-1] if agent_texts else ""
 
@@ -105,12 +151,14 @@ def summarize_events(events: list[dict], prompt: str) -> dict:
         "matched_tool_pairs": matched_pairs,
         "tool_calls": tool_calls[:20],
         "tool_results": tool_results[:20],
+        "final_answer": final_answer,
         "final_answer_preview": final_answer[:500],
         # Fail closed: completion plus text alone is not enough. Require a
         # non-empty task id, terminal completion, at least one exact
         # name/args/result-correlated tool pair, and a non-empty final answer.
         "passed": (
-            bool(task_id)
+            correlated
+            and bool(task_id)
             and final_state == "completed"
             and matched_pairs >= 1
             and bool(final_answer)
@@ -169,12 +217,13 @@ def main() -> int:
     }
     (out / "task.json").write_text(json.dumps(task, indent=2), encoding="utf-8")
 
-    summary = summarize_events(events, args.prompt)
+    summary = summarize_events(events, args.prompt, request_id=req_id)
     task_id = summary["task_id"]
     final_state = summary["final_state"]
     tool_mentioned = summary["tool_mentioned_in_stream"]
     matched_pairs = summary["matched_tool_pairs"]
-    final_answer = summary["final_answer_preview"]
+    full_answer = summary.pop("final_answer")
+    final_answer = full_answer if summary["passed"] else ""
 
     (out / "tool-call.json").write_text(
         json.dumps(

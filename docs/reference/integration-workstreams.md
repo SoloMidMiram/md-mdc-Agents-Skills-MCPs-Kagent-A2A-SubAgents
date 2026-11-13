@@ -2,7 +2,9 @@
 
 This file owns the planning-ID crosswalk. North Star owns direction; the
 educational roadmap owns sequencing; the evidence index owns capability decisions.
-This is an offline local integration rehearsal, not hosted merge approval.
+The rehearsed source is published in draft PR #9. Its October 25 exact-head
+CI is recorded on GitHub; current security and maintainer approval remain
+separate gates. See the dependency-security runbook for remediation lanes.
 
 | Hosted PR | Head verified 2026-10-22 | Scope |
 |---|---|---|
@@ -48,3 +50,28 @@ active execution. Cloud failure is Blocked, never local fallback.
 The dirty SDK checkout stays isolated at `d086408`; its SDK files and ignored
 evidence are preserved outside this worktree. No SDK dependency enters the
 normal environment. Deterministic success cannot promote L6, I3, I4, or L7.
+
+## Security reconciliation (2026-11)
+
+Root security is corrected independently from main in
+`fix/main-dependency-security-202611`. The isolated SDK correction
+`fix/a2a-sdk-dependency-security-202611` targets #9's integration branch.
+SDK 0.3.26 is retained; only pyasn1 changes to 0.6.5 and the exact lock gains
+enforced artifact hashes. New security evidence does not replace the historical
+runtime evidence or promote L6, I3, I4, L7, or live SDK interoperability.
+
+The main-lane contradiction register owns traceable corrections. This branch
+adds no duplicate roadmap or register. #10's records remain unchanged; #13 must
+be replayed and still needs its separately tracked correctness fixes. Do not
+close or retarget #3–#8 or merge the containing history without a maintainer
+integration decision under #11. See [dependency security](../runbooks/dependency-security.md).
+
+The single [contradiction register](contradiction-register.md) is now included
+in RECON-02 through main's reviewed history. The separate original
+[SDK qualification record](../../reports/security/sdk-20261101.json) remains a
+dated SDK-only observation, including its inherited root blocker. The
+[combined qualification](../../reports/reconciliation/recon-02-20261103.json)
+records this candidate's checks. RECON-02 preserves #14/#15 as ancestors and
+leaves maintainer acceptance of their original targets to issue #11. #10 and
+#13 remain separate descendants requiring replay/requalification; no CTX code
+or retained LAB-01 answer is imported or rewritten.

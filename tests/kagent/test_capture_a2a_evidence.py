@@ -33,12 +33,13 @@ def _status(msg_parts: list[dict], state: str | None = None, task_id: str = "tas
     }
 
 
-def _artifact(texts: list[str]) -> dict:
+def _artifact(texts: list[str], task_id: str = "task1") -> dict:
     return {
         "jsonrpc": "2.0",
         "id": "req1",
         "result": {
             "kind": "artifact-update",
+            "taskId": task_id,
             "artifact": {"parts": [{"kind": "text", "text": t} for t in texts]},
         },
     }
@@ -79,7 +80,9 @@ def _completed_with_pair(final_text: str) -> list[dict]:
 
 
 def test_passes_when_completed_with_exact_call_result_pair() -> None:
-    summary = MODULE.summarize_events(_completed_with_pair("There are 1 pods."), PROMPT)
+    summary = MODULE.summarize_events(
+        _completed_with_pair("There are 1 pods."), PROMPT, request_id="req1"
+    )
     assert summary["matched_tool_pairs"] == 1
     assert summary["passed"] is True
 
@@ -92,7 +95,7 @@ def test_fails_closed_on_completion_without_tool_result() -> None:
         _artifact(["There are 1 pods."]),
         _status([], state="completed"),
     ]
-    summary = MODULE.summarize_events(events, PROMPT)
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
     assert summary["matched_tool_pairs"] == 0
     assert summary["passed"] is False
 
@@ -103,7 +106,7 @@ def test_fails_closed_when_no_tool_call_at_all() -> None:
         _artifact(["Done."]),
         _status([], state="completed"),
     ]
-    summary = MODULE.summarize_events(events, PROMPT)
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
     assert summary["tool_mentioned_in_stream"] is False
     assert summary["passed"] is False
 
@@ -117,7 +120,7 @@ def test_fails_closed_when_tool_name_only_in_text() -> None:
         _artifact(["Done."]),
         _status([], state="completed"),
     ]
-    summary = MODULE.summarize_events(events, PROMPT)
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
     assert summary["tool_mentioned_in_stream"] is False
     assert summary["matched_tool_pairs"] == 0
     assert summary["passed"] is False
@@ -130,7 +133,7 @@ def test_fails_closed_on_mismatched_call_result_ids() -> None:
         _artifact(["There are 1 pods."]),
         _status([], state="completed"),
     ]
-    summary = MODULE.summarize_events(events, PROMPT)
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
     assert summary["matched_tool_pairs"] == 0
     assert summary["passed"] is False
 
@@ -142,7 +145,7 @@ def test_fails_closed_when_tool_name_wrong() -> None:
         _artifact(["There are 1 pods."]),
         _status([], state="completed"),
     ]
-    summary = MODULE.summarize_events(events, PROMPT)
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
     assert summary["matched_tool_pairs"] == 0
     assert summary["passed"] is False
 
@@ -154,7 +157,7 @@ def test_fails_closed_when_arguments_wrong() -> None:
         _artifact(["There are 1 pods."]),
         _status([], state="completed"),
     ]
-    summary = MODULE.summarize_events(events, PROMPT)
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
     assert summary["matched_tool_pairs"] == 0
     assert summary["passed"] is False
 
@@ -166,7 +169,7 @@ def test_fails_closed_when_tool_result_empty() -> None:
         _artifact(["There are 1 pods."]),
         _status([], state="completed"),
     ]
-    summary = MODULE.summarize_events(events, PROMPT)
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
     assert summary["matched_tool_pairs"] == 0
     assert summary["passed"] is False
 
@@ -175,10 +178,10 @@ def test_fails_closed_when_task_id_missing() -> None:
     events = [
         _status([_tool_call()], state="working", task_id=""),
         _status([_tool_result()], state="working", task_id=""),
-        _artifact(["There are 1 pods."]),
+        _artifact(["There are 1 pods."], task_id=""),
         _status([], state="completed", task_id=""),
     ]
-    summary = MODULE.summarize_events(events, PROMPT)
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
     assert not summary["task_id"]
     assert summary["passed"] is False
 
@@ -189,6 +192,98 @@ def test_fails_closed_when_stream_not_completed() -> None:
         _status([_tool_result()], state="working"),
         _artifact(["partial result"]),
     ]
-    summary = MODULE.summarize_events(events, PROMPT)
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
     assert summary["final_state"] == "working"
     assert summary["passed"] is False
+
+
+def test_completion_cannot_borrow_tool_pair_from_another_task():
+    events = _completed_with_pair("There are 1 pods.")
+    events[-1]["result"]["taskId"] = "other-task"
+    assert MODULE.summarize_events(events, PROMPT, request_id="req1")["passed"] is False
+
+
+def test_working_commentary_cannot_substitute_for_final_answer():
+    events = _completed_with_pair("There are 1 pods.")
+    del events[-2]
+    assert MODULE.summarize_events(events, PROMPT, request_id="req1")["passed"] is False
+
+
+def test_foreign_request_id_fails_closed():
+    events = _completed_with_pair("There are 1 pods.")
+    events[-1]["id"] = "other-request"
+    assert MODULE.summarize_events(events, PROMPT, request_id="req1")["passed"] is False
+
+
+def test_capture_writes_full_answer_and_keeps_bounded_preview(monkeypatch, tmp_path):
+    import io
+    import json
+
+    answer = "x" * 600 + " end"
+
+    class Response(io.BytesIO):
+        status = 200
+
+    def urlopen(request, **kwargs):
+        request_id = json.loads(request.data)["id"]
+        events = _completed_with_pair(answer)
+        for event in events:
+            event["id"] = request_id
+        return Response("".join(f"data: {json.dumps(e)}\n\n" for e in events).encode())
+
+    monkeypatch.setattr(MODULE.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(
+        sys, "argv", ["capture", "--agent", "agent", "--prompt", PROMPT, "--out-dir", str(tmp_path)]
+    )
+    assert MODULE.main() == 0
+    assert answer in (tmp_path / "final-answer.md").read_text(encoding="utf-8")
+    summary = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
+    assert summary["final_answer_preview"] == answer[:500]
+    assert answer not in json.dumps(summary)
+
+
+def test_capture_assembles_artifact_replacement_and_append():
+    events = _completed_with_pair("stale")
+    first, replacement, append = [
+        _artifact([text]) for text in ("stale", "Pods: ", "pod-1 is ready.")
+    ]
+    for event in (first, replacement, append):
+        event["result"]["artifact"]["artifactId"] = "answer"
+    append["result"]["append"] = True
+    events[-2:-1] = [first, replacement, append]
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
+    assert summary["passed"]
+    assert summary["final_answer"] == "Pods: pod-1 is ready."
+
+
+def test_capture_assembles_completed_status_text_parts():
+    events = _completed_with_pair("unused")
+    events[-2:] = [
+        _status(
+            [{"kind": "text", "text": text} for text in ("Pods: ", "pod-1 is ready.")],
+            state="completed",
+        )
+    ]
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
+    assert summary["passed"]
+    assert summary["final_answer"] == "Pods: pod-1 is ready."
+
+
+def test_capture_accepts_completed_task_with_artifact():
+    events = _completed_with_pair("unused")
+    events[-2:] = [
+        {
+            "jsonrpc": "2.0",
+            "id": "req1",
+            "result": {
+                "kind": "task",
+                "id": "task1",
+                "status": {"state": "completed"},
+                "artifacts": [{"parts": [{"kind": "text", "text": "Pods ready."}]}],
+            },
+        }
+    ]
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
+    assert summary["final_state"] == "completed"
+    assert summary["passed"]
+    assert summary["final_answer"] == "Pods ready."
