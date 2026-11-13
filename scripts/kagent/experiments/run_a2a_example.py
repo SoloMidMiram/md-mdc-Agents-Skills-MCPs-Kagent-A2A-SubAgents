@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run a single Lane A kagent A2A educational example via the shared A2A helper.
 
-Wraps ``test-a2a-agent.py`` transport primitives — does not implement a second
+Wraps ``test-a2a-agent.py`` transport primitives â€” does not implement a second
 A2A client.
 
 Usage:
@@ -120,7 +120,6 @@ def _text_parts(container: Any) -> list[str]:
         if isinstance(part, dict)
         and part.get("kind", "text") == "text"
         and isinstance(part.get("text"), str)
-        and part["text"].strip()
     ]
 
 
@@ -130,10 +129,10 @@ def extract_text_from_task(task: dict[str, Any]) -> tuple[str, str]:
     state = str(status.get("state", "")).lower()
     artifacts = task.get("artifacts")
     if state == "completed" and isinstance(artifacts, list):
-        chunks = [text for artifact in artifacts for text in _text_parts(artifact)]
-        if chunks:
-            return state, "\n".join(chunks)
-    return state, "\n".join(_text_parts(status.get("message")))
+        chunks = ["".join(_text_parts(artifact)) for artifact in artifacts]
+        if texts := [text for text in chunks if text.strip()]:
+            return state, "\n".join(texts)
+    return state, "".join(_text_parts(status.get("message")))
 
 
 def poll_task_until_terminal(
@@ -213,7 +212,9 @@ def extract_response_text(events: list[dict[str, Any]], task_id: str | None) -> 
         state, response = extract_text_from_task(result)
         if state == "completed" and response:
             chunks.append(response)
-    artifact_text = "\n".join("".join(parts) for parts in artifacts.values() if parts)
+    artifact_text = "\n".join(
+        "".join(parts) for parts in artifacts.values() if "".join(parts).strip()
+    )
     return artifact_text or "\n".join(chunks)
 
 

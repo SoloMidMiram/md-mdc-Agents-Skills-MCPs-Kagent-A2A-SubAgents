@@ -452,3 +452,20 @@ def test_artifact_only_task_and_retained_stream():
     assert contracts.validate_artifact("supervisor-agent", text)
     task = {"status": {"state": "completed"}, "artifacts": [update["artifact"]]}
     assert run_example.extract_text_from_task(task) == ("completed", text)
+
+
+@pytest.mark.parametrize("source", ["artifact", "status"])
+def test_completed_task_preserves_split_json(source, evidence_payload):
+    artifact = dict(evidence_payload["artifact"], goal="hello world")
+    raw = json.dumps(artifact)
+    before, after = raw.split("hello world")
+    parts = [{"kind": "text", "text": text} for text in (before + "hello", " ", "world" + after)]
+    task = {"status": {"state": "completed"}}
+    if source == "artifact":
+        task["artifacts"] = [{"parts": parts}]
+    else:
+        task["status"]["message"] = {"parts": parts}
+    state, text = run_example.extract_text_from_task(task)
+    assert state == "completed"
+    assert contracts.validate_artifact("planner-agent", text) == artifact
+    assert text == raw
