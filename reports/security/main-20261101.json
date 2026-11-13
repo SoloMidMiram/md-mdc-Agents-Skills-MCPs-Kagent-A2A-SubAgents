@@ -1,0 +1,2112 @@
+{
+  "schema_version": "1.0",
+  "date_utc": "2026-11-01",
+  "scope": "main",
+  "starting_revision": "3c99181d187262d6464bfbcd257852485eb712f1",
+  "source_revision_note": "This record qualifies the lock hashes below. The draft PR records the final source SHA and exact-head CI; no circular self-revision assertion.",
+  "toolchain": {
+    "lock_generator": "uv 0.7.22",
+    "windows_root_python": "3.13.16",
+    "linux_python": "3.13.15",
+    "sdk_python": "not installed",
+    "trivy": "0.72.0",
+    "pip_audit": "2.10.1"
+  },
+  "before": {
+    "advisory_records": 46,
+    "distinct_package_advisory_ids": 37,
+    "findings": [
+      {
+        "package": "certifi",
+        "version": "2026.6.17",
+        "id": "PYSEC-2026-4320",
+        "aliases": [
+          "GHSA-6q48-6c7w-9gw2"
+        ],
+        "fix_versions": [
+          "2026.10.18"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112907",
+        "aliases": [
+          "GHSA-567q-5qvw-pf92"
+        ],
+        "fix_versions": [
+          "4.2.1"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112908",
+        "aliases": [
+          "GHSA-6627-m3xw-93mp"
+        ],
+        "fix_versions": [
+          "4.2.1"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112909",
+        "aliases": [
+          "GHSA-69hj-f68j-2879"
+        ],
+        "fix_versions": [
+          "4.2.1"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112910",
+        "aliases": [
+          "GHSA-8mx5-7m5m-r77g"
+        ],
+        "fix_versions": [
+          "4.2.1"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112911",
+        "aliases": [
+          "GHSA-9c4x-gm8v-wgc4"
+        ],
+        "fix_versions": [
+          "4.2.1"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112913",
+        "aliases": [
+          "GHSA-9vhv-jxww-xfm5"
+        ],
+        "fix_versions": [
+          "4.2.1"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112915",
+        "aliases": [
+          "GHSA-cwqr-hh33-gh44"
+        ],
+        "fix_versions": [
+          "4.2.1"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112935",
+        "aliases": [
+          "GHSA-fq56-3cx3-fjxp"
+        ],
+        "fix_versions": [
+          "4.2.1"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112936",
+        "aliases": [
+          "GHSA-j8f7-rjxc-mr56"
+        ],
+        "fix_versions": [
+          "4.0.9"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112938",
+        "aliases": [
+          "GHSA-m462-7rxw-wvpg"
+        ],
+        "fix_versions": [
+          "4.2.1"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112939",
+        "aliases": [
+          "GHSA-rfpc-qcw5-3pc4"
+        ],
+        "fix_versions": [
+          "4.2.1"
+        ]
+      },
+      {
+        "package": "filelock",
+        "version": "3.30.2",
+        "id": "CVE-2026-112940",
+        "aliases": [
+          "GHSA-v4x8-3wr5-3wq8"
+        ],
+        "fix_versions": [
+          "4.2.1"
+        ]
+      },
+      {
+        "package": "msgpack",
+        "version": "1.2.1",
+        "id": "CVE-2026-114613",
+        "aliases": [
+          "GHSA-j586-36cw-2gc2"
+        ],
+        "fix_versions": [
+          "1.2.3"
+        ]
+      },
+      {
+        "package": "pip",
+        "version": "26.1.2",
+        "id": "PYSEC-2026-3721",
+        "aliases": [
+          "CVE-2026-13346",
+          "GHSA-qwm4-qh6w-59xr"
+        ],
+        "fix_versions": [
+          "26.2"
+        ]
+      },
+      {
+        "package": "urllib3",
+        "version": "2.7.0",
+        "id": "PYSEC-2026-4175",
+        "aliases": [
+          "GHSA-8988-9cw3-xx77",
+          "CVE-2026-97687"
+        ],
+        "fix_versions": [
+          "2.8.0"
+        ]
+      },
+      {
+        "package": "urllib3",
+        "version": "2.7.0",
+        "id": "PYSEC-2026-4176",
+        "aliases": [
+          "GHSA-gh4c-6fx4-qh6g",
+          "CVE-2026-97688"
+        ],
+        "fix_versions": [
+          "2.8.0"
+        ]
+      },
+      {
+        "package": "urllib3",
+        "version": "2.7.0",
+        "id": "PYSEC-2026-4177",
+        "aliases": [
+          "CVE-2026-97689",
+          "GHSA-vxq7-64xx-v4gw"
+        ],
+        "fix_versions": [
+          "2.8.0"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "PYSEC-2026-4011",
+        "aliases": [
+          "BIT-virtualenv-2026-102930",
+          "CVE-2026-102930",
+          "GHSA-94p9-xgh2-xp45"
+        ],
+        "fix_versions": [
+          "21.7.12"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "PYSEC-2026-4012",
+        "aliases": [
+          "GHSA-9h9j-4vrj-gf7g",
+          "BIT-virtualenv-2026-102938",
+          "CVE-2026-102938"
+        ],
+        "fix_versions": [
+          "21.7.11"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "PYSEC-2026-4013",
+        "aliases": [
+          "GHSA-p58f-9548-mpm2",
+          "CVE-2026-102925",
+          "BIT-virtualenv-2026-102925"
+        ],
+        "fix_versions": [
+          "21.7.13"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "PYSEC-2026-4014",
+        "aliases": [
+          "BIT-virtualenv-2026-102937",
+          "CVE-2026-102937",
+          "GHSA-x78j-v8h9-3j2q"
+        ],
+        "fix_versions": [
+          "21.7.12"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113718",
+        "aliases": [
+          "BIT-virtualenv-2026-113718",
+          "GHSA-394h-qwmc-48pf"
+        ],
+        "fix_versions": [
+          "21.14.9"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113724",
+        "aliases": [
+          "BIT-virtualenv-2026-113724",
+          "GHSA-43mp-35q3-x3fq"
+        ],
+        "fix_versions": [
+          "21.14.9"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113714",
+        "aliases": [
+          "GHSA-494p-63j8-28p3",
+          "BIT-virtualenv-2026-113714"
+        ],
+        "fix_versions": [
+          "21.14.9"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113721",
+        "aliases": [
+          "BIT-virtualenv-2026-113721",
+          "GHSA-558c-9hv2-4prj"
+        ],
+        "fix_versions": [
+          "21.14.9"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113726",
+        "aliases": [
+          "BIT-virtualenv-2026-113726",
+          "GHSA-5vjq-rrrf-7h2q"
+        ],
+        "fix_versions": [
+          "21.14.4"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113723",
+        "aliases": [
+          "BIT-virtualenv-2026-113723",
+          "GHSA-6w3r-xr62-4xcp"
+        ],
+        "fix_versions": [
+          "21.14.9"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113776",
+        "aliases": [
+          "GHSA-8rjx-v5ww-45pp",
+          "BIT-virtualenv-2026-113776"
+        ],
+        "fix_versions": [
+          "21.14.2"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113732",
+        "aliases": [
+          "GHSA-c947-3pg5-gm8q",
+          "BIT-virtualenv-2026-113732"
+        ],
+        "fix_versions": [
+          "21.14.2"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113722",
+        "aliases": [
+          "BIT-virtualenv-2026-113722",
+          "GHSA-c978-59m8-c77v"
+        ],
+        "fix_versions": [
+          "21.14.9"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113716",
+        "aliases": [
+          "GHSA-cw65-gx24-rc82",
+          "BIT-virtualenv-2026-113716"
+        ],
+        "fix_versions": [
+          "21.14.9"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113717",
+        "aliases": [
+          "GHSA-cx28-75q4-x26q",
+          "BIT-virtualenv-2026-113717"
+        ],
+        "fix_versions": [
+          "21.14.9"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113720",
+        "aliases": [
+          "BIT-virtualenv-2026-113720",
+          "GHSA-fc2g-4w5p-6whm"
+        ],
+        "fix_versions": [
+          "21.14.9"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113719",
+        "aliases": [
+          "BIT-virtualenv-2026-113719",
+          "GHSA-hhxq-47xx-j5xx"
+        ],
+        "fix_versions": [
+          "21.14.9"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113715",
+        "aliases": [
+          "BIT-virtualenv-2026-113715",
+          "GHSA-qmx5-4p3x-wvqf"
+        ],
+        "fix_versions": [
+          "21.14.9"
+        ]
+      },
+      {
+        "package": "virtualenv",
+        "version": "21.6.1",
+        "id": "CVE-2026-113725",
+        "aliases": [
+          "GHSA-vxj4-q4g9-crj7",
+          "BIT-virtualenv-2026-113725"
+        ],
+        "fix_versions": [
+          "21.14.7"
+        ]
+      }
+    ],
+    "trivy": [
+      {
+        "target": "uv.lock",
+        "type": "uv",
+        "packages": [
+          {
+            "name": "mcptest",
+            "version": "0.1.0"
+          },
+          {
+            "name": "bandit",
+            "version": "1.9.4"
+          },
+          {
+            "name": "mypy",
+            "version": "2.3.0"
+          },
+          {
+            "name": "pip-audit",
+            "version": "2.10.1"
+          },
+          {
+            "name": "pre-commit",
+            "version": "4.6.0"
+          },
+          {
+            "name": "pytest",
+            "version": "9.1.1"
+          },
+          {
+            "name": "pytest-cov",
+            "version": "7.1.0"
+          },
+          {
+            "name": "ruff",
+            "version": "0.15.22"
+          },
+          {
+            "name": "ast-serialize",
+            "version": "0.6.0"
+          },
+          {
+            "name": "boolean-py",
+            "version": "5.0"
+          },
+          {
+            "name": "cachecontrol",
+            "version": "0.14.4"
+          },
+          {
+            "name": "certifi",
+            "version": "2026.6.17"
+          },
+          {
+            "name": "cfgv",
+            "version": "3.5.0"
+          },
+          {
+            "name": "charset-normalizer",
+            "version": "3.4.9"
+          },
+          {
+            "name": "colorama",
+            "version": "0.4.6"
+          },
+          {
+            "name": "coverage",
+            "version": "7.15.2"
+          },
+          {
+            "name": "cyclonedx-python-lib",
+            "version": "11.11.0"
+          },
+          {
+            "name": "defusedxml",
+            "version": "0.7.1"
+          },
+          {
+            "name": "distlib",
+            "version": "0.4.3"
+          },
+          {
+            "name": "filelock",
+            "version": "3.30.2"
+          },
+          {
+            "name": "identify",
+            "version": "2.6.19"
+          },
+          {
+            "name": "idna",
+            "version": "3.18"
+          },
+          {
+            "name": "iniconfig",
+            "version": "2.3.0"
+          },
+          {
+            "name": "librt",
+            "version": "0.13.0"
+          },
+          {
+            "name": "license-expression",
+            "version": "30.4.4"
+          },
+          {
+            "name": "markdown-it-py",
+            "version": "4.2.0"
+          },
+          {
+            "name": "mdurl",
+            "version": "0.1.2"
+          },
+          {
+            "name": "msgpack",
+            "version": "1.2.1"
+          },
+          {
+            "name": "mypy-extensions",
+            "version": "1.1.0"
+          },
+          {
+            "name": "nodeenv",
+            "version": "1.10.0"
+          },
+          {
+            "name": "packageurl-python",
+            "version": "0.17.6"
+          },
+          {
+            "name": "packaging",
+            "version": "26.2"
+          },
+          {
+            "name": "pathspec",
+            "version": "1.1.1"
+          },
+          {
+            "name": "pip",
+            "version": "26.1.2"
+          },
+          {
+            "name": "pip-api",
+            "version": "0.0.34"
+          },
+          {
+            "name": "pip-requirements-parser",
+            "version": "32.0.1"
+          },
+          {
+            "name": "platformdirs",
+            "version": "4.10.0"
+          },
+          {
+            "name": "pluggy",
+            "version": "1.6.0"
+          },
+          {
+            "name": "py-serializable",
+            "version": "2.1.0"
+          },
+          {
+            "name": "pygments",
+            "version": "2.20.0"
+          },
+          {
+            "name": "pyparsing",
+            "version": "3.3.2"
+          },
+          {
+            "name": "python-discovery",
+            "version": "1.4.4"
+          },
+          {
+            "name": "pyyaml",
+            "version": "6.0.3"
+          },
+          {
+            "name": "requests",
+            "version": "2.34.2"
+          },
+          {
+            "name": "rich",
+            "version": "15.0.0"
+          },
+          {
+            "name": "sortedcontainers",
+            "version": "2.4.0"
+          },
+          {
+            "name": "stevedore",
+            "version": "5.9.0"
+          },
+          {
+            "name": "tomli",
+            "version": "2.4.1"
+          },
+          {
+            "name": "tomli-w",
+            "version": "1.2.0"
+          },
+          {
+            "name": "typing-extensions",
+            "version": "4.16.0"
+          },
+          {
+            "name": "urllib3",
+            "version": "2.7.0"
+          },
+          {
+            "name": "virtualenv",
+            "version": "21.6.1"
+          }
+        ],
+        "findings": [
+          {
+            "id": "GHSA-6q48-6c7w-9gw2",
+            "package": "certifi",
+            "installed": "2026.6.17",
+            "fixed": "2026.10.18",
+            "severity": "CRITICAL"
+          },
+          {
+            "id": "CVE-2026-112940",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.2.1",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-112908",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.2.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-112909",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.2.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-112910",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.2.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-112911",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.2.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-112915",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.2.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-112935",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.2.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-112936",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.0.9",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-112938",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.2.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-112939",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.2.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-112907",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.2.1",
+            "severity": "LOW"
+          },
+          {
+            "id": "CVE-2026-112913",
+            "package": "filelock",
+            "installed": "3.30.2",
+            "fixed": "4.2.1",
+            "severity": "LOW"
+          },
+          {
+            "id": "CVE-2026-114613",
+            "package": "msgpack",
+            "installed": "1.2.1",
+            "fixed": "1.2.3",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-13346",
+            "package": "pip",
+            "installed": "26.1.2",
+            "fixed": "26.2.0",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-97687",
+            "package": "urllib3",
+            "installed": "2.7.0",
+            "fixed": "2.8.0",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-97689",
+            "package": "urllib3",
+            "installed": "2.7.0",
+            "fixed": "2.8.0",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-97688",
+            "package": "urllib3",
+            "installed": "2.7.0",
+            "fixed": "2.8.0",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-102925",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.7.13",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-102930",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.7.12",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-102937",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.7.12",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-113718",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.9",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-113722",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.9",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-113723",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.9",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-113725",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.7",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-113726",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.4",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-113732",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.2",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-113776",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.2",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-102938",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.7.11",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-113716",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.9",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-113719",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.9",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-113720",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.9",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-113721",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.9",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-113724",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.9",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-113714",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.9",
+            "severity": "LOW"
+          },
+          {
+            "id": "CVE-2026-113715",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.9",
+            "severity": "LOW"
+          },
+          {
+            "id": "CVE-2026-113717",
+            "package": "virtualenv",
+            "installed": "21.6.1",
+            "fixed": "21.14.9",
+            "severity": "LOW"
+          }
+        ],
+        "secrets": 0,
+        "failed_misconfigurations": 0
+      }
+    ]
+  },
+  "after": {
+    "audit": {
+      "schema_version": "1.0",
+      "observed_at": "2026-11-01T20:02:48.142438+00:00",
+      "input": "uv.lock",
+      "working_file_sha256": "1e10a85930d63ea2d052cc306f7db8cad6bd4c6fd6a90f7e9bf165d837cd28b6",
+      "scanner": {
+        "name": "pip-audit",
+        "version": "2.10.1",
+        "service": "osv",
+        "data": "live advisory-service query; not a Trivy DB snapshot"
+      },
+      "packages": [
+        {
+          "name": "ast-serialize",
+          "version": "0.6.0"
+        },
+        {
+          "name": "bandit",
+          "version": "1.9.4"
+        },
+        {
+          "name": "boolean-py",
+          "version": "5.0"
+        },
+        {
+          "name": "cachecontrol",
+          "version": "0.14.4"
+        },
+        {
+          "name": "certifi",
+          "version": "2026.10.19"
+        },
+        {
+          "name": "cfgv",
+          "version": "3.5.0"
+        },
+        {
+          "name": "charset-normalizer",
+          "version": "3.4.9"
+        },
+        {
+          "name": "colorama",
+          "version": "0.4.6"
+        },
+        {
+          "name": "coverage",
+          "version": "7.15.2"
+        },
+        {
+          "name": "cyclonedx-python-lib",
+          "version": "11.11.0"
+        },
+        {
+          "name": "defusedxml",
+          "version": "0.7.1"
+        },
+        {
+          "name": "distlib",
+          "version": "0.4.3"
+        },
+        {
+          "name": "filelock",
+          "version": "4.2.1"
+        },
+        {
+          "name": "identify",
+          "version": "2.6.19"
+        },
+        {
+          "name": "idna",
+          "version": "3.18"
+        },
+        {
+          "name": "iniconfig",
+          "version": "2.3.0"
+        },
+        {
+          "name": "librt",
+          "version": "0.13.0"
+        },
+        {
+          "name": "license-expression",
+          "version": "30.4.4"
+        },
+        {
+          "name": "markdown-it-py",
+          "version": "4.2.0"
+        },
+        {
+          "name": "mdurl",
+          "version": "0.1.2"
+        },
+        {
+          "name": "msgpack",
+          "version": "1.2.3"
+        },
+        {
+          "name": "mypy",
+          "version": "2.3.0"
+        },
+        {
+          "name": "mypy-extensions",
+          "version": "1.1.0"
+        },
+        {
+          "name": "nodeenv",
+          "version": "1.10.0"
+        },
+        {
+          "name": "packageurl-python",
+          "version": "0.17.6"
+        },
+        {
+          "name": "packaging",
+          "version": "26.3"
+        },
+        {
+          "name": "pathspec",
+          "version": "1.1.1"
+        },
+        {
+          "name": "pip",
+          "version": "26.2.2"
+        },
+        {
+          "name": "pip-api",
+          "version": "0.0.34"
+        },
+        {
+          "name": "pip-audit",
+          "version": "2.10.1"
+        },
+        {
+          "name": "pip-requirements-parser",
+          "version": "32.0.1"
+        },
+        {
+          "name": "platformdirs",
+          "version": "4.10.0"
+        },
+        {
+          "name": "pluggy",
+          "version": "1.6.0"
+        },
+        {
+          "name": "pre-commit",
+          "version": "4.6.0"
+        },
+        {
+          "name": "py-serializable",
+          "version": "2.1.0"
+        },
+        {
+          "name": "pygments",
+          "version": "2.20.0"
+        },
+        {
+          "name": "pyparsing",
+          "version": "3.3.2"
+        },
+        {
+          "name": "pytest",
+          "version": "9.1.1"
+        },
+        {
+          "name": "pytest-cov",
+          "version": "7.1.0"
+        },
+        {
+          "name": "python-discovery",
+          "version": "1.6.1"
+        },
+        {
+          "name": "pyyaml",
+          "version": "6.0.3"
+        },
+        {
+          "name": "requests",
+          "version": "2.34.2"
+        },
+        {
+          "name": "rich",
+          "version": "15.0.0"
+        },
+        {
+          "name": "ruff",
+          "version": "0.15.22"
+        },
+        {
+          "name": "sortedcontainers",
+          "version": "2.4.0"
+        },
+        {
+          "name": "stevedore",
+          "version": "5.9.0"
+        },
+        {
+          "name": "tomli",
+          "version": "2.4.1"
+        },
+        {
+          "name": "tomli-w",
+          "version": "1.2.0"
+        },
+        {
+          "name": "typing-extensions",
+          "version": "4.16.0"
+        },
+        {
+          "name": "urllib3",
+          "version": "2.8.0"
+        },
+        {
+          "name": "virtualenv",
+          "version": "21.14.13"
+        }
+      ],
+      "local_projects": [
+        "mcptest"
+      ],
+      "expected_count": 51,
+      "observed_count": 51,
+      "findings": 0,
+      "result": {
+        "dependencies": [
+          {
+            "name": "ast-serialize",
+            "version": "0.6.0",
+            "vulns": []
+          },
+          {
+            "name": "bandit",
+            "version": "1.9.4",
+            "vulns": []
+          },
+          {
+            "name": "boolean-py",
+            "version": "5.0",
+            "vulns": []
+          },
+          {
+            "name": "cachecontrol",
+            "version": "0.14.4",
+            "vulns": []
+          },
+          {
+            "name": "certifi",
+            "version": "2026.10.19",
+            "vulns": []
+          },
+          {
+            "name": "cfgv",
+            "version": "3.5.0",
+            "vulns": []
+          },
+          {
+            "name": "charset-normalizer",
+            "version": "3.4.9",
+            "vulns": []
+          },
+          {
+            "name": "colorama",
+            "version": "0.4.6",
+            "vulns": []
+          },
+          {
+            "name": "coverage",
+            "version": "7.15.2",
+            "vulns": []
+          },
+          {
+            "name": "cyclonedx-python-lib",
+            "version": "11.11.0",
+            "vulns": []
+          },
+          {
+            "name": "defusedxml",
+            "version": "0.7.1",
+            "vulns": []
+          },
+          {
+            "name": "distlib",
+            "version": "0.4.3",
+            "vulns": []
+          },
+          {
+            "name": "filelock",
+            "version": "4.2.1",
+            "vulns": []
+          },
+          {
+            "name": "identify",
+            "version": "2.6.19",
+            "vulns": []
+          },
+          {
+            "name": "idna",
+            "version": "3.18",
+            "vulns": []
+          },
+          {
+            "name": "iniconfig",
+            "version": "2.3.0",
+            "vulns": []
+          },
+          {
+            "name": "librt",
+            "version": "0.13.0",
+            "vulns": []
+          },
+          {
+            "name": "license-expression",
+            "version": "30.4.4",
+            "vulns": []
+          },
+          {
+            "name": "markdown-it-py",
+            "version": "4.2.0",
+            "vulns": []
+          },
+          {
+            "name": "mdurl",
+            "version": "0.1.2",
+            "vulns": []
+          },
+          {
+            "name": "msgpack",
+            "version": "1.2.3",
+            "vulns": []
+          },
+          {
+            "name": "mypy",
+            "version": "2.3.0",
+            "vulns": []
+          },
+          {
+            "name": "mypy-extensions",
+            "version": "1.1.0",
+            "vulns": []
+          },
+          {
+            "name": "nodeenv",
+            "version": "1.10.0",
+            "vulns": []
+          },
+          {
+            "name": "packageurl-python",
+            "version": "0.17.6",
+            "vulns": []
+          },
+          {
+            "name": "packaging",
+            "version": "26.3",
+            "vulns": []
+          },
+          {
+            "name": "pathspec",
+            "version": "1.1.1",
+            "vulns": []
+          },
+          {
+            "name": "pip",
+            "version": "26.2.2",
+            "vulns": []
+          },
+          {
+            "name": "pip-api",
+            "version": "0.0.34",
+            "vulns": []
+          },
+          {
+            "name": "pip-audit",
+            "version": "2.10.1",
+            "vulns": []
+          },
+          {
+            "name": "pip-requirements-parser",
+            "version": "32.0.1",
+            "vulns": []
+          },
+          {
+            "name": "platformdirs",
+            "version": "4.10.0",
+            "vulns": []
+          },
+          {
+            "name": "pluggy",
+            "version": "1.6.0",
+            "vulns": []
+          },
+          {
+            "name": "pre-commit",
+            "version": "4.6.0",
+            "vulns": []
+          },
+          {
+            "name": "py-serializable",
+            "version": "2.1.0",
+            "vulns": []
+          },
+          {
+            "name": "pygments",
+            "version": "2.20.0",
+            "vulns": []
+          },
+          {
+            "name": "pyparsing",
+            "version": "3.3.2",
+            "vulns": []
+          },
+          {
+            "name": "pytest",
+            "version": "9.1.1",
+            "vulns": []
+          },
+          {
+            "name": "pytest-cov",
+            "version": "7.1.0",
+            "vulns": []
+          },
+          {
+            "name": "python-discovery",
+            "version": "1.6.1",
+            "vulns": []
+          },
+          {
+            "name": "pyyaml",
+            "version": "6.0.3",
+            "vulns": []
+          },
+          {
+            "name": "requests",
+            "version": "2.34.2",
+            "vulns": []
+          },
+          {
+            "name": "rich",
+            "version": "15.0.0",
+            "vulns": []
+          },
+          {
+            "name": "ruff",
+            "version": "0.15.22",
+            "vulns": []
+          },
+          {
+            "name": "sortedcontainers",
+            "version": "2.4.0",
+            "vulns": []
+          },
+          {
+            "name": "stevedore",
+            "version": "5.9.0",
+            "vulns": []
+          },
+          {
+            "name": "tomli",
+            "version": "2.4.1",
+            "vulns": []
+          },
+          {
+            "name": "tomli-w",
+            "version": "1.2.0",
+            "vulns": []
+          },
+          {
+            "name": "typing-extensions",
+            "version": "4.16.0",
+            "vulns": []
+          },
+          {
+            "name": "urllib3",
+            "version": "2.8.0",
+            "vulns": []
+          },
+          {
+            "name": "virtualenv",
+            "version": "21.14.13",
+            "vulns": []
+          }
+        ],
+        "fixes": []
+      }
+    },
+    "trivy": [
+      {
+        "target": "uv.lock",
+        "type": "uv",
+        "packages": [
+          {
+            "name": "mcptest",
+            "version": "0.1.0"
+          },
+          {
+            "name": "bandit",
+            "version": "1.9.4"
+          },
+          {
+            "name": "mypy",
+            "version": "2.3.0"
+          },
+          {
+            "name": "pip-audit",
+            "version": "2.10.1"
+          },
+          {
+            "name": "pre-commit",
+            "version": "4.6.0"
+          },
+          {
+            "name": "pytest",
+            "version": "9.1.1"
+          },
+          {
+            "name": "pytest-cov",
+            "version": "7.1.0"
+          },
+          {
+            "name": "pyyaml",
+            "version": "6.0.3"
+          },
+          {
+            "name": "ruff",
+            "version": "0.15.22"
+          },
+          {
+            "name": "ast-serialize",
+            "version": "0.6.0"
+          },
+          {
+            "name": "boolean-py",
+            "version": "5.0"
+          },
+          {
+            "name": "cachecontrol",
+            "version": "0.14.4"
+          },
+          {
+            "name": "certifi",
+            "version": "2026.10.19"
+          },
+          {
+            "name": "cfgv",
+            "version": "3.5.0"
+          },
+          {
+            "name": "charset-normalizer",
+            "version": "3.4.9"
+          },
+          {
+            "name": "colorama",
+            "version": "0.4.6"
+          },
+          {
+            "name": "coverage",
+            "version": "7.15.2"
+          },
+          {
+            "name": "cyclonedx-python-lib",
+            "version": "11.11.0"
+          },
+          {
+            "name": "defusedxml",
+            "version": "0.7.1"
+          },
+          {
+            "name": "distlib",
+            "version": "0.4.3"
+          },
+          {
+            "name": "filelock",
+            "version": "4.2.1"
+          },
+          {
+            "name": "identify",
+            "version": "2.6.19"
+          },
+          {
+            "name": "idna",
+            "version": "3.18"
+          },
+          {
+            "name": "iniconfig",
+            "version": "2.3.0"
+          },
+          {
+            "name": "librt",
+            "version": "0.13.0"
+          },
+          {
+            "name": "license-expression",
+            "version": "30.4.4"
+          },
+          {
+            "name": "markdown-it-py",
+            "version": "4.2.0"
+          },
+          {
+            "name": "mdurl",
+            "version": "0.1.2"
+          },
+          {
+            "name": "msgpack",
+            "version": "1.2.3"
+          },
+          {
+            "name": "mypy-extensions",
+            "version": "1.1.0"
+          },
+          {
+            "name": "nodeenv",
+            "version": "1.10.0"
+          },
+          {
+            "name": "packageurl-python",
+            "version": "0.17.6"
+          },
+          {
+            "name": "packaging",
+            "version": "26.3"
+          },
+          {
+            "name": "pathspec",
+            "version": "1.1.1"
+          },
+          {
+            "name": "pip",
+            "version": "26.2.2"
+          },
+          {
+            "name": "pip-api",
+            "version": "0.0.34"
+          },
+          {
+            "name": "pip-requirements-parser",
+            "version": "32.0.1"
+          },
+          {
+            "name": "platformdirs",
+            "version": "4.10.0"
+          },
+          {
+            "name": "pluggy",
+            "version": "1.6.0"
+          },
+          {
+            "name": "py-serializable",
+            "version": "2.1.0"
+          },
+          {
+            "name": "pygments",
+            "version": "2.20.0"
+          },
+          {
+            "name": "pyparsing",
+            "version": "3.3.2"
+          },
+          {
+            "name": "python-discovery",
+            "version": "1.6.1"
+          },
+          {
+            "name": "requests",
+            "version": "2.34.2"
+          },
+          {
+            "name": "rich",
+            "version": "15.0.0"
+          },
+          {
+            "name": "sortedcontainers",
+            "version": "2.4.0"
+          },
+          {
+            "name": "stevedore",
+            "version": "5.9.0"
+          },
+          {
+            "name": "tomli",
+            "version": "2.4.1"
+          },
+          {
+            "name": "tomli-w",
+            "version": "1.2.0"
+          },
+          {
+            "name": "typing-extensions",
+            "version": "4.16.0"
+          },
+          {
+            "name": "urllib3",
+            "version": "2.8.0"
+          },
+          {
+            "name": "virtualenv",
+            "version": "21.14.13"
+          }
+        ],
+        "findings": [],
+        "secrets": 0,
+        "failed_misconfigurations": 0
+      },
+      {
+        "target": "deploy/base/kagent/kagent-tool-server-runtime.yaml",
+        "type": "kubernetes",
+        "packages": [],
+        "findings": [],
+        "secrets": 0,
+        "failed_misconfigurations": 0
+      },
+      {
+        "target": "deploy/base/kagent/kagent-tool-server.yaml",
+        "type": "kubernetes",
+        "packages": [],
+        "findings": [],
+        "secrets": 0,
+        "failed_misconfigurations": 0
+      },
+      {
+        "target": "deploy/samples/kagent/k8s-a2a-agent.yaml",
+        "type": "kubernetes",
+        "packages": [],
+        "findings": [],
+        "secrets": 0,
+        "failed_misconfigurations": 0
+      }
+    ]
+  },
+  "trivy_database": {
+    "Version": 2,
+    "NextUpdate": "2026-11-02T19:08:08.720434111Z",
+    "UpdatedAt": "2026-11-01T19:08:08.720434681Z",
+    "DownloadedAt": "2026-11-01T19:48:34.3469047Z",
+    "database_sha256": "12798a459e864bddb1fe4a7dc7fdb311ebaa50cc4095f6a5b534171edb926c21"
+  },
+  "commands": [
+    {
+      "artifact": "main-frozen-install.json",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\sec-remediate-01\\uv-tool-windows\\Scripts\\uv.exe",
+        "sync",
+        "--frozen",
+        "--group",
+        "dev",
+        "--python",
+        "3.13.16"
+      ],
+      "started_at": "2026-11-01T19:56:29.124229+00:00",
+      "finished_at": "2026-11-01T19:57:55.872881+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "",
+      "stderr_excerpt": "p==26.2.2\n + pip-api==0.0.34\n + pip-audit==2.10.1\n + pip-requirements-parser==32.0.1\n + platformdirs==4.10.0\n + pluggy==1.6.0\n + pre-commit==4.6.0\n + py-serializable==2.1.0\n + pygments==2.20.0\n + pyparsing==3.3.2\n + pytest==9.1.1\n + pytest-cov==7.1.0\n + python-discovery==1.6.1\n + pyyaml==6.0.3\n + requests==2.34.2\n + rich==15.0.0\n + ruff==0.15.22\n + sortedcontainers==2.4.0\n + stevedore==5.9.0\n + tomli==2.4.1\n + tomli-w==1.2.0\n + typing-extensions==4.16.0\n + urllib3==2.8.0\n + virtualenv==21.14.13\n",
+      "record_sha256": "a0127c7e80fc4531bd1173201b8e6c073c4449a9ba86cef097ec0106926cee43"
+    },
+    {
+      "artifact": "main-after-audit-helper.json",
+      "argv": [
+        "F:/Git/security-main-202611/.venv/Scripts/python.exe",
+        "scripts/security/audit_dependencies.py",
+        "--uv-lock",
+        "uv.lock",
+        "--service",
+        "osv",
+        "--output",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\main-after-osv.json"
+      ],
+      "started_at": "2026-11-01T20:02:03.272179+00:00",
+      "finished_at": "2026-11-01T20:02:48.225933+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "Audited 51/51 third-party pins; 0 findings\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "610c81003149d792c26ef76fd5a435bd84736bc95b46fdcd12a91789698e6d63"
+    },
+    {
+      "artifact": "main-integrity.json",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\sec-remediate-01\\uv-tool-windows\\Scripts\\uv.exe",
+        "pip",
+        "check",
+        "--python",
+        "F:\\Git\\security-main-202611\\.venv\\Scripts\\python.exe"
+      ],
+      "started_at": "2026-11-01T20:18:57.981378+00:00",
+      "finished_at": "2026-11-01T20:18:58.035440+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "",
+      "stderr_excerpt": "Checked 51 packages in 3ms\nAll installed packages are compatible\n",
+      "record_sha256": "03cce07f3d257be78db93bae4c12623405ed36ae72f84989c85cbd32271dc24f"
+    },
+    {
+      "artifact": "main-pytest.json",
+      "argv": [
+        "F:\\Git\\security-main-202611\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "--junitxml=C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\main-results.xml"
+      ],
+      "started_at": "2026-11-01T20:18:58.036462+00:00",
+      "finished_at": "2026-11-01T20:19:09.562847+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "........................................................................ [ 42%]\r\n........................................................................ [ 85%]\r\n........................                                                 [100%]\r\n168 passed in 10.85s\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "93f79e96904d7cd7761177edb10c9bffe2c658ee2d40fa5f63fcf4c30756bdda"
+    },
+    {
+      "artifact": "main-ruff.json",
+      "argv": [
+        "F:\\Git\\security-main-202611\\.venv\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "scripts/kagent",
+        "tests/kagent",
+        "scripts/security/audit_dependencies.py",
+        "tests/security"
+      ],
+      "started_at": "2026-11-01T20:19:09.563557+00:00",
+      "finished_at": "2026-11-01T20:19:09.709621+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "All checks passed!\n",
+      "stderr_excerpt": "",
+      "record_sha256": "a0247e4306157e147bfc1e721bef79911e6723f840e86627ab852433aa2c35d3"
+    },
+    {
+      "artifact": "main-format.json",
+      "argv": [
+        "F:\\Git\\security-main-202611\\.venv\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "scripts/security/audit_dependencies.py",
+        "tests/security"
+      ],
+      "started_at": "2026-11-01T20:19:09.710409+00:00",
+      "finished_at": "2026-11-01T20:19:09.849889+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "2 files already formatted\n",
+      "stderr_excerpt": "",
+      "record_sha256": "f92e48d2a68129b90717fed295b44d99145a04b482325df708676a703597fa38"
+    },
+    {
+      "artifact": "main-auditor-typing.json",
+      "argv": [
+        "F:\\Git\\security-main-202611\\.venv\\Scripts\\python.exe",
+        "-m",
+        "mypy",
+        "scripts/security/audit_dependencies.py"
+      ],
+      "started_at": "2026-11-01T20:19:09.850416+00:00",
+      "finished_at": "2026-11-01T20:19:10.231314+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "Success: no issues found in 1 source file\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "ca9b12abce920f14a1550147ae30fd92c4424c23414f99c59b56df5320c21e2c"
+    },
+    {
+      "artifact": "main-coverage-observation.json",
+      "argv": [
+        "F:\\Git\\security-main-202611\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "--cov",
+        "--cov-report=term-missing",
+        "--cov-report=json:C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\main-coverage.json"
+      ],
+      "started_at": "2026-11-01T20:21:26.003906+00:00",
+      "finished_at": "2026-11-01T20:21:35.576191+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": ", 571, 574, 576->575, 582, 604, 606, 689, 695, 717-735, 753\r\nscripts\\kagent\\test-a2a-agent.py        668    121    216     45  79.19%   197, 210-238, 254, 264, 291, 301, 304-305, 311, 403, 423, 425, 429, 433, 439, 452, 459, 461, 464, 467, 477, 480, 518, 534->524, 549, 554-566, 616, 620, 627, 641, 644-645, 647, 654, 656, 659, 669, 686, 688, 702-703, 735-741, 743-747, 750-752, 755-758, 760-761, 771-774, 812-815, 838-843, 856-859, 913-914, 932-934, 957, 959, 1000, 1027-1028, 1055-1058, 1086\r\n----------------------------------------------------------------------------------\r\nTOTAL                                  1622    266    546    115  80.40%\r\nCoverage JSON written to file C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\main-coverage.json\r\nRequired test coverage of 80.0% reached. Total coverage: 80.40%\r\n168 passed in 5.65s\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "2440dc371579a5ccb5c2670636985a38570dc67b095463201ee123f2e60a9229"
+    },
+    {
+      "artifact": "main-existing-mypy-observation.json",
+      "argv": [
+        "F:\\Git\\security-main-202611\\.venv\\Scripts\\python.exe",
+        "-m",
+        "mypy",
+        "scripts/kagent",
+        "tests/kagent"
+      ],
+      "started_at": "2026-11-01T20:21:17.324709+00:00",
+      "finished_at": "2026-11-01T20:21:26.000995+00:00",
+      "exit_code": 1,
+      "stdout_excerpt": "ef]\r\ntests\\kagent\\test_a2a_helper.py:968: error: Call to untyped function \"_ns\" in typed context  [no-untyped-call]\r\ntests\\kagent\\test_a2a_helper.py:979: error: Function is missing a return type annotation  [no-untyped-def]\r\ntests\\kagent\\test_a2a_helper.py:979: note: Use \"-> None\" if function does not return a value\r\ntests\\kagent\\test_a2a_helper.py:982: error: Call to untyped function \"_ns\" in typed context  [no-untyped-call]\r\ntests\\kagent\\test_a2a_helper.py:985: error: Function is missing a return type annotation  [no-untyped-def]\r\ntests\\kagent\\test_a2a_helper.py:985: note: Use \"-> None\" if function does not return a value\r\ntests\\kagent\\test_a2a_helper.py:988: error: Call to untyped function \"_ns\" in typed context  [no-untyped-call]\r\ntests\\kagent\\test_a2a_helper.py:991: error: Function is missing a type annotation  [no-untyped-def]\r\nFound 257 errors in 6 files (checked 6 source files)\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "1c1f612179a1753179e157a390abab1260b15058f56bd922fec4b4a54a1fb35d"
+    },
+    {
+      "artifact": "main-full-quality-observation.json",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "scripts/quality/python-full.ps1"
+      ],
+      "started_at": "2026-11-01T20:18:19.781515+00:00",
+      "finished_at": "2026-11-01T20:18:20.658642+00:00",
+      "exit_code": 1,
+      "stdout_excerpt": "=== Ruff check ===\r\nAll checks passed!\n=== Ruff format ===\r\nWould reformat: scripts\\kagent\\test-a2a-agent.py\nWould reformat: tests\\kagent\\test_a2a_helper.py\nWould reformat: tests\\kagent\\test_agent_mcp_trace.py\n3 files would be reformatted, 5 files already formatted\n",
+      "stderr_excerpt": "Invoke-QualityStep: F:\\Git\\security-main-202611\\scripts\\quality\\python-full.ps1:21\r\nLine |\r\n  21 |  Invoke-QualityStep \"Ruff format\" { uv run ruff format --check . }\r\n     |  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | Quality step failed: Ruff format (exit 1)\r\n",
+      "record_sha256": "79fc423c9155d85dc14d9b14530035624f9cb3bd5c42815fc228efc5662d2737"
+    },
+    {
+      "artifact": "main-ps-legacy-requalified.json",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "Import-Module Pester -RequiredVersion 3.4.0 -Force; $r=Invoke-Pester -Path @('tests/kagent/KagentHealth.Tests.ps1','tests/kagent/KagentToolingValidation.Tests.ps1','tests/benchmark/AgentGovernanceBenchmark.Tests.ps1','tests/security/QualityWrappers.Tests.ps1') -PassThru; if($r.FailedCount -gt 0 -or $r.TotalCount -eq 0){exit 1}"
+      ],
+      "started_at": "2026-11-01T20:19:28.652501+00:00",
+      "finished_at": "2026-11-01T20:20:24.663066+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "ct skill metadata for sync-educational-slice false flag with CRLF 4ms\r\n [+] validates exact skill metadata for sync-educational-slice missing flag with CRLF 4ms\r\n [+] validates exact skill metadata for sync-educational-slice flag suffix with CRLF 3ms\r\n [+] keeps rule and skill activation contracts explicit 38ms\r\nDescribing Soft measure numeric validation\r\n [+] rejects boolean true 356ms\r\n [+] rejects boolean false 1.12s\r\n [+] rejects string 459ms\r\n [+] rejects NaN 295ms\r\n [+] rejects Infinity 277ms\r\n [+] accepts valid integer zero 417ms\r\n [+] accepts valid double 0.85 257ms\r\nDescribing Fail-closed quality wrappers\r\n [+] python-fast.ps1 stops after a native failure 1.4s\r\n [+] python-full.ps1 stops after a native failure 1.73s\r\n [+] fast wrapper reports success only after all three commands pass 1.02s\r\nTests completed in 51.57s\r\nPassed: 136 Failed: 0 Skipped: 0 Pending: 0 Inconclusive: 0\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "373858c3fc9308c681d0eeb745641934bccf562f3e21fe95f8ff9caa5e6fdb56"
+    },
+    {
+      "artifact": "main-ps-contracts-requalified.json",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "Import-Module Pester -RequiredVersion 5.7.1 -Force; $r=Invoke-Pester -Path @('tests/benchmark/AgentGovernanceSkills.Tests.ps1','tests/benchmark/CursorGovernanceHooks.Tests.ps1') -PassThru; if($r.FailedCount -gt 0 -or $r.TotalCount -eq 0){exit 1}"
+      ],
+      "started_at": "2026-11-01T20:20:24.664076+00:00",
+      "finished_at": "2026-11-01T20:20:47.407950+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "\nStarting discovery in 2 files.\r\nDiscovery found 44 tests in 682ms.\r\nRunning tests.\r\n[+] F:\\Git\\security-main-202611\\tests\\benchmark\\AgentGovernanceSkills.Tests.ps1 5.72s (3.8s|1.37s)\r\n[+] F:\\Git\\security-main-202611\\tests\\benchmark\\CursorGovernanceHooks.Tests.ps1 11.13s (8.58s|2.51s)\r\nTests completed in 16.97s\r\nTests Passed: 44, Failed: 0, Skipped: 0, Inconclusive: 0, NotRun: 0\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "58e5c94a74a46216fb1efa6afd67209493ea3797c198756a6993b2d19a887219"
+    },
+    {
+      "artifact": "main-final-ps-analyzer.json",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "Import-Module 'C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\ci-01\\tools\\PSScriptAnalyzer\\1.24.0\\PSScriptAnalyzer.psd1'; $r=Invoke-ScriptAnalyzer -Path scripts -Recurse -Severity Error; if($r){$r|Format-Table; exit 1}; 'No errors'"
+      ],
+      "started_at": "2026-11-01T20:23:18.356623+00:00",
+      "finished_at": "2026-11-01T20:23:19.115904+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "No errors\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "8fbe256e3115e3049a0b6884352570aede391c22f5dd5a7ad6596a392fedd138"
+    },
+    {
+      "artifact": "main-ps-scaffold.json",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "./scripts/integrations/verify-integration-scaffold.ps1"
+      ],
+      "started_at": "2026-11-01T20:13:22.899364+00:00",
+      "finished_at": "2026-11-01T20:13:38.383536+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "nfig\\integrations\\tooling-registry.yaml\r\n[EXISTS] config\\integrations\\azure-mcp.placeholder.yaml\r\n[EXISTS] config\\integrations\\foundry-cloud.placeholder.yaml\r\n[EXISTS] scripts\\integrations\\inventory-tooling.ps1\r\n[EXISTS] .gitignore\r\n\n--- JSON Validation ---\r\n[VALID JSON] C:\\Users\\cebit.ir\\AppData\\Roaming\\Code\\User\\mcp.json\r\n[VALID JSON] C:\\Users\\cebit.ir\\.cursor\\mcp.json\r\n\n--- Playwright Preservation ---\r\n[PRESERVED] playwright-global in C:\\Users\\cebit.ir\\AppData\\Roaming\\Code\\User\\mcp.json\r\n[MISSING] No playwright entry in C:\\Users\\cebit.ir\\.cursor\\mcp.json\r\n[PRESERVED] playwright-global in C:\\Users\\cebit.ir\\.codex\\config.toml\r\n[PRESERVED] playwright-global in C:\\Users\\cebit.ir\\.continue\\config.yaml\r\n\n--- Secret Scan (staged files) ---\r\n[SCAN COMPLETE] Staged text scanned for secret patterns\r\n\n--- Azure MCP Running Check ---\r\n[PASS] Azure MCP not running\r\n\n=== Verification Complete ===\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "44fd3311bb608a32ee300c438a1d2ed85ec0f4d30b62ac922c74f97445bbb1e1"
+    },
+    {
+      "artifact": "main-evaluation-final.json",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "scripts/evaluation/run-evaluation.ps1",
+        "-CI"
+      ],
+      "started_at": "2026-11-01T20:20:06.454815+00:00",
+      "finished_at": "2026-11-01T20:21:54.829854+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "============================================\r\n  MCP Playwright Evaluation Framework\r\n  Repo: F:\\Git\\security-main-202611\r\n  Output: F:\\Git\\security-main-202611\\scripts\\evaluation\\results\r\n============================================\r\n\r\n[EVAL] Passed: 80 / 85 | Failed: 0 | Skipped: 5 | Report: F:\\Git\\security-main-202611\\scripts\\evaluation\\results\\evaluation-report.md\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "caa99843b3fe31079219c9115388c36229d09ce59014c8c7fd59327bc55f4840"
+    },
+    {
+      "artifact": "main-static-kubernetes.json",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "scripts/kubernetes/validate.ps1",
+        "-Strict"
+      ],
+      "started_at": "2026-11-01T20:18:20.659627+00:00",
+      "finished_at": "2026-11-01T20:18:23.566007+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "=== kubeconform ===\r\nSummary: 7 resources found in 4 files - Valid: 5, Invalid: 0, Errors: 0, Skipped: 2\n=== kube-linter ===\r\nKubeLinter 0.7.1\n\nNo lint errors found!\n=== Kubernetes validation complete: all checks passed ===\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "2d050272189c71de7fee235c90634f88029f0e984996531852fdbdc360d43c74"
+    },
+    {
+      "artifact": "linux-validation.json",
+      "argv": [
+        "wsl",
+        "-d",
+        "Ubuntu",
+        "--",
+        "bash",
+        "/mnt/c/Users/cebit.ir/Documents/ChatGPT/md mdc Agents-Skills-MCP-Kagent A2A-SubAgents/security-remediation-20261101/linux-validate.sh"
+      ],
+      "started_at": "2026-11-01T20:16:21.643200+00:00",
+      "finished_at": "2026-11-01T20:19:58.894018+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "riments/test_a2a_sdk_transport.py: 27 warnings\n  /home/solomidmiram/.cache/security-remediation-202611/sdk/scripts/kagent/experiments/a2a_sdk_interop.py:602: DeprecationWarning: A2AClient is deprecated and will be removed in a future version. Use ClientFactory to create a client with a JSON-RPC transport.\n    client = A2AClient(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n74 passed, 46 warnings in 6.28s\n........................................................................ [ 23%]\n........................................................................ [ 47%]\n........................................................................ [ 71%]\n........................................................................ [ 95%]\n..............                                                           [100%]\n302 passed in 11.28s\nSuccess: no issues found in 2 source files\n",
+      "stderr_excerpt": "y-api==1.45.1\n + packaging==26.3\n + pluggy==1.7.0\n + proto-plus==1.29.0\n + protobuf==7.36.2\n + pyasn1==0.6.5\n + pyasn1-modules==0.4.2\n + pycparser==3.12\n + pydantic==2.14.1\n + pydantic-core==2.50.1\n + pygments==2.21.0\n + pytest==9.0.3\n + requests==2.34.2\n + typing-extensions==4.16.0\n + typing-inspection==0.4.4\n + urllib3==2.8.0\nUsing Python 3.13.15 environment at: /home/solomidmiram/.cache/security-remediation-202611/sdk-isolated\nChecked 32 packages in 27ms\nAll installed packages are compatible\n",
+      "record_sha256": "a5386c744133052502294206aaf8352ba77eae9435d15e951678c51773194115"
+    },
+    {
+      "artifact": "main-fresh-trivy.json",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\ci-01\\tools\\trivy.exe",
+        "fs",
+        "--cache-dir",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\trivy-cache",
+        "--include-dev-deps",
+        "--scanners",
+        "vuln,secret,misconfig",
+        "--ignorefile",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\snapshot-main\\.trivyignore.yaml",
+        "--exit-code",
+        "1",
+        "--format",
+        "json",
+        "--list-all-pkgs",
+        "--output",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\main-trivy.json",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\snapshot-main"
+      ],
+      "started_at": "2026-11-01T20:16:12.915166+00:00",
+      "finished_at": "2026-11-01T20:16:15.406850+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "",
+      "stderr_excerpt": ":46:14+03:30\tINFO\t[secret] Please see https://trivy.dev/docs/v0.72/guide/scanner/secret#recommendation for faster secret detection\n2026-11-01T23:46:15+03:30\tINFO\tNumber of language-specific files\tnum=1\n2026-11-01T23:46:15+03:30\tINFO\t[uv] Detecting vulnerabilities...\n2026-11-01T23:46:15+03:30\tINFO\tDetected config files\tnum=3\n\n\ud83d\udce3 \u001b[34mNotices:\u001b[0m\n  - Version 0.76.1 of Trivy is now available, current version is 0.72.0\n\nTo suppress version checks, run Trivy scans with the --skip-version-check flag\n\n",
+      "record_sha256": "152cda04323ed74260c195f8f11285f6075f0ee3be8c8b6f2aa767691cc74533"
+    },
+    {
+      "artifact": "main-baseline-fresh-trivy.json",
+      "argv": [
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\ci-01\\tools\\trivy.exe",
+        "fs",
+        "--cache-dir",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\trivy-cache",
+        "--include-dev-deps",
+        "--scanners",
+        "vuln",
+        "--file-patterns",
+        "pip:(^|/)a2a_sdk_requirements\\.lock$",
+        "--exit-code",
+        "1",
+        "--format",
+        "json",
+        "--list-all-pkgs",
+        "--output",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\main-before-trivy.json",
+        "C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\baseline-main\\uv.lock"
+      ],
+      "started_at": "2026-11-01T20:18:19.143371+00:00",
+      "finished_at": "2026-11-01T20:18:19.412520+00:00",
+      "exit_code": 1,
+      "stdout_excerpt": "",
+      "stderr_excerpt": "2026-11-01T23:48:19+03:30\tINFO\t[vuln] Vulnerability scanning is enabled\n2026-11-01T23:48:19+03:30\tINFO\tNumber of language-specific files\tnum=1\n2026-11-01T23:48:19+03:30\tINFO\t[uv] Detecting vulnerabilities...\n",
+      "record_sha256": "b787e2a74847d8f2f89c7cd71e50bd204e62d9ce6ff9b7f0fac1b8535a44a921"
+    },
+    {
+      "artifact": "baseline-false-pass-python-fast.ps1.json",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "$env:PATH='C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\baseline-wrappers\\uv-stub;' + $env:PATH; & 'C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\baseline-wrappers\\python-fast.ps1'"
+      ],
+      "started_at": "2026-11-01T19:52:56.499493+00:00",
+      "finished_at": "2026-11-01T19:52:57.543019+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "=== Ruff check ===\r\n=== Ruff format ===\r\n=== Pytest ===\r\n=== Python fast quality: PASS ===\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "db1c122a13e12ec87f2ac0a7e659f62da54c3bbb23b9aacbefeaf15139d00527"
+    },
+    {
+      "artifact": "baseline-false-pass-python-full.ps1.json",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-Command",
+        "$env:PATH='C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\baseline-wrappers\\uv-stub;' + $env:PATH; & 'C:\\Users\\cebit.ir\\Documents\\ChatGPT\\md mdc Agents-Skills-MCP-Kagent A2A-SubAgents\\security-remediation-20261101\\baseline-wrappers\\python-full.ps1'"
+      ],
+      "started_at": "2026-11-01T19:52:57.593869+00:00",
+      "finished_at": "2026-11-01T19:52:58.516180+00:00",
+      "exit_code": 0,
+      "stdout_excerpt": "=== Ruff check ===\r\n=== Ruff format ===\r\n=== Mypy ===\r\n=== Pytest with coverage ===\r\n=== Bandit ===\r\n=== Pip-audit ===\r\n=== Python full quality: PASS ===\r\n",
+      "stderr_excerpt": "",
+      "record_sha256": "1c9c4d23d069bff22ceda3e57d26dc1e3ae0c84af18758a357070910a57ead06"
+    }
+  ],
+  "capability_limits": [
+    "No live Kagent/Context7/model/MCP/worker operation was attempted.",
+    "No L6, L7, I3, I4 or production-readiness promotion.",
+    "No historical phase record, LAB-01 retained answer, SDK evidence schema or CTX source was rewritten.",
+    "Five optional-host evaluation cases remain skipped, not passed."
+  ],
+  "residual_conditions": [
+    "Full quality wrapper correctly fails at three pre-existing formatting differences. Independent strict mypy on unchanged kagent source/tests reports 257 errors in six files; coverage passes 80.40%. These are not newly enforced CI gates and remain separate maintainer follow-up."
+  ],
+  "dependency_changes": {
+    "certifi": {
+      "before": "2026.6.17",
+      "after": "2026.10.19"
+    },
+    "filelock": {
+      "before": "3.30.2",
+      "after": "4.2.1"
+    },
+    "msgpack": {
+      "before": "1.2.1",
+      "after": "1.2.3"
+    },
+    "packaging": {
+      "before": "26.2",
+      "after": "26.3"
+    },
+    "pip": {
+      "before": "26.1.2",
+      "after": "26.2.2"
+    },
+    "python-discovery": {
+      "before": "1.4.4",
+      "after": "1.6.1"
+    },
+    "urllib3": {
+      "before": "2.7.0",
+      "after": "2.8.0"
+    },
+    "virtualenv": {
+      "before": "21.6.1",
+      "after": "21.14.13"
+    }
+  },
+  "historical_evidence": [
+    {
+      "path": "docs/reference/kagent-capability-matrix.md",
+      "baseline_blob": "0986118172d13f8dae1938a66413808c642f94ca",
+      "unchanged": true
+    },
+    {
+      "path": "docs/reference/kagent-agent-mediated-mcp-evidence.md",
+      "baseline_blob": "71d42652dbb19e64019d21146d04dbc201b6e503",
+      "unchanged": true
+    },
+    {
+      "path": "evidence/kagent/README.md",
+      "baseline_blob": "0fa03bf97b00d1ed0fcd07806ad8c31d7f991e94",
+      "unchanged": true
+    },
+    {
+      "path": "evidence/kagent/educational-practice-phase-5b-direct-mcp.md",
+      "baseline_blob": "63df10cf745bb3f89b8d84cc11e47a0adb8f46da",
+      "unchanged": true
+    },
+    {
+      "path": "evidence/kagent/educational-practice-phase-5d-trustworthy-a2a.md",
+      "baseline_blob": "9ffd15b2e294aceef6a1b9a626fcdf8f3cf598ff",
+      "unchanged": true
+    },
+    {
+      "path": "evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md",
+      "baseline_blob": "3d2011d39a76399604cb6db43f6070d2644af43b",
+      "unchanged": true
+    }
+  ]
+}

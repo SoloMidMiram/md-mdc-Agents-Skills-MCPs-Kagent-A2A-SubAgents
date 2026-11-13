@@ -1,7 +1,8 @@
 # kagent Educational Roadmap
 
 Current engineering order (2026-10-22): RECON-01 → EVID-01 → A2A-01.
-The integration is a local rehearsal; hosted merge/CI approval is separate.
+The integration is published as draft PR #9; source/security acceptance and
+live capability approval remain separate from its dated hosted CI results.
 New workflow evidence waits for integrity validation; I3 remains independent.
 
 This document is a learning path for the local `kagent` lab. **Project direction**

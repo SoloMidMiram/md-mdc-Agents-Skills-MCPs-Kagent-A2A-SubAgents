@@ -48,6 +48,7 @@ def require_partition(workflow: dict) -> None:
         s["run"] for s in sdk_steps if s.get("name") == "Create isolated SDK environment"
     )
     assert "a2a_sdk_requirements.lock" in install and "uv pip sync" in install
+    assert "uv pip sync --require-hashes" in install
     assert 'uv pip check --python "$RUNNER_TEMP/a2a-sdk/bin/python"' in install
     typing = next(s for s in sdk_steps if s.get("name", "").startswith("Type-check"))
     assert typing["env"]["UV_PROJECT_ENVIRONMENT"] == "${{ runner.temp }}/a2a-root-dev"

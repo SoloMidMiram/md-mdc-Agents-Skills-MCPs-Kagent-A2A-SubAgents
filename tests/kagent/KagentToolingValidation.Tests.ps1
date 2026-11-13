@@ -154,6 +154,7 @@ Describe 'Security scan required mode' {
             $result.ExitCode | Should Be 0
             $argumentText = (Get-Content -LiteralPath $capturePath) -join "`n"
             $argumentText | Should Match '(?m)^--ignorefile$'
+            $argumentText | Should Match '(?m)^--include-dev-deps$'
             $argumentText | Should Match "(?m)^$([regex]::Escape((Join-Path $repoRoot '.trivyignore.yaml')))$"
         } finally {
             Remove-TempDir -Path $tempDir
