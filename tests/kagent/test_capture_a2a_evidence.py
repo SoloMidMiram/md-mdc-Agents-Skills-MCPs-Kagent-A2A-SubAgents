@@ -267,3 +267,23 @@ def test_capture_assembles_completed_status_text_parts():
     summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
     assert summary["passed"]
     assert summary["final_answer"] == "Pods: pod-1 is ready."
+
+
+def test_capture_accepts_completed_task_with_artifact():
+    events = _completed_with_pair("unused")
+    events[-2:] = [
+        {
+            "jsonrpc": "2.0",
+            "id": "req1",
+            "result": {
+                "kind": "task",
+                "id": "task1",
+                "status": {"state": "completed"},
+                "artifacts": [{"parts": [{"kind": "text", "text": "Pods ready."}]}],
+            },
+        }
+    ]
+    summary = MODULE.summarize_events(events, PROMPT, request_id="req1")
+    assert summary["final_state"] == "completed"
+    assert summary["passed"]
+    assert summary["final_answer"] == "Pods ready."

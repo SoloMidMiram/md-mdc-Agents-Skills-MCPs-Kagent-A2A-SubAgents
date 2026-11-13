@@ -57,7 +57,7 @@ def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dic
             correlated = False
             continue
         kind = result.get("kind")
-        if kind == "status-update":
+        if kind in {"status-update", "task"}:
             status = result.get("status") or {}
             state = status.get("state")
             if state:
@@ -85,8 +85,15 @@ def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dic
                             tool_calls.append(data)
             if message_text:
                 answers.append("".join(message_text))
-        elif kind == "artifact-update":
-            artifact = result.get("artifact")
+        if kind == "artifact-update":
+            artifacts = [result.get("artifact")]
+        elif kind == "task" and state == "completed":
+            artifacts = result.get("artifacts")
+            if not isinstance(artifacts, list):
+                continue
+        else:
+            continue
+        for artifact in artifacts:
             if not isinstance(artifact, dict) or not isinstance(artifact.get("parts"), list):
                 continue
             pieces = [
@@ -99,7 +106,7 @@ def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dic
             artifact_id = artifact.get("artifactId")
             if isinstance(artifact_id, str) and artifact_id:
                 chunks = artifact_chunks.setdefault(artifact_id, [])
-                if result.get("append") is not True:
+                if kind == "task" or result.get("append") is not True:
                     chunks.clear()
                 chunks.extend(pieces)
                 answers.append(chunks)
