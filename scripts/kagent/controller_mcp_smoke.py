@@ -772,6 +772,8 @@ class ControllerMcpClient:
                 if sanitized_output_leaks_context_id(sanitized, raw):
                     self.result.exit_code = ExitCode.PROTOCOL_OR_TOOL
                     self.result.agent_context_continuation_succeeded = False
+                    self.result.agent_response = ""
+                    self.result.continuation_agent_response = ""
                     self.result.error = "sanitized output leaked agent context identifier"
         self.result.strict_preflight_qualified = (
             self.result.exit_code == ExitCode.SUCCESS and not self.config.observe_only

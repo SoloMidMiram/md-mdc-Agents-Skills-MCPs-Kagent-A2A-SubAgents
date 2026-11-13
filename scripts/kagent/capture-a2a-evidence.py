@@ -128,6 +128,7 @@ def summarize_events(events: list[dict], prompt: str, *, request_id: str) -> dic
         "matched_tool_pairs": matched_pairs,
         "tool_calls": tool_calls[:20],
         "tool_results": tool_results[:20],
+        "final_answer": final_answer,
         "final_answer_preview": final_answer[:500],
         # Fail closed: completion plus text alone is not enough. Require a
         # non-empty task id, terminal completion, at least one exact
@@ -198,7 +199,8 @@ def main() -> int:
     final_state = summary["final_state"]
     tool_mentioned = summary["tool_mentioned_in_stream"]
     matched_pairs = summary["matched_tool_pairs"]
-    final_answer = summary["final_answer_preview"] if summary["passed"] else ""
+    full_answer = summary.pop("final_answer")
+    final_answer = full_answer if summary["passed"] else ""
 
     (out / "tool-call.json").write_text(
         json.dumps(

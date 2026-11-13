@@ -213,3 +213,30 @@ def test_foreign_request_id_fails_closed():
     events = _completed_with_pair("There are 1 pods.")
     events[-1]["id"] = "other-request"
     assert MODULE.summarize_events(events, PROMPT, request_id="req1")["passed"] is False
+
+
+def test_capture_writes_full_answer_and_keeps_bounded_preview(monkeypatch, tmp_path):
+    import io
+    import json
+
+    answer = "x" * 600 + " end"
+
+    class Response(io.BytesIO):
+        status = 200
+
+    def urlopen(request, **kwargs):
+        request_id = json.loads(request.data)["id"]
+        events = _completed_with_pair(answer)
+        for event in events:
+            event["id"] = request_id
+        return Response("".join(f"data: {json.dumps(e)}\n\n" for e in events).encode())
+
+    monkeypatch.setattr(MODULE.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(
+        sys, "argv", ["capture", "--agent", "agent", "--prompt", PROMPT, "--out-dir", str(tmp_path)]
+    )
+    assert MODULE.main() == 0
+    assert answer in (tmp_path / "final-answer.md").read_text(encoding="utf-8")
+    summary = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
+    assert summary["final_answer_preview"] == answer[:500]
+    assert answer not in json.dumps(summary)

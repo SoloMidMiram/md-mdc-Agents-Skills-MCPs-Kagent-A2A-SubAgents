@@ -332,6 +332,7 @@ def test_long_context_embedded_in_continuation_response_fails_closed() -> None:
     assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
     assert "leaked agent context identifier" in (result.error or "")
     assert RAW_CONTEXT_ID not in (result.error or "")
+    assert RAW_CONTEXT_ID not in json.dumps(result.to_sanitized_dict())
     assert not result.agent_context_continuation_succeeded
 
 
@@ -407,6 +408,7 @@ def test_missing_context_id_fails_closed() -> None:
     assert result.agent_context_id == "missing"
     assert not result.agent_context_continuation_succeeded
     assert RAW_CONTEXT_ID not in (result.error or "")
+    assert RAW_CONTEXT_ID not in json.dumps(result.to_sanitized_dict())
 
 
 def test_empty_context_id_fails_closed() -> None:
@@ -433,6 +435,7 @@ def test_second_invocation_rejects_context_fails_closed() -> None:
     rendered = json.dumps(result.to_sanitized_dict())
     assert RAW_CONTEXT_ID not in rendered
     assert RAW_CONTEXT_ID not in (result.error or "")
+    assert RAW_CONTEXT_ID not in json.dumps(result.to_sanitized_dict())
 
 
 def test_second_response_differs_from_expected_fails_closed() -> None:
@@ -450,6 +453,7 @@ def test_changed_context_id_on_continuation_fails_closed() -> None:
     assert "changed context_id" in (result.error or "")
     assert "different-context-id" not in (result.error or "")
     assert RAW_CONTEXT_ID not in (result.error or "")
+    assert RAW_CONTEXT_ID not in json.dumps(result.to_sanitized_dict())
 
 
 def test_raw_context_id_not_in_serialized_output_or_error_text() -> None:

@@ -442,3 +442,13 @@ def test_record_io_collision_fails_without_overwriting(monkeypatch, evidence_pay
     content = first.read_bytes()
     assert record_experiment.main(args) == 2
     assert first.read_bytes() == content
+
+
+def test_artifact_only_task_and_retained_stream():
+    raw = (ROOT / "evidence/a2a/run001/raw-sse.txt").read_text(encoding="utf-8")
+    events = run_example.a2a.parse_sse_jsonrpc_events(raw)
+    update = next(e["result"] for e in events if e["result"]["kind"] == "artifact-update")
+    text = run_example.extract_response_text(events, update["taskId"])
+    assert contracts.validate_artifact("supervisor-agent", text)
+    task = {"status": {"state": "completed"}, "artifacts": [update["artifact"]]}
+    assert run_example.extract_text_from_task(task) == ("completed", text)
