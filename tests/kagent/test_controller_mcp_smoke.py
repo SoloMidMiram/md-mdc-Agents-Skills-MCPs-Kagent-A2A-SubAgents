@@ -459,7 +459,9 @@ def test_changed_context_id_on_continuation_fails_closed() -> None:
 def test_initial_response_cannot_emit_echoed_context_identifier() -> None:
     for options in ({}, _observe_config()):
         result = _run(
-            FakeTransport(_handler(agent_text=f"Context: {RAW_CONTEXT_ID}")),
+            FakeTransport(
+                _handler(include_observability=False, agent_text=f"Context: {RAW_CONTEXT_ID}")
+            ),
             **options,
         )
         assert result.exit_code == mcp.ExitCode.PROTOCOL_OR_TOOL
