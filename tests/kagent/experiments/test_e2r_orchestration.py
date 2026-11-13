@@ -144,3 +144,45 @@ def test_adapter_reuses_runner_and_preserves_correlated_ids(monkeypatch):
     assert [entry.task_id for entry in decision.subtasks] == ["t0", "t1"]
     assert [entry.message_id for entry in decision.subtasks] == ["m0", "m1"]
     assert all(call["skip_contract"] is False for call in calls)
+
+
+def test_cancel_during_card_discovery_prevents_dispatch(monkeypatch):
+    from threading import Event
+    from types import SimpleNamespace
+
+    from scripts.kagent.experiments import run_a2a_example as runner
+    from scripts.kagent.experiments.run_e2r_example import run_e2r_example
+
+    release = Event()
+    posts = []
+
+    async def scenario():
+        loop = asyncio.get_running_loop()
+        discovering = asyncio.Event()
+
+        def card(*_):
+            loop.call_soon_threadsafe(discovering.set)
+            assert release.wait(5)
+            return SimpleNamespace(
+                card_accepted=True, card_deployment_ready=True, decision_passed=True
+            )
+
+        def dispatch(*args, **kwargs):
+            posts.append((args, kwargs))
+            raise runner.a2a.GateError("unexpected dispatch")
+
+        monkeypatch.setattr(runner.a2a, "run_card", card)
+        monkeypatch.setattr(runner.a2a, "collect_dispatch_stream", dispatch)
+        operation = asyncio.create_task(
+            run_e2r_example("request", controller="http://localhost", namespace="lab", timeout=5)
+        )
+        try:
+            await asyncio.wait_for(discovering.wait(), timeout=2)
+            operation.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await operation
+        finally:
+            release.set()
+
+    asyncio.run(scenario())
+    assert posts == []

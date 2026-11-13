@@ -20,6 +20,7 @@ import math
 import sys
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -226,6 +227,7 @@ def run_example(
     example: str | None,
     timeout: float,
     skip_contract: bool,
+    before_dispatch: Callable[[], float] | None = None,
 ) -> ExampleRunResult:
     transport = a2a.DirectUrlTransport()
     example_id = example or _example_id_for_agent(agent)
@@ -267,8 +269,9 @@ def run_example(
     url = a2a.build_a2a_url(controller, namespace, agent)
     try:
         message_id = str(uuid.uuid4())
+        dispatch_timeout = timeout if before_dispatch is None else before_dispatch()
         request_id, _http_status, events = a2a.collect_dispatch_stream(
-            transport, url, prompt, timeout=timeout, message_id=message_id
+            transport, url, prompt, timeout=dispatch_timeout, message_id=message_id
         )
         task_id, state, _kind = a2a.select_dispatch_from_events(request_id, events)
         result.request_id = request_id
