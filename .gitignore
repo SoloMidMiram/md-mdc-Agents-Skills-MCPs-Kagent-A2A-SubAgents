@@ -62,3 +62,8 @@ evidence/kagent/tmp/
 
 # Debug transcripts (diagnostic output from test or CI instrumentation)
 debug-*.log
+
+# Reviewed LAB-01 offline protocol and source manifest only
+!evidence/labs/lab-01/2026-10-25/command-results.json
+!evidence/labs/lab-01/2026-10-25/prompts.json
+!evidence/labs/lab-01/2026-10-25/source-manifest.json
