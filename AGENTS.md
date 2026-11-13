@@ -27,3 +27,11 @@ Write to `.project-ai/memory/` only when:
 - a durable architectural decision was made;
 - a diagnostic procedure was proven;
 - a Kubernetes or security risk is reusable across future tasks.
+
+## Source integration
+
+Follow the [solo-maintainer review policy](docs/MAINTAINER_REVIEW_POLICY.md).
+Collect technical review and applicable verification for the integration
+candidate, then present a recommendation to SoloMidMiram. The owner records
+acceptance and authorizes the source merge. Check the policy for separate
+operational authorization and qualification requirements.
