@@ -61,25 +61,25 @@ if ($ListTags) {
 }
 
 # --- Check Pester ---
-$pesterAvailable = Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge [System.Version]"5.0.0" }
+$pesterAvailable = Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -eq [System.Version]"5.7.1" }
 if (-not $pesterAvailable) {
     if ($CI) {
-        Write-Output "[EVAL] Pester 5+ not found. Install with: Install-Module Pester -Force -SkipPublisherCheck"
+        Write-Output "[EVAL] Pester 5.7.1 not found. Install with: Install-Module Pester -RequiredVersion 5.7.1 -Force -SkipPublisherCheck"
         exit 2
     }
-    Write-Output "[EVAL] Pester 5+ not found. Attempting auto-install..."
+    Write-Output "[EVAL] Pester 5.7.1 not found. Attempting auto-install..."
     try {
-        Install-Module Pester -Force -SkipPublisherCheck -AllowClobber -Scope CurrentUser 2>&1 | Out-Null
-        Import-Module Pester -Force
+        Install-Module Pester -RequiredVersion 5.7.1 -Force -SkipPublisherCheck -AllowClobber -Scope CurrentUser 2>&1 | Out-Null
+        Import-Module Pester -RequiredVersion 5.7.1 -Force
         Write-Output "[EVAL] Pester installed successfully."
     } catch {
         Write-Output "[FAIL] Could not install Pester: $_"
-        Write-Output "       Install manually: Install-Module Pester -Force -SkipPublisherCheck"
+        Write-Output "       Install manually: Install-Module Pester -RequiredVersion 5.7.1 -Force -SkipPublisherCheck"
         exit 2
     }
 }
 
-Import-Module Pester -Force -PassThru | Out-Null
+Import-Module Pester -RequiredVersion 5.7.1 -Force -PassThru | Out-Null
 
 # --- Ensure output directory ---
 New-Item -ItemType Directory -Path $Script:OutputDir -Force | Out-Null

@@ -134,4 +134,4 @@ mechanism and credential boundary are pending. Independent review must verify
 containment before a separately authorized smoke. Launcher execution and
 scoring stay disabled, and the nine frozen cells remain blocked.
 
-Integration remains #16 → #9 → main, followed by reconciliation of the independent #10 → #13 → #17 → #18 stack. New CI results do not promote any PR to merge readiness. This reconciliation updates the provisioning handoff for the accepted offline implementation in draft #18.
+PR #18's offline implementation is integrated in main. This documentation handoff retains its own source review. Runner qualification and live execution require separate evidence and authorization.

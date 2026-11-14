@@ -1,14 +1,14 @@
 # Project North Star
 
-Selected direction (November 4–5 interviews; reconciled 2026-11-06): build and
-measure a context-first coding assistant. Source integrity and deterministic
-packaging are review candidates. Draft #18 includes offline runner hardening.
+The current direction is a measurable context-first coding assistant. The
+repaired CTX-01 builder and #18's offline labs are integrated in main.
 Actual coding improvement remains unmeasured.
-Current priority is independent LAB-RUNNER-01 security qualification, one
-separately authorized non-scored smoke, then the nine frozen EVAL-01 runs. The
-[implemented-state roadmap](onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md) owns
-cross-lane ordering; the [runner specification](architecture/LAB-RUNNER-01-PROVISIONING.md)
-owns provisioning requirements and the explicitly unprovisioned host placeholder.
+
+The next prerequisite is independent LAB-RUNNER-01 security qualification,
+followed by a separately authorized non-scored smoke and the nine frozen
+EVAL-01 runs. The [implemented-state roadmap](onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
+owns cross-lane ordering. The [runner specification](architecture/LAB-RUNNER-01-PROVISIONING.md)
+owns provisioning requirements. I3 remains independent.
 
 **Effective:** 2026-11-06 reconciliation of the selected context-first priority
 

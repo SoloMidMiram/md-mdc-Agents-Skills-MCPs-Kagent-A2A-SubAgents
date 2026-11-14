@@ -105,7 +105,7 @@ These are explicitly excluded from the laptop-stable v0.1 gate:
 - **Remote Docker browser** (`server/compose.yaml`) — requires Linux server
 - **SSH tunnel concurrency** (`docs/05-SSH-CONCURRENCY-FIX.md`) — server-side hardening, operational, not install-time correctness
 - **kagent / Kubernetes MCP** (`docs/runbooks/local-kagent-a2a-lab.md`) — lab active (not production baseline)
-- **A2A task dispatch** — available via REST card discovery; JSON-RPC tasks/sendTask requires a2a-cli
+- **A2A task dispatch** — historical L4 uses the existing `message/stream` helper; REST card discovery alone is metadata, and legacy `tasks/sendTask` is not the qualified path. See the canonical evidence index.
 - **Functional MCP invocation across all 5 surfaces** — requires interactive editor sessions; structural/production-path tests prove config correctness
 - **Node.js version upgrade** (23 → 24 LTS) — deploy-time, not install-time
 - **Dev container reproducibility** (pip install uv) — Linux dev environment, not Windows target
@@ -113,6 +113,12 @@ These are explicitly excluded from the laptop-stable v0.1 gate:
 ---
 
 ## Current-Head Baseline Checklist
+
+RECON-02 is a source integration candidate, not the stable release candidate.
+The checkmarks below retain the earlier checklist and do not certify this
+combined head. Its dated qualification record and final PR identify the actual
+commands and unresolved formatting/typing debt.
+
 
 This is a short preparation gate, not a second roadmap and not release
 evidence. Complete it before selecting the patch SHA.
@@ -146,6 +152,19 @@ debts below are cleared. Observed on 2026-08-01 (local Windows, Python 3.12.12):
 Gate 0 acceptance remains the checklist bar above. Do not claim the full-quality
 gate passes.
 
+## Current security and quality qualification boundary
+
+Use [dependency-security.md](runbooks/dependency-security.md). Dependency locks,
+complete third-party inventories, advisory source freshness and exact-head CI
+must be qualified before acceptance. Image advisory scans are distinct from the
+required repository policy and do not establish zero upstream image CVEs.
+
+The quality wrappers now fail closed and target the actual `scripts/kagent`
+code, with coverage precision 2 and the unchanged 80% threshold. This correction
+does not certify the full quality wrapper or erase existing typing/coverage
+work. Its actual outcome must be recorded; a security-only pass is not a stable
+release approval. Target-host install/verify/rollback remains a separate gate.
+
 ## Release Checklist
 
 When all acceptance gates above pass:
@@ -174,3 +193,23 @@ When all acceptance gates above pass:
 | Evaluation report | `scripts/evaluation/results/evaluation-report.md` | Markdown |
 | CI workflow run | GitHub Actions for the release commit | Link |
 | Verification output | Terminal log | Text |
+
+## RECON-02 quality debt (2026-11-03)
+
+Keep the November 1 main-security observations visible: three formatting
+changes and strict mypy's 257 errors in six unchanged source/test files were
+outside the newly enforced CI gates. Main's coverage observation was 80.40%
+at the unchanged 80% threshold; the older 79.88% row above is dated history.
+The combined tree must receive its own measurements; neither debt nor an old
+coverage result disappears because the two security PRs pass independently.
+See [combined qualification](../reports/reconciliation/recon-02-20261103.json).
+
+Combined Windows measurements: `ruff format --check .` passes all 27 files;
+the three former main differences match the already-reviewed #9/#15 content,
+not an unrecorded formatting repair in RECON-02. Strict mypy over
+`scripts/kagent tests/kagent` reports 433 errors in 18 files (24 checked), all
+of whose Python inputs match #15. Root-only coverage with the four SDK modules
+excluded is 76.06% and fails the unchanged 80% threshold; all 305 root tests
+still pass. Strict SDK/auditor/new-contract typing passes independently. These
+measurements are retained debt, outside the existing required Quality jobs;
+they must not be described as a green full-quality wrapper or release gate.

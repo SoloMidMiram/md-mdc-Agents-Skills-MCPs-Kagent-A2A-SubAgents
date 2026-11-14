@@ -13,6 +13,20 @@ It answers four questions:
 3. What is only partially working?
 4. What should be stabilized or refactored next?
 
+## Combined candidate and evidence scope
+
+RECON-02 combines #14 (`17312a75`) and #15 (`7cb921ce`) in a separate branch
+without rewriting either reviewed history or changing main/#9/#10/#13.
+[Dependency security](../runbooks/dependency-security.md) owns procedures;
+the [contradiction register](../reference/contradiction-register.md) records
+claim/source/correction links and the five conflict resolutions. The
+[combined qualification](../../reports/reconciliation/recon-02-20261103.json)
+records actual checks; the candidate PR identifies its final SHA and hosted CI.
+No combined or maintainer acceptance follows from the two older green heads.
+#10's retained LAB-01 evidence and #13's implementation are not imported here;
+the pinned LAB-01 sources are checked through preserved Git history. CTX-01
+correctness stays under #12/#13. No live capability level is promoted.
+
 ## Current Implemented State
 
 ### Context-first priority and runner gate — 2026-11-06
@@ -22,11 +36,11 @@ The selected priority is a measurable context-first coding assistant. See
 ordering. A2A-first remains the dated educational direction, not the current
 product spine. No L/I capability is promoted by this priority change.
 
-- **Draft implementation:** #17 at `fe3aea3f0aba9ea2cd040194dd898c91391b3240`
+- **Integrated offline source:** #17 at `fe3aea3f0aba9ea2cd040194dd898c91391b3240`
   repairs schema 1.0 packet integrity; #18 at
   `6d1e1462586c0cd3d8c84c60db85c71e6b7f2870` provides runnable offline labs, a
   frozen pilot, and [offline runner hardening](../../reports/lab-runner-01-offline.md).
-  Maintainer acceptance remains separate from hosted checks.
+  The source was accepted independently of runner qualification.
 - **Locally verified demonstrations:** six-source packet replay and synthetic
   fail-closed controls. [Results](../../reports/context-labs-01-results.md)
   preserve actual results and limitations; these are not coding-improvement data.
@@ -40,9 +54,7 @@ product spine. No L/I capability is promoted by this priority change.
 - **Deferred:** snapshots, ranking/discovery, Context7 and further kagent feature
   expansion until the current runner/evaluation gates are qualified.
 
-Integration remains #16 → #9 → main, then reconciliation of the independent
-#10 → #13 → #17 → #18 stack. Preserve review history and requalify changed
-parents. Independent human review and maintainer acceptance remain open.
+PRs #9, #10, #13 (including #17), and #18 are integrated in main. PR #19 documents the runner handoff and requires its own source-merge decision.
 
 Authority and freshness are separate: code/tests govern behavior at named
 revisions; dated evidence governs its observed environment/time; direction
@@ -138,7 +150,9 @@ Primary artifacts:
 
 ### Local kagent path
 
-Implemented and validated:
+Implemented helpers and historically recorded runtime observations follow.
+These bullets do not assert that the cluster or provider is running now.
+Revalidate the approved target before a separately authorized live experiment:
 
 - local `kagent` CRDs installed
 - local `kagent` controller and UI running in `docker-desktop`
@@ -164,6 +178,7 @@ Implemented and validated:
   2026-07-31, and follow-up Quality run 30621919672 passed all jobs at the
   exact pre-merge head `94031ff`. That revision is now part of merged PR #1
   and remains historical CI context rather than an active merge gate.
+  Each later candidate needs its own hosted tests and fresh security audits.
 - fail-closed Kubernetes manifest validation (`scripts/kubernetes/validate.ps1
   -Strict`) and Trivy policy scanning (`scripts/security/scan.ps1 -Required`)
   with pinned validator installation (kubeconform v0.6.7, kube-linter v0.7.1,
@@ -302,7 +317,7 @@ planning units and do not assert that a hosted PR exists.
 | 0 | **Current-head release baseline** — select one immutable release SHA and run the full hosted workflow from `docs/laptop-stable-acceptance-plan.md`. | Open | Existing deterministic suites | Candidate SHA, local results, and same-SHA hosted Quality are recorded. |
 | 1 | **Stable Playwright patch release** — complete Windows install → verify → rollback → verify and tag `laptop-stable-v0.1.1`. | Open | 0 | Target-host acceptance and exact-SHA hosted Quality pass; the tag points to that SHA. |
 | 2 | **Kagent Delivery Gate 0 / roadmap-baseline publication** — preserved the six coherent documentation updates on the PR #3 branch before Phase 7 implementation. | **Published** at `090ad52` (`docs(kagent): harden remaining phase and PR roadmap`); no capability decision changes | Six-file roadmap diff, empty staging area, clean required validation, and preceding test harden `178ce58` | Pushed SHA `090ad52` with exact-SHA `quality.yml` green: push run [30979059299](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979059299) and pull_request run [30979061019](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/30979061019); no capability decision changes. |
-| 3 | RECON-01 / federation and gateway integration | Local rehearsal only | Verified hosted heads | Stable IDs, preserved evidence, cloud-only examples, exact candidate checks. |
+| 3 | RECON-01 / federation and gateway integration | Published draft #9; current security acceptance pending | Verified hosted heads | Stable IDs, preserved evidence, cloud-only examples, exact candidate checks. |
 | 4 | EVID-01 / evidence integrity | Active | RECON-01 | Negative regressions and validated recorder/harness; no capability promotion. |
 | 5 | A2A-01 / pinned SDK validation | Next | EVID-01 | SDK 0.3.26 isolated tests, then bounded live result or Blocked record. |
 | 6 | CTX-01 / cited context; SAFE-01 / exact MCP surface | Planned | EVID-01; A2A-01 for transport | Source-linked context; exact server-side safety before tools. |
@@ -337,17 +352,12 @@ L6 or L7.
 
 ## Recommended Next Steps
 
-1. Complete the remaining current-head checklist items: name one immutable
-   candidate SHA, record local deterministic results for it, and trigger full
-   `quality.yml` for that exact SHA (PyYAML and coverage contracts are already
-   declared).
-2. Perform the Windows acceptance round trip against that SHA and tag
-   `laptop-stable-v0.1.1` only if every required gate passes.
-3. Gate 0 is published at `090ad52` (`docs(kagent): harden remaining phase
-   and PR roadmap`) with exact-SHA `quality.yml` green on both the push and
-   pull_request runs. Any later I3 evidence commit creates a new final SHA and
-   needs its own hosted run.
-4. Complete RECON-01, then EVID-01 and A2A-01. Preserve the independent
-   Cursor I3 blocker; do not make it the prerequisite for A2A education.
-5. Follow stable workstream dependencies for CTX-01, SAFE-01, WORKER-01,
-   EVAL-01, and OPS-01. Direct MCP and separate helper tasks do not prove I4.
+1. Complete RECON-02's actual combined-tree qualification and record the
+   immutable candidate, parent SHAs, conflict decisions and current audit data.
+2. Obtain maintainer acceptance/dispositions under #11; review the included
+   #3–#8 ancestry without merging their implementation twice.
+3. Preserve and replay/requalify #10/#13 against the accepted parent. Keep
+   #12's CTX correctness repairs independently reviewable.
+4. Clear stable target-host acceptance and the existing quality debt separately
+   before any release/tag decision. Preserve EVID-01/A2A-01 and the other stable
+   workstream prerequisites; no new live operation is authorized by this plan.
