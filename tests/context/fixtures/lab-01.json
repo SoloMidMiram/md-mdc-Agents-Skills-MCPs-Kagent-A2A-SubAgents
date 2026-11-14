@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "source_revision": "a53bfb62f0421a7c28234f871af2bf449a11491f",
+  "task": "Explain why recorded A2A L4 is proven while L6 remains unproven. Identify missing observation, cite evidence, and propose the smallest closing test. Do not claim fresh runtime verification.",
+  "sources": [
+    {
+      "id": "definitions",
+      "path": "docs/reference/kagent-capability-matrix.md",
+      "start_line": 12,
+      "end_line": 14,
+      "sha256": "6de269f902267373ecf1d1fe5abc4f31d4e6f2fd9396d595790d4c8e7e6f4b91"
+    },
+    {
+      "id": "dispatch",
+      "path": "evidence/kagent/educational-practice-phase-5d-trustworthy-a2a.md",
+      "start_line": 58,
+      "end_line": 82,
+      "sha256": "990238434609348e8a720f48f6eba20f8fc1996fd8e8093486d409ce7d616c27"
+    },
+    {
+      "id": "attempt",
+      "path": "evidence/kagent/educational-practice-phase-5e-agent-mediated-mcp.md",
+      "start_line": 58,
+      "end_line": 79,
+      "sha256": "3148f3b7178e247c961e58979353155bf60d2c87d38aeb0851ef179e11fe527a"
+    },
+    {
+      "id": "direct",
+      "path": "evidence/kagent/educational-practice-phase-5b-direct-mcp.md",
+      "start_line": 24,
+      "end_line": 67,
+      "sha256": "6ba61f8f468485dafb0a4fa420d890fc96a07bb381d15046c5ce5254fdeffd5e"
+    },
+    {
+      "id": "status",
+      "path": "evidence/kagent/README.md",
+      "start_line": 21,
+      "end_line": 29,
+      "sha256": "d093b31e30fc269c08e36807cc3ff68944e06cb722da068ccac3c90dd39118fe"
+    },
+    {
+      "id": "contract",
+      "path": "docs/reference/kagent-agent-mediated-mcp-evidence.md",
+      "start_line": 20,
+      "end_line": 26,
+      "sha256": "48ed3f5bb013ce3620934b24579e0c074a87c7da8f86f5bf9f6867316875d26f"
+    }
+  ],
+  "claims": [
+    {
+      "statement": "Historical Phase 5D records accepted A2A dispatch.",
+      "kind": "recorded",
+      "source_ids": [
+        "dispatch",
+        "definitions"
+      ]
+    },
+    {
+      "statement": "Historical Phase 5E lacks same-task tool observation and returned result.",
+      "kind": "recorded",
+      "source_ids": [
+        "attempt",
+        "contract"
+      ]
+    },
+    {
+      "statement": "Successful direct MCP operation alone does not establish agent-mediated L6.",
+      "kind": "recorded",
+      "source_ids": [
+        "direct",
+        "definitions"
+      ]
+    }
+  ],
+  "unknowns": [
+    "Current controller/cluster/provider state is not observed.",
+    "The sole operational cause of the historical missing tool marker is not established."
+  ],
+  "exclusions": [
+    "No live controller, MCP, A2A, Context7 or Kubernetes requests.",
+    "No application code changes or capability promotion.",
+    "No subject answer, evaluator verdict, scoring data or expected patch in the packet."
+  ]
+}

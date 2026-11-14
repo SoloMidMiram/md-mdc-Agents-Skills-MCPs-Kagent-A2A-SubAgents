@@ -34,8 +34,8 @@ jobs:
       - name: Sync locked development environment
         run: uv sync --frozen --group dev
 
-      - name: Lint kagent Python code
-        run: uv run ruff check scripts/kagent tests/kagent scripts/security/audit_dependencies.py tests/security tests/reconciliation
+      - name: Lint kagent and context Python code
+        run: uv run ruff check scripts/kagent tests/kagent scripts/security/audit_dependencies.py tests/security tests/reconciliation scripts/context tests/context
 
       - name: Fetch and verify pinned LAB-01 evidence
         run: |

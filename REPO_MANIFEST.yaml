@@ -852,3 +852,14 @@ entries:
     purpose: test
     status: lab
     authority: false
+
+
+  - path: scripts/context/*
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: tests/context/**
+    purpose: test
+    status: lab
+    authority: false
