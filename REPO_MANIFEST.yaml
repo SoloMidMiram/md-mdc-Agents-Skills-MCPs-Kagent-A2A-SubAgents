@@ -9,6 +9,11 @@
 
 entries:
 
+  - path: reports/lab-runner-01-offline.md
+    purpose: reference
+    status: lab
+    authority: false
+
   # — Entry point —
   - path: README.md
     purpose: entry
@@ -861,5 +866,20 @@ entries:
 
   - path: tests/context/**
     purpose: test
+    status: lab
+    authority: false
+
+  - path: scripts/context/labs/*.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: docs/runbooks/ctx-labs-01-*.md
+    purpose: runbook
+    status: lab
+    authority: false
+
+  - path: reports/context-labs-01-results.md
+    purpose: reference
     status: lab
     authority: false

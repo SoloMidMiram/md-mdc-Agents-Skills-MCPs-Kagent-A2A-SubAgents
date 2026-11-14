@@ -96,3 +96,14 @@ success-only direct-MCP negative control, and independent evaluation. The
 expansion is LAB-01 manual investigation → CTX-01 automatic assembly of that
 same evidence → EVAL-01 manual versus generated context. Only RECON-01 and
 CTX-01 are to become issues at this milestone; the other entries stay proposed.
+
+## CTX-LABS-01 development examples
+
+Separate development slice stacked on draft #17; no integration acceptance implied.
+
+- [Pinned evidence packets](../runbooks/ctx-labs-01-packets.md)
+- [Synthetic corruption controls](../runbooks/ctx-labs-01-corruption.md)
+- [Historical coding pilot](../runbooks/ctx-labs-01-pilot.md)
+
+These labs reuse schema 1.0. Manual selection and manual packet supply do not
+constitute source discovery, authorization receipts or an approved MCP interface.
