@@ -54,6 +54,8 @@ Wait for each agent to show `Accepted=True` and deployment ready before dispatch
 no Kubernetes tool calls, and no Cursor/Codex client.
 
 ```powershell
+New-Item -ItemType Directory -Force -Path evidence/kagent/experiments/tmp | Out-Null
+
 python scripts/kagent/experiments/run_a2a_example.py `
   --agent planner-agent `
   --prompt "Plan a minimal hello-world Telegram bot." `
@@ -96,6 +98,8 @@ python scripts/kagent/experiments/run_a2a_example.py `
 **Objective:** Supervisor delegates to planner and reviewer via agent-as-tool (A2A).
 
 ```powershell
+New-Item -ItemType Directory -Force -Path evidence/kagent/experiments/tmp | Out-Null
+
 python scripts/kagent/experiments/run_a2a_example.py `
   --agent supervisor-agent `
   --prompt "Plan and review a minimal hello-world Telegram bot." `

@@ -9,6 +9,16 @@
 
 entries:
 
+  - path: reports/lab-runner-01-offline.md
+    purpose: reference
+    status: lab
+    authority: false
+
+  - path: docs/architecture/LAB-RUNNER-01-PROVISIONING.md
+    purpose: architecture
+    status: lab
+    authority: false
+
   # — Entry point —
   - path: README.md
     purpose: entry
@@ -849,6 +859,21 @@ entries:
     status: lab
     authority: false
 
+  - path: docs/onboarding/PRACTICAL-AGENT-LABS.md
+    purpose: onboarding
+    status: lab
+    authority: false
+
+  - path: docs/runbooks/lab-01-l4-versus-l6.md
+    purpose: runbook
+    status: lab
+    authority: false
+
+  - path: evidence/labs/lab-01/2026-10-25/**
+    purpose: reference
+    status: lab
+    authority: false
+
   - path: scripts/security/audit_dependencies.py
     purpose: script
     status: stable
@@ -886,5 +911,31 @@ entries:
 
   - path: tests/reconciliation/test_combined_integration.py
     purpose: test
+    status: lab
+    authority: false
+
+
+  - path: scripts/context/*
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: tests/context/**
+    purpose: test
+    status: lab
+    authority: false
+
+  - path: scripts/context/labs/*.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: docs/runbooks/ctx-labs-01-*.md
+    purpose: runbook
+    status: lab
+    authority: false
+
+  - path: reports/context-labs-01-results.md
+    purpose: reference
     status: lab
     authority: false

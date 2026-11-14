@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run a single Lane A kagent A2A educational example via the shared A2A helper.
 
-Wraps ``test-a2a-agent.py`` transport primitives — does not implement a second
+Wraps ``test-a2a-agent.py`` transport primitives â€” does not implement a second
 A2A client.
 
 Usage:
@@ -114,16 +114,28 @@ def _example_id_for_agent(agent: str) -> str:
     return mapping.get(agent, agent)
 
 
+def _text_parts(container: Any) -> list[str]:
+    if not isinstance(container, dict) or not isinstance(container.get("parts"), list):
+        return []
+    return [
+        part["text"]
+        for part in container["parts"]
+        if isinstance(part, dict)
+        and part.get("kind", "text") == "text"
+        and isinstance(part.get("text"), str)
+    ]
+
+
 def extract_text_from_task(task: dict[str, Any]) -> tuple[str, str]:
     """Return (state, concatenated agent text) from a tasks/get task object."""
     status = task.get("status") if isinstance(task.get("status"), dict) else {}
     state = str(status.get("state", "")).lower()
-    message = status.get("message") if isinstance(status.get("message"), dict) else {}
-    chunks: list[str] = []
-    for part in message.get("parts") or []:
-        if isinstance(part, dict) and isinstance(part.get("text"), str):
-            chunks.append(part["text"])
-    return state, "\n".join(chunks)
+    artifacts = task.get("artifacts")
+    if state == "completed" and isinstance(artifacts, list):
+        chunks = ["".join(_text_parts(artifact)) for artifact in artifacts]
+        if texts := [text for text in chunks if text.strip()]:
+            return state, "\n".join(texts)
+    return state, "".join(_text_parts(status.get("message")))
 
 
 def poll_task_until_terminal(
@@ -176,8 +188,9 @@ def poll_task_until_terminal(
 
 
 def extract_response_text(events: list[dict[str, Any]], task_id: str | None) -> str:
-    """Collect agent text parts from terminal completed status-update events."""
+    """Collect correlated artifacts or completed task/status text."""
     chunks: list[str] = []
+    artifacts: dict[str, list[str]] = {}
     for obj in events:
         if not isinstance(obj, dict):
             continue
@@ -189,14 +202,23 @@ def extract_response_text(events: list[dict[str, Any]], task_id: str | None) -> 
         )
         if not task_id or event_task != task_id:
             continue
-        status = result.get("status") if isinstance(result.get("status"), dict) else {}
-        if str(status.get("state", "")).lower() != "completed":
+        if result.get("kind") == "artifact-update":
+            artifact = result.get("artifact")
+            if isinstance(artifact, dict):
+                key = str(artifact.get("artifactId") or len(artifacts))
+                pieces = _text_parts(artifact)
+                if result.get("append") is True:
+                    artifacts.setdefault(key, []).extend(pieces)
+                else:
+                    artifacts[key] = pieces
             continue
-        message = status.get("message") if isinstance(status.get("message"), dict) else {}
-        for part in message.get("parts") or []:
-            if isinstance(part, dict) and isinstance(part.get("text"), str):
-                chunks.append(part["text"])
-    return "\n".join(chunks)
+        state, response = extract_text_from_task(result)
+        if state == "completed" and response:
+            chunks.append(response)
+    artifact_text = "\n".join(
+        "".join(parts) for parts in artifacts.values() if "".join(parts).strip()
+    )
+    return artifact_text or "\n".join(chunks)
 
 
 def summarize_artifact(agent: str, artifact: dict[str, Any]) -> dict[str, Any]:

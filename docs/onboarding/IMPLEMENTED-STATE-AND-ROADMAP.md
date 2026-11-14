@@ -29,6 +29,37 @@ correctness stays under #12/#13. No live capability level is promoted.
 
 ## Current Implemented State
 
+### Context-first priority and runner gate — 2026-11-06
+
+The selected priority is a measurable context-first coding assistant. See
+[North Star](../north-star.md) for direction; this document retains cross-lane
+ordering. A2A-first remains the dated educational direction, not the current
+product spine. No L/I capability is promoted by this priority change.
+
+- **Integrated offline source:** #17 at `fe3aea3f0aba9ea2cd040194dd898c91391b3240`
+  repairs schema 1.0 packet integrity; #18 at
+  `6d1e1462586c0cd3d8c84c60db85c71e6b7f2870` provides runnable offline labs, a
+  frozen pilot, and [offline runner hardening](../../reports/lab-runner-01-offline.md).
+  The source was accepted independently of runner qualification.
+- **Locally verified demonstrations:** six-source packet replay and synthetic
+  fail-closed controls. [Results](../../reports/context-labs-01-results.md)
+  preserve actual results and limitations; these are not coding-improvement data.
+- **Immediate prerequisite:** LAB-RUNNER-01 security qualification, then one
+  separately authorized non-scored experimental smoke, then nine frozen EVAL-01 cells. SoloMidMiram
+  owns provisioning/isolation/teardown. The virtual server is only a placeholder;
+  see [provisioning specification](../architecture/LAB-RUNNER-01-PROVISIONING.md).
+- **Blocked:** real execution environment, authentication, network/filesystem
+  restrictions, live launch identity, terminal-schema acceptance and teardown
+  proof. Launcher execution and scoring remain disabled. Issue #21 is at 0/9.
+- **Deferred:** snapshots, ranking/discovery, Context7 and further kagent feature
+  expansion until the current runner/evaluation gates are qualified.
+
+PRs #9, #10, #13 (including #17), and #18 are integrated in main. PR #19 documents the runner handoff and requires its own source-merge decision.
+
+Authority and freshness are separate: code/tests govern behavior at named
+revisions; dated evidence governs its observed environment/time; direction
+documents select priorities. A newer summary cannot strengthen an older result.
+
 ### Host-level MCP setup
 
 Implemented and documented:

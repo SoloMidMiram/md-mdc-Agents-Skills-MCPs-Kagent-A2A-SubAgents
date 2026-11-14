@@ -1,19 +1,35 @@
 # Project North Star
 
-Current engineering order (2026-10-22): RECON-01 → EVID-01 → A2A-01.
-The integration is published as draft PR #9; source/security acceptance and
-live capability approval remain separate from its dated hosted CI results.
-New workflow evidence waits for integrity validation; I3 remains independent.
+The current direction is a measurable context-first coding assistant. The
+repaired CTX-01 builder and #18's offline labs are integrated in main.
+Actual coding improvement remains unmeasured.
 
-**Effective:** 2026-08-07  
-**Status:** Active direction (supersedes Cursor-I3-as-spine planning)  
+The next prerequisite is independent LAB-RUNNER-01 security qualification,
+followed by a separately authorized non-scored smoke and the nine frozen
+EVAL-01 runs. The [implemented-state roadmap](onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
+owns cross-lane ordering. The [runner specification](architecture/LAB-RUNNER-01-PROVISIONING.md)
+owns provisioning requirements. I3 remains independent.
+
+**Effective:** 2026-11-06 reconciliation of the selected context-first priority
+
+**Status:** Current direction; August A2A-first retained below as historical product priority
 **Canonical owners:** This document (direction); `docs/onboarding/KAGENT-EDUCATIONAL-ROADMAP.md` (phase/PR sequencing); `evidence/kagent/README.md` (capability decisions)
 
 ---
 
 ## North Star
 
-**First prove and measure useful A2A workflows inside kagent. Then attach Codex and Cursor as interchangeable clients/workers and compare them.**
+**Build trustworthy task context, then measure whether it improves real coding
+outcomes under controlled conditions.** No model calls are warranted before the
+runner is independently qualified. No snapshot/discovery/Context7/kagent feature
+expansion is the immediate milestone. Preserve cloud-only model policy and
+existing capability definitions; no CI result supplies integration approval.
+
+Historical August 7 direction: first prove and measure useful A2A workflows
+inside kagent, then attach Codex and Cursor as clients/workers and compare them.
+The remainder of this document records that educational architecture and its
+dated rationale. It remains an independent laboratory, not the current product
+priority. Security evidence and experimental outcome evidence are separate.
 
 The Cursor I3 gate remains useful as interoperability proof. It must not block A2A education or the primary learning path.
 
@@ -63,7 +79,8 @@ These lanes organize work. They are **not** new capability numbering — keep L0
 | **C — Client Interop** | Can Cursor and Codex enter the same workflow reliably? | Controller `/mcp`, I-track evidence, client configs |
 | **B — Benchmarking** | Latency, reliability, cost, quality per architecture? | `scripts/kagent/experiments/benchmark_a2a.py`, baselines B0–B8, OTel traces |
 
-Lanes may proceed in parallel where dependencies allow. Lane A is the default priority after PR #3 foundation merges.
+These historical lanes remain useful educational planning categories. Lane A's
+former default priority does not override the current context-first runner gate.
 
 ---
 

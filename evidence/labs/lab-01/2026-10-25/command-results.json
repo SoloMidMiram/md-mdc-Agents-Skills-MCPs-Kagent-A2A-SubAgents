@@ -1,0 +1,56 @@
+{
+  "source_revision": "a53bfb62f0421a7c28234f871af2bf449a11491f",
+  "cwd": "F:\\Git\\agent-labs",
+  "recorded_at": "2026-10-25T17:53:35.671334+00:00",
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "stdout": "a53bfb62f0421a7c28234f871af2bf449a11491f\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "status",
+        "--porcelain"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "ls-remote",
+        "--heads",
+        "origin",
+        "integration/pub-01-qualified-a2a"
+      ],
+      "exit_code": 0,
+      "stdout": "a53bfb62f0421a7c28234f871af2bf449a11491f\trefs/heads/integration/pub-01-qualified-a2a\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "uv",
+        "run",
+        "--frozen",
+        "--group",
+        "dev",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/kagent/test_a2a_helper.py"
+      ],
+      "exit_code": 0,
+      "stdout": "........................................................................ [ 92%]\n......                                                                   [100%]\n78 passed in 0.11s\n",
+      "stderr": ""
+    }
+  ]
+}
