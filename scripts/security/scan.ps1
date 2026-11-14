@@ -32,7 +32,7 @@ if (-not (Test-Path -LiteralPath $ignoreFile -PathType Leaf)) {
 Write-Output "=== Trivy filesystem scan ==="
 $exitCode = 1
 if ($Required) {
-    trivy fs --scanners vuln,secret,misconfig --ignorefile $ignoreFile --exit-code 1 .
+    trivy fs --scanners vuln,secret,misconfig --include-dev-deps --ignorefile $ignoreFile --exit-code 1 .
     $exitCode = $LASTEXITCODE
 } else {
     trivy fs --scanners vuln,secret,misconfig --ignorefile $ignoreFile --exit-code 0 .
