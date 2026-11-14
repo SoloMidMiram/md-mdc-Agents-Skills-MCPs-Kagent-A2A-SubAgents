@@ -11,8 +11,6 @@ is retained as a historical observation, not current live acceptance. Repository
 integration and live SDK compatibility must be qualified independently; these
 files do not promote L6, I3, I4, or L7 or change legacy L4 dispatch acceptance.
 
-The [A2A evidence laboratory](../../docs/runbooks/a2a-evidence-laboratory.md) exercises the live decision function with synthetic observations. Its output carries no capability promotion.
-
 ## Latest Verified Status
 
 Environment observed through 2026-08-04: local Docker Desktop Kubernetes cluster,
