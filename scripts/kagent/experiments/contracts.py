@@ -21,6 +21,7 @@ EXAMPLE_AGENTS = {
     "e1-planner": "planner-agent",
     "phase2-reviewer": "reviewer-agent",
     "e2-supervisor": "supervisor-agent",
+    "e3-docs": "docs-agent",
 }
 TERMINAL_STATES = frozenset({"completed", "failed", "canceled", "cancelled", "rejected"})
 TASK_STATES = TERMINAL_STATES | {"submitted", "working", "input_required", "auth_required"}
@@ -123,7 +124,7 @@ def validate_example(example: Any, agent: Any) -> None:
         raise ContractError("example and target agent disagree")
 
 
-def validate_evidence_payload(payload: Any) -> None:
+def validate_evidence_payload(payload: Any, *, docs_files: dict[str, str] | None = None) -> None:
     """Validate source observations; a producer's pass flag is never sufficient."""
     if not isinstance(payload, dict):
         raise ContractError("evidence must be an object")
@@ -178,7 +179,14 @@ def validate_evidence_payload(payload: Any) -> None:
         artifact_text = json.dumps(payload.get("artifact"), allow_nan=False)
     except (ValueError, TypeError) as exc:
         raise ContractError("artifact must contain finite JSON data") from exc
-    validate_artifact(target["agent"], artifact_text)
+    if target["agent"] == "docs-agent":
+        if docs_files is None:
+            raise ContractError("E3 evidence requires the original verified bundle")
+        from scripts.kagent.experiments.docs_bundle import validate_findings
+
+        validate_findings(payload["artifact"], docs_files)
+    else:
+        validate_artifact(target["agent"], artifact_text)
 
 
 def sanitize_evidence(value: Any) -> Any:

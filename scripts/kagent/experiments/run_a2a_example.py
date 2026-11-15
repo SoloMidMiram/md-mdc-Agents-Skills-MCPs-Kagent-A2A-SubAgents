@@ -19,6 +19,8 @@ import json
 import math
 import sys
 import time
+import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -32,15 +34,10 @@ a2a = importlib.util.module_from_spec(_spec)
 sys.modules["kagent_test_a2a_agent"] = a2a
 _spec.loader.exec_module(a2a)
 
-EXPERIMENTS_DIR = Path(__file__).resolve().parent
-_contracts_spec = importlib.util.spec_from_file_location(
-    "kagent_experiment_contracts", EXPERIMENTS_DIR / "contracts.py"
-)
-if _contracts_spec is None or _contracts_spec.loader is None:
-    raise RuntimeError("experiment contracts could not be loaded")
-contracts = importlib.util.module_from_spec(_contracts_spec)
-sys.modules["kagent_experiment_contracts"] = contracts
-_contracts_spec.loader.exec_module(contracts)
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+contracts = importlib.import_module("scripts.kagent.experiments.contracts")
+docs_bundle = importlib.import_module("scripts.kagent.experiments.docs_bundle")
 ContractError = contracts.ContractError
 validate_artifact = contracts.validate_artifact
 
@@ -70,6 +67,9 @@ class ExampleRunResult:
         default_factory=lambda: ["L6", "I3", "I4", "L7", "MCP", "Codex", "Cursor"]
     )
 
+    message_id: str | None = None
+    docs_files: dict[str, str] | None = field(default=None, repr=False)
+
     def to_dict(self) -> dict[str, Any]:
         payload = {
             "schemaVersion": SCHEMA_VERSION,
@@ -95,10 +95,12 @@ class ExampleRunResult:
             "artifactSummary": self.artifact_summary,
             "nonClaims": self.non_claims,
         }
-        contracts.validate_evidence_payload(payload)
+        contracts.validate_evidence_payload(payload, docs_files=self.docs_files)
         sanitized = contracts.sanitize_evidence(payload)
         if not isinstance(sanitized, dict):
             raise ContractError("sanitized evidence must be an object")
+        if self.agent == "docs-agent" and self.pass_:
+            contracts.validate_evidence_payload(sanitized, docs_files=self.docs_files)
         return sanitized
 
 
@@ -107,6 +109,7 @@ def _example_id_for_agent(agent: str) -> str:
         "planner-agent": "e1-planner",
         "reviewer-agent": "phase2-reviewer",
         "supervisor-agent": "e2-supervisor",
+        "docs-agent": "e3-docs",
     }
     return mapping.get(agent, agent)
 
@@ -223,6 +226,8 @@ def summarize_artifact(agent: str, artifact: dict[str, Any]) -> dict[str, Any]:
         return {"goal": artifact.get("goal", "")[:160]}
     if agent == "reviewer-agent":
         return {"verdict": artifact.get("verdict")}
+    if agent == "docs-agent":
+        return {"findingCount": len(artifact["findings"])}
     if agent == "supervisor-agent":
         summary: dict[str, Any] = {}
         if "verdict" in artifact:
@@ -244,12 +249,14 @@ def run_example(
     example: str | None,
     timeout: float,
     skip_contract: bool,
+    before_dispatch: Callable[[], float] | None = None,
 ) -> ExampleRunResult:
     transport = a2a.DirectUrlTransport()
     example_id = example or _example_id_for_agent(agent)
     contracts.validate_example(example_id, agent)
     if not math.isfinite(timeout) or timeout <= 0:
         raise ContractError("timeout must be finite and positive")
+    docs_files = docs_bundle.validate_bundle(prompt) if agent == "docs-agent" else None
     started = time.perf_counter()
     result = ExampleRunResult(
         example=example_id,
@@ -261,6 +268,7 @@ def run_example(
         duration_ms=0,
         pass_=False,
         reason="not started",
+        docs_files=docs_files,
     )
 
     card_report = a2a.run_card(
@@ -282,11 +290,14 @@ def run_example(
 
     url = a2a.build_a2a_url(controller, namespace, agent)
     try:
+        message_id = str(uuid.uuid4())
+        dispatch_timeout = timeout if before_dispatch is None else before_dispatch()
         request_id, _http_status, events = a2a.collect_dispatch_stream(
-            transport, url, prompt, timeout=timeout
+            transport, url, prompt, timeout=dispatch_timeout, message_id=message_id
         )
         task_id, state, _kind = a2a.select_dispatch_from_events(request_id, events)
         result.request_id = request_id
+        result.message_id = message_id
         if not isinstance(task_id, str) or not task_id.strip():
             raise a2a.GateError("dispatch requires a task ID")
         for event in events:
@@ -327,7 +338,10 @@ def run_example(
         artifact: dict[str, Any] | None = None
         if skip_contract:
             raise ContractError("contract validation skipped; diagnostic only")
-        artifact = validate_artifact(agent, response_text)
+        if docs_files is not None:
+            artifact = docs_bundle.parse_findings(response_text, docs_files)
+        else:
+            artifact = validate_artifact(agent, response_text)
         result.artifact = artifact
         result.artifact_summary = summarize_artifact(agent, artifact)
 
@@ -367,7 +381,19 @@ def main(argv: list[str] | None = None) -> int:
         print("error: use only one of --prompt or --prompt-file", file=sys.stderr)
         return a2a.ExitCode.USAGE
     if args.prompt_file:
-        prompt = args.prompt_file.read_text(encoding="utf-8")
+        if args.agent == "docs-agent":
+            with args.prompt_file.open("rb") as stream:
+                raw = stream.read(docs_bundle.MAX_JSON_BYTES + 1)
+            if len(raw) > docs_bundle.MAX_JSON_BYTES:
+                print("error: bundle JSON exceeds size limit", file=sys.stderr)
+                return int(a2a.ExitCode.USAGE)
+            try:
+                prompt = raw.decode("utf-8")
+            except UnicodeDecodeError:
+                print("error: bundle JSON must be UTF-8", file=sys.stderr)
+                return int(a2a.ExitCode.USAGE)
+        else:
+            prompt = args.prompt_file.read_text(encoding="utf-8")
     elif args.prompt:
         prompt = args.prompt
     else:

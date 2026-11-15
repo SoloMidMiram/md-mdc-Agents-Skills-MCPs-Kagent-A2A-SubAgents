@@ -295,7 +295,9 @@ Deliver educational agent manifests and harness stubs under
 
 - **E1:** planner-only A2A (human → planner)
 - **E2:** supervisor → planner → reviewer (agent-as-tool)
-- **E3:** docs validator with sanitized repo bundle
+- **E2-R:** bounded planner/reviewer coordination with one revision.
+- **E3:** documentation validator for a bounded, caller-sanitized bundle.
+- **Offline labs:** [protocol lifecycle](../runbooks/a2a-protocol-laboratory.md) and [evidence correlation](../runbooks/a2a-evidence-laboratory.md).
 
 Runbook: `docs/runbooks/kagent-a2a-examples.md`. DeepSeek inside kagent powers
 in-cluster roles. No Cursor/Codex required for E1–E2.

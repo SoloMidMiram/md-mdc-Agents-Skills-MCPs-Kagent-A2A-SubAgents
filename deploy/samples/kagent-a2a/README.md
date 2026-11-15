@@ -12,10 +12,10 @@ Educational agent manifests for the E1–E5 sequence. See
 | `01-planner/` | Planner agent | E1 |
 | `02-reviewer/` | Reviewer agent | Phase 2 (manual coordination) |
 | `03-supervisor/` | Supervisor + Agent-tool delegation | E2 |
-| `04-docs-agent/` | Docs validator | E3 (future) |
+| [`04-docs-agent/`](04-docs-agent/README.md) | Docs validator | E3 |
 | `05-telegram-capstone/` | Full capstone | E5 (future) |
 
-**Status:** E1–E2 manifests and harness land in EDU-01 (`edu/kagent-a2a-role-examples`).
+**Status:** The original EDU-01 work added E1–E2. The follow-on adds the bounded E2-R coordinator and the E3 sample.
 
 These are `deploy/samples/` educational starters, not production base resources.
 

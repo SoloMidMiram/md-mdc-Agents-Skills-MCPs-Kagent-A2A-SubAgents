@@ -340,8 +340,11 @@ def build_health_url(base: str) -> str:
     return f"{base.rstrip('/')}/health"
 
 
-def build_dispatch_envelope(request_id: str, prompt: str) -> dict[str, Any]:
-    message_id = str(uuid.uuid4())
+def build_dispatch_envelope(
+    request_id: str, prompt: str, *, message_id: str | None = None
+) -> dict[str, Any]:
+    if message_id is None:
+        message_id = str(uuid.uuid4())
     return {
         "jsonrpc": "2.0",
         "id": request_id,
@@ -593,13 +596,14 @@ def collect_dispatch_stream(
     prompt: str,
     *,
     timeout: float = 60.0,
+    message_id: str | None = None,
 ) -> tuple[str, int, list[dict[str, Any]]]:
     """POST message/stream and return (request_id, http_status, validated event list).
 
     Additive helper for L6 correlation. Does not change L4 acceptance rules.
     """
     request_id = str(uuid.uuid4())
-    envelope = build_dispatch_envelope(request_id, prompt)
+    envelope = build_dispatch_envelope(request_id, prompt, message_id=message_id)
     body = json.dumps(envelope).encode()
     resp = transport.request(
         "POST",

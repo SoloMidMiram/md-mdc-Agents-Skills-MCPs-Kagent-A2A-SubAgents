@@ -4,7 +4,7 @@ This runbook owns executable procedures for the A2A-first educational sequence
 defined in [Project North Star](../north-star.md). Capability decisions remain in
 `evidence/kagent/README.md`; this document owns commands and pass/fail criteria.
 
-**Status:** E1–E2 manifests and harness ship in EDU-01 (`edu/kagent-a2a-role-examples`).
+**Status:** E1–E2 originated in EDU-01 (`edu/kagent-a2a-role-examples`). The follow-on adds a bounded coordinator, the E3 supplied-bundle validator, and offline laboratories for [protocol behavior](a2a-protocol-laboratory.md) and [evidence correlation](a2a-evidence-laboratory.md).
 
 ---
 
@@ -13,7 +13,7 @@ defined in [Project North Star](../north-star.md). Capability decisions remain i
 - Local `kagent` on `docker-desktop` per [local kagent A2A lab](local-kagent-a2a-lab.md)
 - L4 A2A dispatch proven (see evidence index)
 - Cloud-only LiteLLM `agent-coder` qualified and `litellm-gateway-model-config` applied
-- For E3+: read-only MCP surface from SAFE-01 when tool access is required
+- For examples that require tool access: the applicable SAFE-01 read-only MCP surface
 - For E4/E5: Codex local runner (WORKER-01) — not required for E1–E2
 
 ---
@@ -117,13 +117,15 @@ python scripts/kagent/experiments/record_experiment.py `
 
 ---
 
+## E2-R — Bounded planner and reviewer coordination
+
+The [coordinator](../../scripts/kagent/experiments/e2r_orchestration.py) gives the planner and reviewer one overall deadline. A revise verdict permits one further planning and review round. A second revise ends in rejection. The [offline tests](../../tests/kagent/experiments/test_e2r_orchestration.py) exercise the aggregate decision and per-task IDs. E2 remains the Agent-tool delegation example.
+
 ## E3 — Docs validator (sanitized bundle)
 
 **Objective:** Docs agent validates a sanitized repository bundle against a schema.
 
-**Safety:** Bundle is read-only; no live cluster mutation. Uses Lane S allowlist when MCP is involved.
-
-**Planned:** EDU-01 docs-agent sample + SAFE-01 read-only tool surface.
+The [E3 sample](../../deploy/samples/kagent-a2a/04-docs-agent/README.md) uses the shared runner to validate UTF-8 content, paths and hashes before dispatch. Every finding must cite an exact excerpt in the supplied bundle. The agent has no tools.
 
 ---
 
