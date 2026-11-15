@@ -13,7 +13,47 @@ It answers four questions:
 3. What is only partially working?
 4. What should be stabilized or refactored next?
 
-## Combined candidate and evidence scope
+## Live execution plan — reconciled 2026-11-15
+
+**Status baseline:** `main` at `78bb511e3dd4ab44614ecde9905d4d1631d680d4`. Merged source integration includes PRs #9, #10, #13, #16, #17, #18, #19, #33 and #34. EDU-01 #27–#32 is closed. **Source integration and offline CI do not qualify a live model runner or promote any kagent capability.**
+
+### Separate value, readiness and authority
+
+- **P0 is the engineering queue, not permission to execute:** [#20 runner qualification](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/20) is **blocked on approved real infrastructure, authenticated independent verification and teardown**; [#21 frozen coding evaluation](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/21) remains **0/9** and cannot run before #20 and separate smoke/run authorization.
+- **P1 education is ready today and independent of the P0 blockers:** [#36 EDU-02 documentation review](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/36), then [#37 EDU-03 deterministic coding-worker fixture](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/37). Both are offline, synthetic and cannot be substituted for a real worker or scored evaluation.
+- **P1 product/context extensions are deferred:** [#22 immutable snapshots](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/22) → [#23 source discovery](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/23) → [#24 packet approval](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/24) → [#25 approved-only MCP](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/25). Start after actionable #21 results **or an explicit maintainer change of priority**; preserve original acceptance criteria.
+- **Other lanes remain independent:** stable Playwright v0.1.1 release evidence, L6/L7 live qualification, Cursor I3/I4 and governance baselines have distinct owners and evidence. No synthetic educational report can close these gates.
+
+| Lane / order | Readiness and next owner action | Reusable implementation slice | Closure evidence |
+| --- | --- | --- | --- |
+| P0-A: [#20](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/20) | **Blocked**. SoloMidMiram selects actual VM provider/image, access, credential boundary and spending limit; independently review [PR #35](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/pull/35). | Enroll/authenticate independent verifier; implement bounded ephemeral Linux VM lifecycle and safe artifact custody. | Independently authenticated negative/positive probes, immutable attempt binding, termination/teardown, separate authorized non-scored smoke. |
+| P0-B: [#21](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/21) | **Blocked by #20** and explicit paid-run authorization. | Reuse merged CTX schema 1.0/historical three-task, three-arm frozen harness; do not change tasks/order/budgets. | Nine retained run records, independent held-out tests and all failures/unknown costs, without claims of statistical superiority. |
+| EDU-A: [#36](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/36) | **Ready for implementation**; contributor creates focused draft PR. | Supplied sanitized Markdown → existing `docs_bundle` → narrowly scoped heading checker → existing E2-R `Invoke` fixtures → synthetic report. | One reproducible command on fresh Windows checkout, exact hashes/citations, deterministic cases and fail-closed tests. |
+| EDU-B: [#37](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/37) | **Planned after #36 interface review**; contributor follows accepted reusable boundary. | Disposable mini-repo → fixture coding worker → independent test evaluator → review evidence, without modifying E2-R's role contract. | Visible-pass/held-out-fail control, patch/path isolation, stable synthetic report, reusable tested interface. |
+| CTX-A: [#22](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/22) | **Deferred; first after priority gate**. | Schema v2 sealed committed/index/worktree snapshots; unchanged schema 1.0 replay. | Exact byte/source provenance, overlay/race/escape tests and Linux/Windows negative controls. |
+| CTX-B: [#23](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/23) | **Deferred; after #22**. | Deterministic ranked candidate sources from sealed snapshots only. | Gold-source retrieval precision/recall, explainable features, budgets and manual rollback. |
+| CTX-C: [#24](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/24) | **Deferred; after #22 + #23**. | Source-level selective review + fresh complete-packet approval receipt. | Changed-source, revoked/stale/replayed receipt and scope-invalidation tests. |
+| CTX-D: [#25](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/25) | **Deferred; after #24**. | Read-only local MCP serving only independently authorized sealed packets. | Permitted and denied in-process + real Codex and Cursor calls, exact versions, bounded outputs, no filesystem escape. |
+
+### Design rules for educational and reusable modules
+
+1. **Reuse first.** `scripts/kagent/experiments/docs_bundle.py` remains authoritative for supplied bundles; `e2r_orchestration.coordinate()` remains the bounded planner/reviewer state machine; existing A2A transport is not forked. Fixture loading, Markdown reference checking and report rendering belong to EDU-02, not to their general-purpose validators.
+2. **Do not invent a generic platform prematurely.** Create a catalog/shared CLI only after EDU-03 demonstrates a second actual consumer. Its worker stage is a separately injected adapter **outside** E2-R's two-role coordinator; do not pretend `coordinate()` already schedules coding workers.
+3. **Keep evidence authorities distinct.** Native SDK 1.0, educational 1.1 and aggregate E2-R traces remain versioned and separate. Report `origin: synthetic`, `capabilityPromotion: false` and explicit non-claims. Determinism applies to substantive fields, not timestamps or temporary directories.
+4. **Treat concurrency as a correctness boundary.** `run_e2r_example.py` uses `asyncio.to_thread`; cancelling the await cannot kill an in-flight synchronous call. Reusable live-worker adapters need cooperative cancellation, no late dispatch and independently observed teardown before promotion.
+5. **Promote with evidence, not enthusiasm.** Every lab documents objective, setup, commands, intentional failure, expected output, cleanup, what is/not proven, negative tests, fresh-checkout reproduction and exact-head CI. Normal CI performs deterministic offline checks only. Real runner qualification, cloud spend, model calls, kagent mutation and scoring need separate explicit authorization.
+
+### Current review facts and immediate next actions
+
+[PR #35](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/pull/35), head `98705b14fdbda4f1589a4997b49b893fb165c850`, is an **open draft**. Its [Quality run 43736334562](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/43736334562) completed all **5/5** jobs successfully; independent review and source-merge disposition remain pending. The offline verifier checks supplied evidence contracts; **the producer enrollment/authenticated trust path, live isolation and teardown are still unqualified**.
+
+**Next execution order:** (1) independently review #35 and let the infrastructure owner resolve #20's environment decision; (2) implement/review #36 while #20 is blocked; (3) implement/review #37 only when #36 demonstrates a real reusable seam; (4) qualify #20 and separately authorize smoke; (5) run #21 after its gate; (6) decide whether to activate #22–#25. No issue closure, PR merge or deployment is implied by this documentation.
+
+---
+
+## Historical combined candidate and evidence scope (pre-merge; retained for traceability)
+
+The following section describes the RECON-02 candidate **before integration into main**. It is retained as dated history and must not be used to infer present PR merge status.
 
 RECON-02 combines #14 (`17312a75`) and #15 (`7cb921ce`) in a separate branch
 without rewriting either reviewed history or changing main/#9/#10/#13.
@@ -307,7 +347,9 @@ pwsh -ExecutionPolicy Bypass -File scripts\evaluation\run-evaluation.ps1
 - L7 bootstrap, cleanup, and fresh-install evidence
 - root `docs/01-*.md`–`docs/07-*.md` stubs remain as compatibility redirects; full removal pending consumer bookmark updates
 
-## Practical Roadmap
+## Historical practical roadmap (pre-merge planning table)
+
+The table below is retained for workstream traceability. For current issue order, source-merge status, owner handoffs and blockers use the **Live execution plan** above. Its prior status values are historical.
 
 This table coordinates repository delivery. The stable release checklist owns
 release mechanics, the kagent educational roadmap owns detailed phase/PR work,
@@ -352,14 +394,10 @@ Reverse delegation from kagent to native Cursor/Codex agents, global installer
 integration, and autonomous cluster mutation are deferred. They do not block
 L6 or L7.
 
-## Recommended Next Steps
+## Current next steps (2026-11-15)
 
-1. Complete RECON-02's actual combined-tree qualification and record the
-   immutable candidate, parent SHAs, conflict decisions and current audit data.
-2. Obtain maintainer acceptance/dispositions under #11; review the included
-   #3–#8 ancestry without merging their implementation twice.
-3. Preserve and replay/requalify #10/#13 against the accepted parent. Keep
-   #12's CTX correctness repairs independently reviewable.
-4. Clear stable target-host acceptance and the existing quality debt separately
-   before any release/tag decision. Preserve EVID-01/A2A-01 and the other stable
-   workstream prerequisites; no new live operation is authorized by this plan.
+1. **P0 owner decision:** qualify a real isolated runner environment under #20. Independently review the offline PR #35; its green CI is not runtime security evidence.
+2. **Ready educational lane:** implement #36 as a single replayable supplied-bundle documentation-review lab; use its real seam to decide the bounded interface for #37, rather than creating speculative framework modules.
+3. **After qualification and explicit authorization:** run the frozen #21 protocol, retain all nine outcomes and perform independent evaluation. If blocked, continue to record 0/9 rather than changing tasks or isolation rules.
+4. **Only after evaluation or explicit change of priority:** authorize #22, then #23, #24 and #25 in sequence.
+5. **Independent maintenance:** track Playwright release acceptance, kagent L6/L7 and I3/I4, governance benchmarks, inherited documentation links and custom-resource schema coverage separately. Preserve their distinct capability evidence.
