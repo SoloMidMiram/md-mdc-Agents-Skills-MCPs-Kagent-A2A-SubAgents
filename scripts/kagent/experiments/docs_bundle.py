@@ -111,7 +111,11 @@ def validate_findings(response: Any, files: dict[str, str]) -> dict[str, Any]:
         path = finding["path"]
         if not isinstance(path, str) or path not in files:
             raise ContractError("citation path is absent from bundle")
-        lines = files[path].splitlines(keepends=True)
+        # Only LF advances the physical line number. Preserve CR and all other bytes.
+        segments = files[path].split("\n")
+        lines = [segment + "\n" for segment in segments[:-1]]
+        if segments[-1]:
+            lines.append(segments[-1])
         start, end = finding["startLine"], finding["endLine"]
         if type(start) is not int or type(end) is not int or not 1 <= start <= end <= len(lines):
             raise ContractError("citation line range is invalid")

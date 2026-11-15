@@ -173,3 +173,18 @@ def test_e3_cannot_export_success_with_sanitized_citation():
 
     with pytest.raises(ContractError, match="citation excerpt does not match"):
         result.to_dict()
+
+
+@pytest.mark.parametrize("separator", ["\u2028", "\r"])
+def test_citations_count_only_physical_lf_lines(separator):
+    reference = "[Missing](./absent.md)"
+    first = f"Intro{separator}{reference}\r\n"
+    second = "Physical second line."
+    files = validate_bundle(bundle(file(content=first + second)))
+
+    with pytest.raises(ContractError, match="excerpt does not match"):
+        parse_findings(json.dumps(response(excerpt=reference + "\r\n")), files)
+
+    for line, excerpt in [(1, first), (2, second)]:
+        finding = response(startLine=line, endLine=line, excerpt=excerpt)
+        assert parse_findings(json.dumps(finding), files) == finding
