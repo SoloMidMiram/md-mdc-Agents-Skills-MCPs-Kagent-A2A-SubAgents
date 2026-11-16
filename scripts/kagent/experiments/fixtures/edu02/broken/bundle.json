@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "bundleId": "edu02-broken",
+  "files": [
+    {
+      "path": "guide.md",
+      "content": "# Offline Guide\n\nSee [Install](#instal).\n\n## Install\n\nUse the local fixture only.\n",
+      "sha256": "3afeeda3d716ec5d74861509f8e2f3ddee711d2f29753cb8ff5d5de8ff5491b1"
+    }
+  ]
+}

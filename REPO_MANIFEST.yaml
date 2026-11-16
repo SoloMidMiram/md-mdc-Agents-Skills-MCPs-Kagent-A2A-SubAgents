@@ -565,6 +565,46 @@ entries:
     status: lab
     authority: false
 
+  - path: docs/runbooks/edu-02-documentation-review.md
+    purpose: documentation
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/edu02_lab.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: tests/kagent/experiments/test_edu02_lab.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/fixtures/edu02/.gitattributes
+    purpose: configuration
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/fixtures/edu02/broken/bundle.json
+    purpose: configuration
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/fixtures/edu02/broken/guide.md
+    purpose: documentation
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/fixtures/edu02/fixed/bundle.json
+    purpose: configuration
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/fixtures/edu02/fixed/guide.md
+    purpose: documentation
+    status: lab
+    authority: false
+
   - path: scripts/kagent/experiments/docs_bundle.py
     purpose: script
     status: lab
