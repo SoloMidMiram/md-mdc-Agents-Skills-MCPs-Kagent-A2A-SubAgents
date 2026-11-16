@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "bundleId": "edu02-fixed",
+  "files": [
+    {
+      "path": "guide.md",
+      "content": "# Offline Guide\n\nSee [Install](#install).\n\n## Install\n\nUse the local fixture only.\n",
+      "sha256": "239c97d12349c30e7281a73a85aa3c858c5c3edec6e0967f377ab3b52d29ab34"
+    }
+  ]
+}
