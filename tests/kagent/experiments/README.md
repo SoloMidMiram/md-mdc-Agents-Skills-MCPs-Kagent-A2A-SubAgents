@@ -7,3 +7,6 @@ and are not required in CI.
 EVID-01 regressions cover invalid evidence types, task/request mismatch, terminal
 completion, full supervisor contracts, redaction, registered example identifiers,
 and collision-safe output. They use only fake transports and temporary files.
+
+EDU-02 demonstrates a digest-verified, synthetic offline documentation review.
+See [the runnable lab](../../../docs/runbooks/edu-02-documentation-review.md).
