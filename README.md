@@ -13,14 +13,9 @@ for VS Code, Cursor, Codex CLI, and Continue.
 
 ## Quick Start
 
-Selected priority: a measurable **context-first coding assistant**. The repaired
-CTX-01 builder and #18's offline labs are integrated in main. The nine coding experiments remain blocked on independent runner
-qualification. SoloMidMiram owns the
-[virtual-server provisioning handoff](docs/architecture/LAB-RUNNER-01-PROVISIONING.md),
-which currently uses a placeholder, not a live host. See the
-[implemented-state roadmap](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
-for ordering and evidence boundaries. The A2A/kagent laboratory remains an
-independent educational lane; no capability or merge status is promoted.
+Selected priority: a **measurable context-first coding assistant**. Merged source work includes CTX-01/CTX-LABS and the offline EDU-01 A2A follow-on (PR #33); none establishes live coding improvement. [#20 runner qualification](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/20) is P0 but blocked on real independently qualified infrastructure. [#21 frozen evaluation](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/21) remains **0/9**. [Draft PR #35](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/pull/35) has passing offline CI, not live isolation proof. The first offline EDU-02 slice is merged and replayable using the [documentation-review runbook](docs/runbooks/edu-02-documentation-review.md). [#36](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/36) remains open for cross-file references, stable finding IDs, and learner extension instructions. [#37 fixture coding-worker lab](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/37) follows EDU-02 acceptance. Context snapshot/discovery/approval/MCP proposals #22–#25 remain deferred.
+
+See the [live execution order and evidence gates](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md#live-execution-plan--reconciled-2026-11-15) before starting new code. The kagent lane and Playwright release track retain their own acceptance rules.
 
 ```powershell
 git clone https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents.git
@@ -62,7 +57,9 @@ Runbooks:
 - [SSH concurrency fix](docs/runbooks/ssh-concurrency-fix.md)
 - [Troubleshooting](docs/runbooks/troubleshooting.md)
 
-## Dependency security scope
+## Dependency security scope — historical RECON-02 notes
+
+The paragraphs below record the earlier candidate qualification stage. RECON-02 and its source PRs have since been integrated into main; these dated statements must not be interpreted as current merge blockers. The live issue order is in the linked roadmap.
 
 RECON-02 combines the reviewed root correction (#14, `17312a75`) and isolated
 SDK correction (#15, `7cb921ce`) on a separate candidate branch. It preserves
@@ -74,7 +71,9 @@ heads do not establish combined acceptance. See the
 [contradiction register](docs/reference/contradiction-register.md) and issue #11.
 CTX-01 correctness and live Context7/Kagent/L6/L7/I3/I4 remain separate gates.
 
-## Current State
+## Capability snapshot — dated observations and stable host setup
+
+The runtime observations below are historical evidence, not a fresh deployment or cluster health check.
 
 Two paths matter today:
 
@@ -98,7 +97,9 @@ for phase/PR sequencing, [docs/runbooks/local-kagent-a2a-lab.md](docs/runbooks/l
 for the cluster runbook, and [docs/runbooks/kagent-a2a-examples.md](docs/runbooks/kagent-a2a-examples.md)
 for the E1–E5 educational examples.
 
-## Security and branch scope
+## Security and branch scope — historical pre-integration notes
+
+The original branch-specific statements below describe the period before #9/#10/#13 were merged. For current merge status and implementation queue use the live roadmap.
 
 Use the [dependency security runbook](docs/runbooks/dependency-security.md) and
 [contradiction register](docs/reference/contradiction-register.md) for the current
@@ -146,7 +147,9 @@ is authorized by a passing dependency audit.
 | `scripts/kagent/apply-litellm-modelconfig.ps1` | Apply the PR2 LiteLLM Secret, ModelConfig, and smoke agent |
 | `scripts/kagent/controller_mcp_smoke.py` | Verify the bounded native controller MCP contract |
 
-## kagent Roadmap
+## Historical kagent roadmap and educational path
+
+The earlier A2A-first product-priority wording below is retained for technical context. Since the November 2026 direction reconciliation, the measurable context-first assistant and runner/evaluation gates are the **current product spine**; offline A2A education proceeds independently.
 
 **North star (2026-08-07):** First prove useful A2A workflows inside kagent,
 then attach Cursor and Codex as interchangeable clients/workers and compare
@@ -230,4 +233,4 @@ for ownership; included ancestor PRs are not independent changes to merge twice.
 
 MIT - see [LICENSE](LICENSE).
 
-*Last updated: 2026-08-20*
+*Current-state reconciliation: 2026-11-15. Older sections retain dated historical evidence.*
