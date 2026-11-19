@@ -615,6 +615,21 @@ entries:
     status: lab
     authority: false
 
+  - path: docs/runbooks/edu-03-coding-fixture.md
+    purpose: runbook
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/edu03_lab.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: tests/kagent/experiments/test_edu03_lab.py
+    purpose: test
+    status: lab
+    authority: false
+
   - path: scripts/kagent/experiments/docs_bundle.py
     purpose: script
     status: lab
