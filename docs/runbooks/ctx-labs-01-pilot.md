@@ -21,7 +21,7 @@ Source-only subjects are Git archives of #13 with fresh commits, no remote and n
 
 ## Trusted infrastructure boundary
 
-**Offline hardening only; runner qualification is not implemented.** The legacy
+**Offline hardening only. Live runner qualification remains pending.** The legacy
 launcher self-attestation path is disabled. Supplying --launcher never executes
 that file; it records BLOCKED before model calls. Neither matching JSON nor an
 offline-valid terminal fixture is qualification or permission to score.
@@ -46,9 +46,20 @@ qualification, credential/network safety and teardown remain unverified until
 a separately authorized smoke. Unknown/malformed events reject rather than
 being dropped. Failed or unqualified execution records cannot become scores.
 
-A future runner/controller must implement an independently trusted verifier and
-reuse these validators at the real dispatch/collection boundary. No VM adapter,
-provider binding or credential mechanism is delivered by this offline slice.
+The offline qualification verifier accepts version 1 evidence for the boundary
+and teardown phases separately. The controller supplies the exact expected
+binding, a fresh nonce per attempt and the observation window for each phase.
+Each required probe has an outcome, a Unix-second observation time and the
+SHA-256 of its retained artifact. Artifact keys are the required probe IDs.
+Missing evidence, failed observations and mismatched artifacts block acceptance.
+
+Before integrating these verdicts, the controller must authenticate the
+independent verifier and receive its report and artifacts outside the subject's
+control. It must collect boundary evidence before dispatch and require teardown
+evidence for the same attempt before accepting the result. Any connectivity
+probe requiring a model call needs its own bounded authorization. The offline
+verifier checks the evidence contract. Live collection, verifier enrollment,
+transport, dispatch and teardown enforcement remain pending.
 
 ## Independent evaluation and retained data
 
