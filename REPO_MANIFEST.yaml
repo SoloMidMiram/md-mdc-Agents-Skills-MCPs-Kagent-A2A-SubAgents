@@ -989,3 +989,18 @@ entries:
     purpose: reference
     status: lab
     authority: false
+
+  - path: examples/offline/ncm-01/README.md
+    purpose: documentation
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/ncm01_worker.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: tests/kagent/experiments/test_ncm01_worker.py
+    purpose: test
+    status: lab
+    authority: false
