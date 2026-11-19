@@ -1,52 +1,54 @@
 # EDU-02 offline documentation-review lab
 
-From the repository root, with Python 3.12 or newer:
+Run from the repository root with Python 3.12 or newer.
 
 ```powershell
 python -m scripts.kagent.experiments.edu02_lab
+python -m scripts.kagent.experiments.edu02_lab --case broken
+python -m scripts.kagent.experiments.edu02_lab --case fixed
 ```
 
-No dependency installation, credentials, network access, workers, or model calls
-are needed. The command prints JSON to stdout and exits zero when the expected
-demonstration succeeds. Invalid inputs or unexpected outcomes exit one with a
-diagnostic on stderr. It writes no report files.
+The default replay cites the misspelled `runbook.md#instal` on physical line 3 of
+`guide.md`, then selects the pre-authored correction `runbook.md#install`.
+Expect four subtasks, one revision and final approval. The broken-only control
+revises once and rejects, and the fixed-only case approves after two subtasks.
+An expected rejection is a successful demonstration and exits zero. Invalid
+fixtures or unexpected outcomes exit one with a diagnostic on stderr.
+The command writes only to stdout/stderr and uses no network or model.
 
-The broken guide refers to `#instal`; its heading is `Install`. The report cites
-physical line 3 and its exact excerpt. The deterministic planner selects the
-broken fixture, the reviewer runs the checker and rejects it, the revised planner
-selects the pre-authored fixed fixture, and the reviewer checks and approves it.
-Expect four subtasks, one revision, and a final approve verdict. This demonstrates
-selection of a supplied correction, not autonomous editing.
+The checker uses only verified in-memory bundle files. It accepts simple ASCII
+ATX headings and inline links with plain ASCII labels and lowercase hyphenated
+fragments. An omitted path refers to the containing document. POSIX-relative
+`.md` targets are resolved from the containing directory, with lexical `.` and
+`..` normalization inside the bundle. Paths are case-sensitive. Simple fenced
+blocks are skipped. Images, reference links, rich headings, encoded targets,
+escaping paths, indented Markdown and detected unsupported syntax are unresolved. Links to a
+duplicate normalized heading are ambiguous. Unicode prose and CRLF citations
+retain their exact bytes. The checker covers this documented fixture dialect.
 
-Both fixtures have checked-in SHA-256 manifests. Loading preserves UTF-8 bytes,
-then uses `docs_bundle.validate_bundle()`; citations use
-`docs_bundle.validate_findings()`. Fixture attributes pin LF in Windows checkouts.
-To intentionally edit a fixture, update its recorded digest separately and review
-both changes. The runner never repairs a mismatched digest.
+Compare parsed JSON across platforms, including fixture SHA-256 values, packet
+digest, exact excerpts, finding IDs, correlated subtask identities and verdicts.
+A finding ID hashes the validated citation and normalized target. Identical
+references to the same target on one physical line share an ID. A change to
+the citation or target changes the ID. The report is synthetic and records
+`capabilityPromotion: false`.
 
-The checker supports plain ASCII ATX headings with single spaces and inline
-same-document links with simple ASCII labels and lowercase hyphenated anchors.
-Heading anchors lowercase text and replace spaces with hyphens. Fenced code is
-ignored. Duplicate headings, rich heading syntax, cross-file and reference links,
-and other detected unsupported syntax are unresolved questions, not successful
-checks. This is a fixture-oriented subset, not a general Markdown parser or a
-claim-truth validator.
+## Learner extension
 
-The report includes bundle digests, validated results, ordered stages, and the
-coordinator decision and artifacts. Stable IDs and sorted JSON keys make repeated
-runs byte-identical on the same platform. No time or machine paths enter it.
-`origin: synthetic` and `capabilityPromotion: false` apply to the entire report.
-The coordinator and live A2A capabilities are unchanged.
-
-Validation:
+In a disposable checkout, change `## Install` to `## Setup` in the fixed
+`runbook.md`. A one-file edit first fails the byte/digest check. Update the
+`runbook.md` entry in that case's `bundle.json` with the exact LF text and
+its SHA-256, then rerun the fixed case. The broken target now prevents expected
+approval. Update the fixed `guide.md` link to `runbook.md#setup` and refresh
+that file's manifest entry the same way. The fixed replay approves again.
+Use the digest command from the repository root for each changed file.
 
 ```powershell
-uv run pytest -q tests/kagent/experiments/test_edu02_lab.py tests/kagent/experiments/test_docs_bundle.py tests/kagent/experiments/test_e2r_orchestration.py
-uv run ruff check scripts/kagent/experiments/edu02_lab.py tests/kagent/experiments/test_edu02_lab.py
+Get-FileHash scripts/kagent/experiments/fixtures/edu02/fixed/runbook.md -Algorithm SHA256
+python -m pytest -q tests/kagent/experiments/test_edu02_lab.py tests/kagent/experiments/test_docs_bundle.py tests/kagent/experiments/test_e2r_orchestration.py
 ```
 
-
-## Publication verification (2026-11-16)
+## First-slice publication verification (2026-11-16)
 
 Base: 78bb511e3dd4ab44614ecde9905d4d1631d680d4. Windows Python 3.14.3
 and WSL Linux Python 3.14.4 produced identical parsed JSON. Stdout newlines

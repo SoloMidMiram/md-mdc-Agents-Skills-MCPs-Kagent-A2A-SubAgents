@@ -4,8 +4,13 @@
   "files": [
     {
       "path": "guide.md",
-      "content": "# Offline Guide\n\nSee [Install](#instal).\n\n## Install\n\nUse the local fixture only.\n",
-      "sha256": "3afeeda3d716ec5d74861509f8e2f3ddee711d2f29753cb8ff5d5de8ff5491b1"
+      "content": "# Offline Guide\n\nSee [Install](runbook.md#instal).\n",
+      "sha256": "8f16449c859d29427a80f7bff135792a2922b4e353c850fc0076688138cb1686"
+    },
+    {
+      "path": "runbook.md",
+      "content": "# Runbook\n\n## Install\n\nUse the local fixture only.\n",
+      "sha256": "e82ea13202d2231eddd6d3916da1d2d6a562f78afd065d0be30458ee3a09ae43"
     }
   ]
 }
