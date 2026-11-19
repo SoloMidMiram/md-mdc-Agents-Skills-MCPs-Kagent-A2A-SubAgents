@@ -595,12 +595,22 @@ entries:
     status: lab
     authority: false
 
+  - path: scripts/kagent/experiments/fixtures/edu02/broken/runbook.md
+    purpose: documentation
+    status: lab
+    authority: false
+
   - path: scripts/kagent/experiments/fixtures/edu02/fixed/bundle.json
     purpose: configuration
     status: lab
     authority: false
 
   - path: scripts/kagent/experiments/fixtures/edu02/fixed/guide.md
+    purpose: documentation
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/fixtures/edu02/fixed/runbook.md
     purpose: documentation
     status: lab
     authority: false

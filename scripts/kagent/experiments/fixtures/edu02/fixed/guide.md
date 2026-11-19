@@ -1,7 +1,3 @@
 # Offline Guide
 
-See [Install](#install).
-
-## Install
-
-Use the local fixture only.
+See [Install](runbook.md#install).
