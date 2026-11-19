@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from importlib import import_module
 from importlib.metadata import version
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from scripts.kagent.experiments import docs_bundle
 from scripts.kagent.experiments.contracts import ContractError
@@ -27,8 +27,10 @@ PRODUCT = re.compile(r"(?<![\w-])[A-Z]{2,8}-[0-9]{2,8}(?![\w-])")
 CITATION_KEYS = ("path", "startLine", "endLine", "excerpt")
 SOURCE_KEYS = (*CITATION_KEYS, "sha256", "provenance")
 MAX_LOCAL_FILE = 2 * 1024 * 1024
+REVIEW_PROTOCOL = "ncm02-tuning-fidelity-v1"
 
 type Counter = Callable[[str], int]
+type MembershipScope = Literal["frozen_tuning", "synthetic_fixture"]
 
 
 def digest(content: bytes) -> str:
@@ -102,9 +104,52 @@ def membership(splits: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
     return counts
 
 
+@dataclass(frozen=True)
+class CaseIdentity:
+    case: str
+    source_sha256: str
+    gold_sha256: str
+
+
+def case_identity(bundle: dict[str, Any], annotation: dict[str, Any]) -> CaseIdentity:
+    case = bundle.get("bundleId")
+    if not isinstance(case, str) or not case.startswith("t-") or annotation.get("caseId") != case:
+        raise ContractError("only aligned tuning case IDs are accepted")
+    if not isinstance(annotation.get("facts"), list) or not annotation["facts"]:
+        raise ContractError("tuning gold must contain critical facts")
+    return CaseIdentity(case, hash_text(packed(bundle)), hash_text(packed(annotation)))
+
+
+@dataclass(frozen=True)
+class _TuningMembership:
+    scope: MembershipScope
+    cases: tuple[CaseIdentity, ...]
+
+    def require(self, bundle: dict[str, Any], annotation: dict[str, Any]) -> CaseIdentity:
+        identity = case_identity(bundle, annotation)
+        if identity not in self.cases:
+            raise ContractError("source or gold is outside verified tuning membership")
+        return identity
+
+
+def synthetic_tuning(bundle: dict[str, Any], annotation: dict[str, Any]) -> _TuningMembership:
+    """Admit a test record explicitly, outside the frozen benchmark path."""
+    identity = case_identity(bundle, annotation)
+    docs_bundle.validate_bundle(packed(bundle))
+    for fact in annotation["facts"]:
+        validate_anchor(bundle, fact["source"])
+    return _TuningMembership("synthetic_fixture", (identity,))
+
+
 def load_tuning(
     root: Path,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], dict[str, int]]:
+) -> tuple[
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    dict[str, int],
+    _TuningMembership,
+]:
     original = verified_freeze(root, ORIGINAL_FREEZE)
     final = verified_freeze(root / "review-20261119" / "final-v1", FINAL_FREEZE)
     # Gold for both held-out splits is integrity-checked only.
@@ -122,17 +167,22 @@ def load_tuning(
         raise ContractError("frozen document count mismatch")
     if not (len(tuning) == len(gold) == len(baseline) == 14):
         raise ContractError("tuning case count mismatch")
+    identities = []
     for bundle, annotation, row in zip(tuning, gold, baseline, strict=True):
-        if not (bundle["bundleId"] == annotation["caseId"] == row["caseId"]):
+        identity = case_identity(bundle, annotation)
+        if identity.case != row["caseId"]:
             raise ContractError("unaligned tuning records")
         if source_payload(bundle) != row["raw"]:
             raise ContractError("raw baseline differs from bound source")
         for fact in annotation["facts"]:
             validate_anchor(bundle, fact["source"])
-    return tuning, gold, baseline, counts
+        identities.append(identity)
+    return tuning, gold, baseline, counts, _TuningMembership("frozen_tuning", tuple(identities))
 
 
-def validate_anchor(bundle: dict[str, Any], source: dict[str, Any]) -> None:
+def validate_anchor(bundle: dict[str, Any], source: Any) -> None:
+    if not isinstance(source, dict):
+        raise ContractError("invalid source anchor record")
     provenance = source.get("provenance")
     if (
         set(source) != set(SOURCE_KEYS)
@@ -166,9 +216,16 @@ def pinned_counter(path: Path) -> Counter:
 
 
 @dataclass(frozen=True)
-class Review:
-    case: str
+class ReviewBinding:
+    scope: MembershipScope
+    case: CaseIdentity
     candidate_sha256: str
+    protocol: str = REVIEW_PROTOCOL
+
+
+@dataclass(frozen=True)
+class Review:
+    binding: ReviewBinding
     reviewed_by: str
     preserved: frozenset[str]
     reversed: frozenset[str] = frozenset()
@@ -187,43 +244,50 @@ def contains(text: str, token: str) -> bool:
 def evaluate(
     bundle: dict[str, Any],
     annotation: dict[str, Any],
-    candidate: str,
-    anchors: list[dict[str, Any]],
-    review: Review,
+    candidate: object,
+    anchors: object,
+    review: Review | None,
     *,
+    tuning: _TuningMembership,
     budget: int,
     counter: Counter | None = None,
 ) -> dict[str, Any]:
-    case = bundle["bundleId"]
-    if not case.startswith("t-") or annotation.get("caseId") != case:
-        raise ContractError("only verified tuning case IDs are accepted")
+    identity = tuning.require(bundle, annotation)
     if budget not in BUDGETS:
         raise ContractError("unsupported byte budget")
-    docs_bundle.validate_bundle(packed(bundle))
     raw = source_payload(bundle)
     reasons = []
     facts = annotation["facts"]
     required = {fact_id(f) for f in facts}
     names = {identifier for f in facts for identifier in f["requiredIdentifiers"]}
     values = {value for f in facts for value in f["requiredValuesWithUnits"]}
-    if not candidate.strip() or len(candidate.encode("utf-8")) > budget:
+    candidate_text = candidate if isinstance(candidate, str) else ""
+    candidate_bytes = None
+    if isinstance(candidate, str):
+        try:
+            candidate_bytes = candidate.encode("utf-8")
+        except UnicodeEncodeError:
+            candidate_text = ""
+    candidate_sha = digest(candidate_bytes) if candidate_bytes is not None else None
+    if candidate_bytes is None or not candidate_text.strip() or len(candidate_bytes) > budget:
         reasons.append("invalid_or_oversize_candidate")
-    retained_names = {name for name in names if contains(candidate, name)}
+    retained_names = {name for name in names if contains(candidate_text, name)}
     if names != retained_names:
         reasons.append("required_identifier_missing")
-    if any(not contains(candidate, value) for value in values):
+    if any(not contains(candidate_text, value) for value in values):
         reasons.append("required_value_missing")
-    if set(PRODUCT.findall(candidate)) - set(PRODUCT.findall(raw)):
+    if set(PRODUCT.findall(candidate_text)) - set(PRODUCT.findall(raw)):
         reasons.append("fabricated_product_identifier")
     invalid_review = (
-        review.case != case
-        or review.candidate_sha256 != hash_text(candidate)
+        review is None
+        or candidate_sha is None
+        or review.binding != ReviewBinding(tuning.scope, identity, candidate_sha)
         or not review.reviewed_by.strip()
         or bool((review.preserved | review.reversed) - required)
     )
     if invalid_review:
         reasons.append("review_binding_mismatch")
-    else:
+    elif review is not None:
         if required - review.preserved:
             reasons.append("critical_fact_missing")
         if review.reversed:
@@ -235,43 +299,55 @@ def evaluate(
     expected_anchors = {packed({key: f["source"][key] for key in SOURCE_KEYS}) for f in facts}
     observed = set()
     try:
+        if not isinstance(anchors, list):
+            raise ContractError("invalid anchor list")
         for anchor in anchors:
             validate_anchor(bundle, anchor)
-            observed.add(packed({key: anchor[key] for key in SOURCE_KEYS}))
-    except ContractError:
+            encoded = packed({key: anchor[key] for key in SOURCE_KEYS})
+            encoded.encode("utf-8")  # Confirm that the delivered sidecar is encodable.
+            observed.add(encoded)
+    except (ContractError, TypeError, ValueError):
         reasons.append("invalid_provenance")
     if not expected_anchors <= observed:
         reasons.append("required_anchor_missing")
     accepted = not reasons
     delivered = packed({"text": candidate, "anchors": anchors}) if accepted else raw
     return {
-        "caseId": case,
+        "caseId": identity.case,
+        "membershipScope": tuning.scope,
+        "sourceBundleSha256": identity.source_sha256,
+        "goldAnnotationSha256": identity.gold_sha256,
+        "reviewProtocol": REVIEW_PROTOCOL,
         "budgetBytes": budget,
-        "candidateSha256": hash_text(candidate),
+        "candidateSha256": candidate_sha,
         "accepted": accepted,
         "reasons": reasons,
         "fallback": None if accepted else "raw",
         "rawSha256": hash_text(raw),
         "requiredCriticalFacts": len(required),
         "reviewedCriticalFactsRetained": (
-            None if invalid_review or review.unresolved else len(review.preserved - review.reversed)
+            None
+            if invalid_review or review is None or review.unresolved
+            else len(review.preserved - review.reversed)
         ),
         "requiredIdentifiers": len(names),
         "retainedIdentifiers": len(retained_names),
-        "verbatimCriticalFacts": sum(f["criticalFact"] in candidate for f in facts),
+        "verbatimCriticalFacts": sum(f["criticalFact"] in candidate_text for f in facts),
         "rawBytes": len(raw.encode("utf-8")),
-        "candidateBytes": len(candidate.encode("utf-8")),
+        "candidateBytes": len(candidate_bytes) if candidate_bytes is not None else None,
         "deliveredBytes": len(delivered.encode("utf-8")),
         "rawConsumerTokens": counter(raw) if counter else None,
         "deliveredConsumerTokens": counter(delivered) if counter else None,
     }
 
 
-def dry_run(root: Path, counter: Counter | None = None) -> dict[str, Any]:
-    bundles, gold, rows, counts = load_tuning(root)
+def dry_run(root: Path, *, tokenizer_json: Path | None = None) -> dict[str, Any]:
+    bundles, gold, rows, counts, tuning = load_tuning(root)
+    counter = pinned_counter(tokenizer_json) if tokenizer_json is not None else None
     bundle, annotation, control = next(
         (a, b, c) for a, b, c in zip(bundles, gold, rows, strict=True) if a["bundleId"] == "t-cold"
     )
+    identity = tuning.require(bundle, annotation)
     original = control["extractive"]
     fact = annotation["facts"][0]
     # Independently supplied synthetic labels for this one inspected tuning case.
@@ -347,13 +423,13 @@ def dry_run(root: Path, counter: Counter | None = None) -> dict[str, Any]:
                 candidate,
                 anchors,
                 Review(
-                    bundle["bundleId"],
-                    hash_text(candidate),
+                    ReviewBinding(tuning.scope, identity, hash_text(candidate)),
                     "predeclared-control-annotation",
                     kept,
                     reversed_ids,
                     unsupported,
                 ),
+                tuning=tuning,
                 budget=192,
                 counter=counter,
             ),
@@ -393,8 +469,11 @@ def main() -> None:
     parser.add_argument("corpus_root", type=Path)
     parser.add_argument("--tokenizer-json", type=Path)
     args = parser.parse_args()
-    counter = pinned_counter(args.tokenizer_json) if args.tokenizer_json else None
-    print(json.dumps(dry_run(args.corpus_root, counter), indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            dry_run(args.corpus_root, tokenizer_json=args.tokenizer_json), indent=2, sort_keys=True
+        )
+    )
 
 
 if __name__ == "__main__":

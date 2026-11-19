@@ -16,6 +16,18 @@ memberships for shared case IDs, normalized paths and exact or normalized
 source-content digests. This is a bounded structural leakage check. The
 held-out gold files are hashed for integrity. Only tuning gold is parsed.
 
+Scoring requires an exact tuning member from the verified freezes. Each
+member binds the case ID, canonical source bundle digest and canonical gold
+annotation digest. Empty gold is rejected. Unit-test cases admitted through
+the synthetic fixture path report a separate membership scope.
+
+Semantic review evidence binds the membership scope, verified source and
+gold identities, exact candidate bytes and review protocol version. The
+predeclared labels exercise the controls. Independent model correctness
+remains unmeasured. Malformed candidates and anchor records for a verified
+case count as rejected attempts and use raw fallback. Candidate byte count
+and digest are null when no valid UTF-8 candidate bytes exist.
+
 The tuning dry run uses the existing cold-shelf case, one retained 192-byte
 extractive output and six authored positive/negative controls at the same cap.
 The uncompressed source is checked against the retained raw baseline and kept
