@@ -13,37 +13,55 @@ It answers four questions:
 3. What is only partially working?
 4. What should be stabilized or refactored next?
 
-## Release-first execution plan — 2026-11-20
+## Delivery sequence — 2026-11-20
 
-Delivery authority (proposed for maintainer review): [REL-01 #50](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/50). GitHub records EDU-02 #36 and EDU-03 #37 closed completed on November 19; fresh release acceptance is still outstanding. Preserve all existing security, evidence, and capability gates. The November 15 plan below is historical for delivery priority, not revoked technical contracts.
+[v0.1.0 — Offline A2A Practice](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/releases/tag/v0.1.0) was published on
+2026-11-20. [REL-01 #50](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/50) is closed completed and records
+maintainer acceptance, release authorization and replay evidence. EDU-02 #36
+and EDU-03 #37 are closed completed. The Playwright stable track retains
+its own version and acceptance evidence.
 
 | Phase | Work | Exit gate |
 | --- | --- | --- |
-| 0 — foundations | EDU-01 #27–#32, EDU-02 #36, EDU-03 #37 | Recorded closure; verify merged provenance in REL-01 |
-| 1 — offline v0.1.0 | #50 only; separate Playwright stable version | Fresh Windows/Linux replay, positive and negative cases, exact-head Quality, concise quickstart, maintainer tag authorization |
-| 2 — practical v0.2.0 | After the v0.1.0 tag, follow [ADR 0001](../adr/0001-phase2-disposition.md) once accepted by the maintainer | 2A requires explicit bounded authorization, correlated A2A artifact evidence and verified teardown. 2B requires independent #20 isolation qualification before generated code executes |
+| 0 — foundations | EDU-01 #27–#32, EDU-02 #36, EDU-03 #37 | Complete. Merged provenance is recorded in REL-01. |
+| 1 — offline v0.1.0 | REL-01 #50 | Complete. Windows/Linux replay, exact-head Quality and maintainer release authorization are recorded in #50. |
+| 2 — practical v0.2.0 | [ADR 0001](../adr/0001-phase2-disposition.md) governs sequencing. [#54](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/54) is the sole active implementation issue, with candidate [draft PR #55](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/pull/55) awaiting source acceptance. | [#53](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/53) authorizes the deterministic stub only. Live 2A artifact delegation and 2B qualified execution have separate gates. |
 | 3 — context engineering | #21 frozen pilot separately authorized after #20 and smoke; #22 → #23 → #24 → #25 only under existing priority gates | Retain all nine outcomes; immutable provenance, approval and retrieval denial tests; no unsupported superiority claim |
 | 4 — optional research | #40 → #41; #42/#43 sibling adapters; #44 → #45 with original dependencies | Independent fidelity and accepted-output cost evidence, explicit abstention, separate promotion decision |
 
-One active implementation issue at a time. Park new ideas until the current gate closes; only release-blocking defects interrupt #50. Refactor only for proven duplicated contracts, failure isolation, security or a concrete integration consumer; preserve schema and golden replay unless separately approved. No speculative orchestration framework. Optional research is not a release prerequisite. No live model spend, deployment, merge, release tag, or scored run is authorized here. #21 remains 0/9 per retained evidence. Keep the stable Playwright and kagent live acceptance gates independent.
+The deterministic stub exercises A2A transport and static artifact validation with
+synthetic, non-qualified evidence. Genuine model-backed Phase 2A is deferred.
+Before live delegation, ADR 0001 requires issue-recorded maintainer approval,
+a named cloud provider, the cloud-only `agent-coder` alias, a concrete
+per-run spend cap and evidence of backend enforcement. Generated code and
+tests never execute in Phase 2A. Phase 2B requires independent #20 isolation
+qualification and separate operational authorization before execution. EVAL-01
+#21 remains blocked at 0/9 and has distinct smoke and run-authorization gates.
 
-## Live execution plan — reconciled 2026-11-15
+Keep one active implementation issue at a time. #22–#25 remain deferred.
+#40–#45 remain optional research, with [draft PR #49](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/pull/49) parked.
+Keep the stable Playwright and kagent live acceptance gates independent.
+Refactor only for proven duplicated contracts, failure isolation, security or a
+concrete integration consumer. Preserve schema and golden replay unless separately
+approved. Optional research remains outside the release prerequisites.
 
-**Status baseline:** `main` at `ce0128cc8cdeef86cf64edc460455d9a630e496e`. Merged source integration includes PRs #9, #10, #13, #16, #17, #18, #19, #33, #34 and #39. EDU-01 #27–#32 is closed. **Source integration and offline CI do not qualify a live model runner or promote any kagent capability.**
+## Live execution plan and historical baseline
+
+**Historical baseline (2026-11-15):** `main` at `ce0128cc8cdeef86cf64edc460455d9a630e496e`. Merged source integration includes PRs #9, #10, #13, #16, #17, #18, #19, #33, #34 and #39. EDU-01 #27–#32 is closed. **Source integration and offline CI do not qualify a live model runner or promote any kagent capability.**
 
 ### Separate value, readiness and authority
 
 - **P0 is the engineering queue, not permission to execute:** [#20 runner qualification](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/20) is **blocked on approved real infrastructure, authenticated independent verification and teardown**; [#21 frozen coding evaluation](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/21) remains **0/9** and cannot run before #20 and separate smoke/run authorization.
-- **P1 education proceeds independently of the P0 blockers.** PR #39 merged the first offline slice of [#36 EDU-02 documentation review](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/36). Complete its remaining acceptance work before [#37 EDU-03 deterministic coding-worker fixture](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/37). Both are offline, synthetic and cannot be substituted for a real worker or scored evaluation.
+- **P1 education proceeds independently of the P0 blockers.** #36 and #37 completed offline. Their synthetic results carry no live-worker qualification or scored evaluation evidence.
 - **P1 product/context extensions are deferred:** [#22 immutable snapshots](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/22) → [#23 source discovery](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/23) → [#24 packet approval](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/24) → [#25 approved-only MCP](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/25). Start after actionable #21 results **or an explicit maintainer change of priority**; preserve original acceptance criteria.
 - **Other lanes remain independent:** stable Playwright v0.1.1 release evidence, L6/L7 live qualification, Cursor I3/I4 and governance baselines have distinct owners and evidence. No synthetic educational report can close these gates.
 
 | Lane / order | Readiness and next owner action | Reusable implementation slice | Closure evidence |
 | --- | --- | --- | --- |
-| P0-A: [#20](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/20) | **Blocked**. SoloMidMiram selects actual VM provider/image, access, credential boundary and spending limit; independently review [PR #35](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/pull/35). | Enroll/authenticate independent verifier; implement bounded ephemeral Linux VM lifecycle and safe artifact custody. | Independently authenticated negative/positive probes, immutable attempt binding, termination/teardown, separate authorized non-scored smoke. |
+| P0-A: [#20](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/20) | **Blocked**. SoloMidMiram selects actual VM provider/image, access, credential boundary and spending limit; reuse the merged offline verifier from [PR #35](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/pull/35). | Enroll/authenticate independent verifier; implement bounded ephemeral Linux VM lifecycle and safe artifact custody. | Independently authenticated negative/positive probes, immutable attempt binding, termination/teardown, separate authorized non-scored smoke. |
 | P0-B: [#21](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/21) | **Blocked by #20** and explicit paid-run authorization. | Reuse merged CTX schema 1.0/historical three-task, three-arm frozen harness; do not change tasks/order/budgets. | Nine retained run records, independent held-out tests and all failures/unknown costs, without claims of statistical superiority. |
-| EDU-A: [#36](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/36) | **First slice merged in PR #39**. Contributor adds cross-file references, stable finding IDs, and learner extension instructions. See the [replay runbook](../runbooks/edu-02-documentation-review.md). | Supplied sanitized Markdown → existing `docs_bundle` → narrowly scoped heading checker → existing E2-R `Invoke` fixtures → synthetic report. | One reproducible command on fresh Windows checkout, exact hashes/citations, deterministic cases and fail-closed tests. |
-| EDU-B: [#37](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/37) | **Offline candidate** after #36 acceptance. See the [fixture replay runbook](../runbooks/edu-03-coding-fixture.md). | Disposable mini-repo → fixture coding worker → independent test evaluator → review evidence, without modifying E2-R's role contract. | Visible-pass/held-out-fail control, patch/path isolation, stable synthetic report, reusable tested interface. |
+| EDU-A: [#36](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/36) | **Closed completed**. See the [replay runbook](../runbooks/edu-02-documentation-review.md). | Supplied sanitized Markdown → existing `docs_bundle` → narrowly scoped heading checker → existing E2-R `Invoke` fixtures → synthetic report. | One reproducible command on fresh Windows checkout, exact hashes/citations, deterministic cases and fail-closed tests. |
+| EDU-B: [#37](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/37) | **Closed completed**. See the [fixture replay runbook](../runbooks/edu-03-coding-fixture.md). | Disposable mini-repo → fixture coding worker → independent test evaluator → review evidence, without modifying E2-R's role contract. | Visible-pass/held-out-fail control, patch/path isolation, stable synthetic report, reusable tested interface. |
 | CTX-A: [#22](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/22) | **Deferred; first after priority gate**. | Schema v2 sealed committed/index/worktree snapshots; unchanged schema 1.0 replay. | Exact byte/source provenance, overlay/race/escape tests and Linux/Windows negative controls. |
 | CTX-B: [#23](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/23) | **Deferred; after #22**. | Deterministic ranked candidate sources from sealed snapshots only. | Gold-source retrieval precision/recall, explainable features, budgets and manual rollback. |
 | CTX-C: [#24](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/24) | **Deferred; after #22 + #23**. | Source-level selective review + fresh complete-packet approval receipt. | Changed-source, revoked/stale/replayed receipt and scope-invalidation tests. |
@@ -59,9 +77,11 @@ One active implementation issue at a time. Park new ideas until the current gate
 
 ### Current review facts and immediate next actions
 
-[PR #35](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/pull/35), head `98705b14fdbda4f1589a4997b49b893fb165c850`, is an **open draft**. Its [Quality run 43736334562](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/43736334562) completed all **5/5** jobs successfully; independent review and source-merge disposition remain pending. The offline verifier checks supplied evidence contracts; **the producer enrollment/authenticated trust path, live isolation and teardown are still unqualified**.
+[PR #35](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/pull/35), head `98705b14fdbda4f1589a4997b49b893fb165c850`, merged on 2026-11-19 as `1ef8d096cddc0b15a8756cc2a7832dbd1e16d5e6`. Its [Quality run 43736334562](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/actions/runs/43736334562) completed all **5/5** jobs successfully. The offline verifier checks supplied evidence contracts; **the producer enrollment/authenticated trust path, live isolation and teardown are still unqualified**.
 
-**Next execution order:** (1) independently review #35 and let the infrastructure owner resolve #20's environment decision; (2) finish and verify #36 while #20 is blocked; (3) begin #37 after #36 acceptance establishes the reusable interface; (4) qualify #20 and separately authorize smoke; (5) run #21 after its gate; (6) decide whether to activate #22–#25. No issue closure, PR merge or deployment is implied by this documentation.
+**Next qualification action:** The infrastructure owner resolves #20's
+environment decision. The independent verification, teardown and separately
+authorized smoke gates remain in force before the frozen #21 evaluation.
 
 ---
 
@@ -408,10 +428,10 @@ Reverse delegation from kagent to native Cursor/Codex agents, global installer
 integration, and autonomous cluster mutation are deferred. They do not block
 L6 or L7.
 
-## Current next steps (2026-11-15)
+## Next actions
 
-1. **P0 owner decision:** qualify a real isolated runner environment under #20. Independently review the offline PR #35; its green CI is not runtime security evidence.
-2. **Ready educational lane:** replay the merged PR #39 slice, complete the remaining #36 acceptance work, and use the accepted interface to scope #37.
+1. **Phase 2A stub:** Review the existing #54 candidate in draft PR #55 under the maintainer policy.
+2. **Phase 2B prerequisite:** Resolve the infrastructure decision and independently qualify isolation under #20.
 3. **After qualification and explicit authorization:** run the frozen #21 protocol, retain all nine outcomes and perform independent evaluation. If blocked, continue to record 0/9 rather than changing tasks or isolation rules.
 4. **Only after evaluation or explicit change of priority:** authorize #22, then #23, #24 and #25 in sequence.
 5. **Independent maintenance:** track Playwright release acceptance, kagent L6/L7 and I3/I4, governance benchmarks, inherited documentation links and custom-resource schema coverage separately. Preserve their distinct capability evidence.

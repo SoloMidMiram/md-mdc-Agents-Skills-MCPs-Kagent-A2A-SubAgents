@@ -4,9 +4,12 @@ The current direction is a measurable context-first coding assistant. The
 repaired CTX-01 builder and #18's offline labs are integrated in main.
 Actual coding improvement remains unmeasured.
 
-The next prerequisite is independent LAB-RUNNER-01 security qualification,
-followed by a separately authorized non-scored smoke and the nine frozen
-EVAL-01 runs. The [implemented-state roadmap](onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
+[ADR 0001](adr/0001-phase2-disposition.md) sequences artifact-only Phase 2A
+before Phase 2B. [#54](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/54) is the active deterministic stub
+task. The next prerequisite for qualified execution and measurement remains
+independent LAB-RUNNER-01 security qualification, followed by a separately
+authorized non-scored smoke and the separately authorized nine frozen EVAL-01
+runs. The [implemented-state roadmap](onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md)
 owns cross-lane ordering. The [runner specification](architecture/LAB-RUNNER-01-PROVISIONING.md)
 owns provisioning requirements. I3 remains independent.
 
@@ -20,8 +23,11 @@ owns provisioning requirements. I3 remains independent.
 ## North Star
 
 **Build trustworthy task context, then measure whether it improves real coding
-outcomes under controlled conditions.** No model calls are warranted before the
-runner is independently qualified. No snapshot/discovery/Context7/kagent feature
+outcomes under controlled conditions.** Live Phase 2A artifact delegation
+requires separate operational approval under ADR 0001 and static validation
+of the returned patch. Phase 2B requires independent runner qualification
+and separate operational approval before executing generated code or tests.
+No snapshot/discovery/Context7/kagent feature
 expansion is the immediate milestone. Preserve cloud-only model policy and
 existing capability definitions; no CI result supplies integration approval.
 

@@ -13,9 +13,11 @@ for VS Code, Cursor, Codex CLI, and Continue.
 
 ## Quick Start
 
-**Next delivery:** [REL-01 #50](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/50) — package the offline A2A practice release. EDU-02 #36 and EDU-03 #37 are closed completed. Release replay is complete. Acceptance and release publication remain pending. Start with the [documentation review](docs/runbooks/edu-02-documentation-review.md) and [coding fixture](docs/runbooks/edu-03-coding-fixture.md) runbooks. These are synthetic workflows, not live coding improvement evidence.
+**Published:** [v0.1.0 — Offline A2A Practice](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/releases/tag/v0.1.0). [REL-01 #50](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/50) closed completed. Start with the [documentation review](docs/runbooks/edu-02-documentation-review.md) and [coding fixture](docs/runbooks/edu-03-coding-fixture.md) runbooks for the synthetic workflows.
 
-See the [release-first phase plan](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md#release-first-execution-plan--2026-11-20). #20/#21 remain gated, #22–#25 deferred, #40–#45 optional research.
+**Active implementation issue:** [Phase 2A deterministic worker harness #54](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/54), under the stub-only authorization in [#53](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/53). [ADR 0001](docs/adr/0001-phase2-disposition.md) defines the separate gates for live artifact delegation and qualified execution.
+
+See the [delivery sequence](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md#delivery-sequence--2026-11-20). #20/#21 remain gated, #22–#25 deferred, #40–#45 optional research.
 
 ### Offline A2A practice
 
