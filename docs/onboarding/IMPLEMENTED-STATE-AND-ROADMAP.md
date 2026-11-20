@@ -13,6 +13,20 @@ It answers four questions:
 3. What is only partially working?
 4. What should be stabilized or refactored next?
 
+## Release-first execution plan — 2026-11-20
+
+Delivery authority (proposed for maintainer review): [REL-01 #50](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/50). GitHub records EDU-02 #36 and EDU-03 #37 closed completed on November 19; fresh release acceptance is still outstanding. Preserve all existing security, evidence, and capability gates. The November 15 plan below is historical for delivery priority, not revoked technical contracts.
+
+| Phase | Work | Exit gate |
+| --- | --- | --- |
+| 0 — foundations | EDU-01 #27–#32, EDU-02 #36, EDU-03 #37 | Recorded closure; verify merged provenance in REL-01 |
+| 1 — offline v0.1.0 | #50 only; separate Playwright stable version | Fresh Windows/Linux replay, positive and negative cases, exact-head Quality, concise quickstart, maintainer tag authorization |
+| 2 — practical v0.2.0 | After #50, qualify #20 for real worker; propose one bounded coding task and actual correlated A2A handoff | Independent patch evaluation, isolation, task/artifact identity, cancellation and teardown; explicit live authorization |
+| 3 — context engineering | #21 frozen pilot separately authorized after #20 and smoke; #22 → #23 → #24 → #25 only under existing priority gates | Retain all nine outcomes; immutable provenance, approval and retrieval denial tests; no unsupported superiority claim |
+| 4 — optional research | #40 → #41; #42/#43 sibling adapters; #44 → #45 with original dependencies | Independent fidelity and accepted-output cost evidence, explicit abstention, separate promotion decision |
+
+One active implementation issue at a time. Park new ideas until the current gate closes; only release-blocking defects interrupt #50. Refactor only for proven duplicated contracts, failure isolation, security or a concrete integration consumer; preserve schema and golden replay unless separately approved. No speculative orchestration framework. Optional research is not a release prerequisite. No live model spend, deployment, merge, release tag, or scored run is authorized here. #21 remains 0/9 per retained evidence. Keep the stable Playwright and kagent live acceptance gates independent.
+
 ## Live execution plan — reconciled 2026-11-15
 
 **Status baseline:** `main` at `ce0128cc8cdeef86cf64edc460455d9a630e496e`. Merged source integration includes PRs #9, #10, #13, #16, #17, #18, #19, #33, #34 and #39. EDU-01 #27–#32 is closed. **Source integration and offline CI do not qualify a live model runner or promote any kagent capability.**
