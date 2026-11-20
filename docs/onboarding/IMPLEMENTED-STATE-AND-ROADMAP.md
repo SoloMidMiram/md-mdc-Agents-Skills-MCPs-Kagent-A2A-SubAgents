@@ -21,7 +21,7 @@ Delivery authority (proposed for maintainer review): [REL-01 #50](https://github
 | --- | --- | --- |
 | 0 — foundations | EDU-01 #27–#32, EDU-02 #36, EDU-03 #37 | Recorded closure; verify merged provenance in REL-01 |
 | 1 — offline v0.1.0 | #50 only; separate Playwright stable version | Fresh Windows/Linux replay, positive and negative cases, exact-head Quality, concise quickstart, maintainer tag authorization |
-| 2 — practical v0.2.0 | After #50, qualify #20 for real worker; propose one bounded coding task and actual correlated A2A handoff | Independent patch evaluation, isolation, task/artifact identity, cancellation and teardown; explicit live authorization |
+| 2 — practical v0.2.0 | After the v0.1.0 tag, follow [ADR 0001](../adr/0001-phase2-disposition.md) once accepted by the maintainer | 2A requires explicit bounded authorization, correlated A2A artifact evidence and verified teardown. 2B requires independent #20 isolation qualification before generated code executes |
 | 3 — context engineering | #21 frozen pilot separately authorized after #20 and smoke; #22 → #23 → #24 → #25 only under existing priority gates | Retain all nine outcomes; immutable provenance, approval and retrieval denial tests; no unsupported superiority claim |
 | 4 — optional research | #40 → #41; #42/#43 sibling adapters; #44 → #45 with original dependencies | Independent fidelity and accepted-output cost evidence, explicit abstention, separate promotion decision |
 
