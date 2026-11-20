@@ -1034,3 +1034,18 @@ entries:
     purpose: test
     status: lab
     authority: false
+
+  - path: examples/offline/ncm-02/README.md
+    purpose: documentation
+    status: lab
+    authority: false
+
+  - path: scripts/kagent/experiments/ncm02_evaluator.py
+    purpose: script
+    status: lab
+    authority: false
+
+  - path: tests/kagent/experiments/test_ncm02_evaluator.py
+    purpose: test
+    status: lab
+    authority: false
