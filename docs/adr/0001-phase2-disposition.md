@@ -1,9 +1,11 @@
 # ADR 0001 · Phase 2 disposition after offline v0.1.0
 
-**Decision for maintainer acceptance in REL-01 #50.** Sequence Phase 2A before
-Phase 2B. This decision takes effect when SoloMidMiram approves the acceptance
-PR and records the reconciliation in [#50](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/50).
-Implementation starts after the v0.1.0 tag. This ADR grants no run authorization.
+**Accepted under [REL-01 #50](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/50).** Sequence Phase 2A before
+Phase 2B. The maintainer accepted the release candidate and recorded the
+decision in REL-01. [v0.1.0](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/releases/tag/v0.1.0) is published. This
+ADR grants no run authorization. [#53](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/53) records separate
+maintainer authorization for the deterministic stub only, tracked in
+[#54](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/54). Live model invocation remains deferred.
 
 ## Phase 2A · Artifact-only A2A demonstration
 
