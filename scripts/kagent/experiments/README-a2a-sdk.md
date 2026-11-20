@@ -72,7 +72,8 @@ PYTHONDONTWRITEBYTECODE=1 "$SDK_PYTHON" -m pytest -p no:cacheprovider -q \
   tests/kagent/experiments/test_a2a_sdk_interop.py \
   tests/kagent/experiments/test_a2a_sdk_transport.py \
   tests/kagent/experiments/test_a2a_sdk_repairs.py \
-  tests/kagent/experiments/test_a2a_sdk_cleanup.py
+  tests/kagent/experiments/test_a2a_sdk_cleanup.py \
+  tests/kagent/experiments/test_a2a_sdk_phase2a.py
 ```
 
 Use the qualified external Python 3.13.15 environment and the reviewed exact
@@ -153,10 +154,12 @@ uv run pytest -q \
 ```
 
 For the external SDK environment, run the three qualification files above and
-`tests/kagent/experiments/test_a2a_sdk_cleanup.py`. The latter checks a real SDK
+`tests/kagent/experiments/test_a2a_sdk_cleanup.py`. The cleanup test checks a real SDK
 transport's response-close exception for failed acceptance, redaction, retained
 task observations, and preservation of caller-owned response hooks. No official
-SDK objects are patched. A green root lane alone is insufficient qualification.
+SDK objects are patched. The [deterministic patch replay](../../../docs/runbooks/phase-2a-stub.md)
+checks artifact correlation and teardown on Linux. A green root lane alone is
+insufficient qualification.
 
 The [historical SDK record](../../../evidence/kagent/experiments/2026-10-22-a2a-sdk-interoperability.md)
 is preserved as originally recorded. Its claims are not a new live observation.
