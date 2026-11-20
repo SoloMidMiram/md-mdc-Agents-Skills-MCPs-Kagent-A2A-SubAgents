@@ -13,7 +13,7 @@ for VS Code, Cursor, Codex CLI, and Continue.
 
 ## Quick Start
 
-**Next delivery:** [REL-01 #50](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/50) — package the offline A2A practice release. EDU-02 #36 and EDU-03 #37 are closed completed; release replay and acceptance remain outstanding. Start with the [documentation review](docs/runbooks/edu-02-documentation-review.md) and [coding fixture](docs/runbooks/edu-03-coding-fixture.md) runbooks. These are synthetic workflows, not live coding improvement evidence.
+**Next delivery:** [REL-01 #50](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/50) — package the offline A2A practice release. EDU-02 #36 and EDU-03 #37 are closed completed. Release replay is complete. Acceptance and release publication remain pending. Start with the [documentation review](docs/runbooks/edu-02-documentation-review.md) and [coding fixture](docs/runbooks/edu-03-coding-fixture.md) runbooks. These are synthetic workflows, not live coding improvement evidence.
 
 See the [release-first phase plan](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md#release-first-execution-plan--2026-11-20). #20/#21 remain gated, #22–#25 deferred, #40–#45 optional research.
 
@@ -36,6 +36,12 @@ Use the [EDU-02](docs/runbooks/edu-02-documentation-review.md) and
 rejection cases and focused `python -m pytest` commands. See the
 [v0.1.0 replay evidence](docs/releases/v0.1.0/replay-evidence.md) for the
 verified commit and results.
+
+During fresh-checkout validation, `uv run --no-sync --offline pytest` exited
+with code 2 because collection could not import the repository's `scripts`
+namespace. Run tests from the repository root using
+`uv run --no-sync --offline python -m pytest`, the verified invocation on Windows
+and Ubuntu WSL.
 
 ### Windows Playwright host setup
 

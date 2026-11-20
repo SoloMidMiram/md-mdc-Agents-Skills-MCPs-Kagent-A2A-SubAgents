@@ -13,6 +13,12 @@ Draft for maintainer approval.
   teardown remain unverified. The release does not qualify #20 or contribute
   results to EVAL-01.
 
+During fresh-checkout validation, `uv run --no-sync --offline pytest` exited
+with code 2 because collection could not import the repository's `scripts`
+namespace. Run tests from the repository root using
+`uv run --no-sync --offline python -m pytest`, the verified invocation on Windows
+and Ubuntu WSL.
+
 Start with the [offline quickstart](../../../README.md#offline-a2a-practice).
 See the [replay evidence](replay-evidence.md) for the candidate, commands,
 observed outcomes and limitations.
