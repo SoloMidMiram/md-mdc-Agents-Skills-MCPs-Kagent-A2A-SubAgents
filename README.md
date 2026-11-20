@@ -13,9 +13,9 @@ for VS Code, Cursor, Codex CLI, and Continue.
 
 ## Quick Start
 
-Selected priority: a **measurable context-first coding assistant**. Merged source work includes CTX-01/CTX-LABS and the offline EDU-01 A2A follow-on (PR #33); none establishes live coding improvement. [#20 runner qualification](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/20) is P0 but blocked on real independently qualified infrastructure. [#21 frozen evaluation](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/21) remains **0/9**. [Draft PR #35](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/pull/35) has passing offline CI, not live isolation proof. The first offline EDU-02 slice is merged and replayable using the [documentation-review runbook](docs/runbooks/edu-02-documentation-review.md). [#36](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/36) remains open for cross-file references, stable finding IDs, and learner extension instructions. [#37 fixture coding-worker lab](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/37) follows EDU-02 acceptance. Context snapshot/discovery/approval/MCP proposals #22–#25 remain deferred.
+**Next delivery:** [REL-01 #50](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/50) — package the offline A2A practice release. EDU-02 #36 and EDU-03 #37 are closed completed; release replay and acceptance remain outstanding. Start with the [documentation review](docs/runbooks/edu-02-documentation-review.md) and [coding fixture](docs/runbooks/edu-03-coding-fixture.md) runbooks. These are synthetic workflows, not live coding improvement evidence.
 
-See the [live execution order and evidence gates](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md#live-execution-plan--reconciled-2026-11-15) before starting new code. The kagent lane and Playwright release track retain their own acceptance rules.
+See the [release-first phase plan](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md#release-first-execution-plan--2026-11-20). #20/#21 remain gated, #22–#25 deferred, #40–#45 optional research. The commands below are for the separate Windows Playwright host setup.
 
 ```powershell
 git clone https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents.git
@@ -149,7 +149,7 @@ is authorized by a passing dependency audit.
 
 ## Historical kagent roadmap and educational path
 
-The earlier A2A-first product-priority wording below is retained for technical context. Since the November 2026 direction reconciliation, the measurable context-first assistant and runner/evaluation gates are the **current product spine**; offline A2A education proceeds independently.
+The earlier A2A-first product-priority wording below is retained for technical context. Since the November 2026 direction reconciliation, the measurable context-first assistant and runner/evaluation gates are the historical November 15 research priority; offline A2A education proceeds independently.
 
 **North star (2026-08-07):** First prove useful A2A workflows inside kagent,
 then attach Cursor and Codex as interchangeable clients/workers and compare
