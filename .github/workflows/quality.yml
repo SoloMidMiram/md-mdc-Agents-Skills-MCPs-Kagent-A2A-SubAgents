@@ -51,6 +51,7 @@ jobs:
           --ignore=tests/kagent/experiments/test_a2a_sdk_transport.py
           --ignore=tests/kagent/experiments/test_a2a_sdk_repairs.py
           --ignore=tests/kagent/experiments/test_a2a_sdk_cleanup.py
+          --ignore=tests/kagent/experiments/test_a2a_sdk_phase2a.py
 
       - name: Audit every root dependency pin
         run: uv run python scripts/security/audit_dependencies.py --uv-lock uv.lock --service osv --output "${{ runner.temp }}/root-dependency-audit.json"
@@ -87,7 +88,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: "1"
         run: |
           "$RUNNER_TEMP/a2a-sdk/bin/python" -c 'import sys, importlib.metadata, a2a, httpx; assert sys.version_info[:3] == (3, 13, 15); assert importlib.metadata.version("a2a-sdk") == "0.3.26"'
-          "$RUNNER_TEMP/a2a-sdk/bin/python" -m pytest -p no:cacheprovider -q --junitxml="$RUNNER_TEMP/a2a-sdk-results.xml" tests/kagent/experiments/test_a2a_sdk_interop.py tests/kagent/experiments/test_a2a_sdk_transport.py tests/kagent/experiments/test_a2a_sdk_repairs.py tests/kagent/experiments/test_a2a_sdk_cleanup.py
+          "$RUNNER_TEMP/a2a-sdk/bin/python" -m pytest -p no:cacheprovider -q --junitxml="$RUNNER_TEMP/a2a-sdk-results.xml" tests/kagent/experiments/test_a2a_sdk_interop.py tests/kagent/experiments/test_a2a_sdk_transport.py tests/kagent/experiments/test_a2a_sdk_repairs.py tests/kagent/experiments/test_a2a_sdk_cleanup.py tests/kagent/experiments/test_a2a_sdk_phase2a.py
           "$RUNNER_TEMP/a2a-sdk/bin/python" - "$RUNNER_TEMP/a2a-sdk-results.xml" <<'PY'
           import sys
           import xml.etree.ElementTree as ET
@@ -104,7 +105,7 @@ jobs:
           UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/a2a-root-dev
         run: |
           uv sync --frozen --group dev --python 3.13.15
-          "$RUNNER_TEMP/a2a-root-dev/bin/mypy" --python-executable "$RUNNER_TEMP/a2a-sdk/bin/python" scripts/kagent/experiments/a2a_sdk_interop.py
+          "$RUNNER_TEMP/a2a-root-dev/bin/mypy" --python-executable "$RUNNER_TEMP/a2a-sdk/bin/python" scripts/kagent/experiments/a2a_sdk_interop.py scripts/kagent/experiments/phase2a_stub.py
 
       - name: Audit every isolated SDK dependency pin
         env:

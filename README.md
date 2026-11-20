@@ -13,7 +13,9 @@ for VS Code, Cursor, Codex CLI, and Continue.
 
 ## Quick Start
 
-**Next delivery:** [REL-01 #50](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/issues/50) — package the offline A2A practice release. EDU-02 #36 and EDU-03 #37 are closed completed. Release replay is complete. Acceptance and release publication remain pending. Start with the [documentation review](docs/runbooks/edu-02-documentation-review.md) and [coding fixture](docs/runbooks/edu-03-coding-fixture.md) runbooks. These are synthetic workflows, not live coding improvement evidence.
+[v0.1.0 — Offline A2A Practice](https://github.com/SoloMidMiram/md-mdc-Agents-Skills-MCPs-Kagent-A2A-SubAgents/releases/tag/v0.1.0) completes the offline practice goal. The lab demonstrates an offline A2A loop with schema-valid artifacts and terminal records. Live worker qualification and scoring are outside that goal. Start with the [documentation review](docs/runbooks/edu-02-documentation-review.md) and [coding fixture](docs/runbooks/edu-03-coding-fixture.md) runbooks.
+
+Continue with the [deterministic A2A patch replay](docs/runbooks/phase-2a-stub.md) or read the [practice retrospective](docs/onboarding/A2A-PRACTICE-RETROSPECTIVE.md).
 
 See the [release-first phase plan](docs/onboarding/IMPLEMENTED-STATE-AND-ROADMAP.md#release-first-execution-plan--2026-11-20). #20/#21 remain gated, #22–#25 deferred, #40–#45 optional research.
 

@@ -1,0 +1,18 @@
+Ubuntu WSL, Python 3.13.15, A2A SDK 0.3.26
+Synthetic/non-qualified evidence
+
+case=valid
+{"artifact_id": "patch-70796610-77fd-4fdb-a7fe-d0d8a491fabd", "decision": "ACCEPT", "evidence": "synthetic/non-qualified", "message_id": "70796610-77fd-4fdb-a7fe-d0d8a491fabd", "process_group_gone": true, "reason": "correlated_schema_valid_artifact", "request_id": "68ffb689-590a-4946-9fea-23cc7673c603", "task_id": "task-70796610-77fd-4fdb-a7fe-d0d8a491fabd", "worker_exit_code": 0, "worker_pid": 10306}
+exit=0
+
+case=malformed
+{"artifact_id": "patch-d6af968d-9e3c-48e9-b30c-ac35c0e7b439", "decision": "REJECT", "evidence": "synthetic/non-qualified", "message_id": "d6af968d-9e3c-48e9-b30c-ac35c0e7b439", "process_group_gone": true, "reason": "artifact_schema", "request_id": "c96e5d3e-437e-4fcb-876a-17d055085770", "task_id": "task-d6af968d-9e3c-48e9-b30c-ac35c0e7b439", "worker_exit_code": 0, "worker_pid": 10308}
+exit=1
+
+case=wrong-task
+{"artifact_id": null, "decision": "REJECT", "evidence": "synthetic/non-qualified", "message_id": "f8b73000-e7e8-482f-bd3f-3661cb9e8631", "process_group_gone": true, "reason": "protocol_failure", "request_id": "c558e9ed-0f59-4132-8d00-203753c1d16b", "task_id": "task-f8b73000-e7e8-482f-bd3f-3661cb9e8631", "worker_exit_code": 0, "worker_pid": 10310}
+exit=1
+
+case=unsupported
+{"artifact_id": null, "decision": "BLOCKED", "evidence": "synthetic/non-qualified", "message_id": null, "process_group_gone": null, "reason": "unsupported_backend", "request_id": null, "task_id": null, "worker_exit_code": null, "worker_pid": null}
+exit=2

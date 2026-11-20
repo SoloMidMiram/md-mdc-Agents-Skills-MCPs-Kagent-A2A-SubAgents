@@ -551,8 +551,13 @@ async def dispatch_read_only_task(
     prompt: str,
     requested_protocol_version: str,
     timeout: float,
+    observe_event: Callable[[Any], None] | None = None,
 ) -> DispatchObservation:
-    """Send one task through the official SDK after validating the card version."""
+    """Send one task through the official SDK after validating the card version.
+
+    The optional observer sees provisional typed results. Use them only after
+    this function returns successfully with complete wire validation.
+    """
     if not math.isfinite(timeout) or timeout <= 0:
         raise UsageError("timeout must be finite and positive")
     deadline = asyncio.get_running_loop().time() + timeout
@@ -641,6 +646,8 @@ async def dispatch_read_only_task(
                     raise DispatchError("task-bearing event followed terminal completion")
                 if kind != "artifact-update" and state not in KNOWN_STATES:
                     raise DispatchError("task status is missing or unsupported")
+                if observe_event is not None:
+                    observe_event(result)
                 task_ids.append(task_id)
                 transitions.append(
                     StatusTransition(
